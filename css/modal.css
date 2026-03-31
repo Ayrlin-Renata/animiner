@@ -18,10 +18,12 @@
 }
 
 .detail-modal {
-  width: 100%;
-  max-width: 900px;
-  max-height: 85vh;
+  width: 95%;
+  max-width: 1100px;
+  max-height: 90vh;
+  margin: auto;
   overflow-y: auto;
+  overflow-x: hidden;
   position: relative;
   background: var(--bg-color-alt);
   border-radius: var(--radius-lg);
@@ -62,6 +64,7 @@
 .modal-title-area {
   margin-top: 85px;
   flex: 1;
+  min-width: 0;
 }
 
 .modal-title-area h2 {
@@ -72,9 +75,14 @@
 
 .modal-grid {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 220px minmax(0, 1fr);
   gap: 2rem;
   padding: 2rem;
+}
+
+.modal-main {
+  min-width: 0;
+  overflow: hidden;
 }
 
 .sidebar-item {

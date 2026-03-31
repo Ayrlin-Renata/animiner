@@ -22,7 +22,8 @@ export const GROUP_TYPES = {
 export const COLLECTION_PATHS = {
     CHARACTERS: 'characters.edges',
     STAFF: 'staff.edges',
-    STUDIOS: 'studios.edges'
+    STUDIOS: 'studios.edges',
+    LOGIC: 'ROOT' // Special path for manual boolean logic
 };
 
 export const RECURSIVE_CATEGORIES = {
@@ -245,13 +246,24 @@ export function evaluateRule(item, rule) {
     }
 
     if (type === 'GROUP') {
+        const quantifier = rule.quantifier || GROUP_TYPES.ANY;
+        const subRules = rule.rules || [];
+
+        // Special handling for LOGIC/ROOT groups that apply to the current object
+        if (rule.path === COLLECTION_PATHS.LOGIC) {
+            if (subRules.length === 0) return true;
+
+            if (quantifier === GROUP_TYPES.ALL) return subRules.every(subRule => evaluateRule(item, subRule));
+            if (quantifier === GROUP_TYPES.ANY) return subRules.some(subRule => evaluateRule(item, subRule));
+            if (quantifier === GROUP_TYPES.NONE) return !subRules.some(subRule => evaluateRule(item, subRule));
+            return true;
+        }
+
+        // Standard Collection Groups (Characters, Staff, etc.)
         const collection = getValueByPath(item, path);
         if (!collection || !Array.isArray(collection)) return false;
         
-        const quantifier = rule.quantifier || GROUP_TYPES.ANY;
-        const subRules = rule.rules || [];
-        
-        // If no sub-rules, treat as "any item exists" or similar
+        // If no sub-rules, treat as "any item exists"
         if (subRules.length === 0) return collection.length > 0;
 
         const matchingItems = collection.filter(subItem => 

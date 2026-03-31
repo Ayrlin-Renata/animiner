@@ -166,10 +166,94 @@ export function openModal(item) {
   let content = '';
   
   if (state.searchMode === 'MEDIA') {
-    const genres = item.genres?.map(g => `<span class="tag">${g}</span>`).join('') || '';
-    const tags = item.tags?.slice(0, 10).map(t => `<span class="tag-outline">${t.name}</span>`).join('') || '';
+    const genres = item.genres?.map(g => `<span class="tag">${g}</span>`).join(' ') || '';
     const studios = item.studios?.edges?.filter(e => e.isMain).map(e => e.node.name).join(', ') || 'Unknown';
+    const sourceFormatted = item.source?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) || '?';
     
+    // Sort and filter tags
+    const allTags = (item.tags || []).sort((a, b) => b.rank - a.rank);
+    const visibleTags = allTags.filter(t => !t.isGeneralSpoiler && !t.isMediaSpoiler);
+    const spoilerTags = allTags.filter(t => t.isGeneralSpoiler || t.isMediaSpoiler);
+
+    const trailerHtml = item.trailer && item.trailer.site === 'youtube' 
+        ? `<div class="section-title">Trailer</div>
+           <div class="video-container">
+             <iframe src="https://www.youtube.com/embed/${item.trailer.id}" frameborder="0" allowfullscreen></iframe>
+           </div>` : '';
+
+    const relationsHtml = item.relations?.edges?.length ? `
+        <div class="section-title">Relations</div>
+        <div class="mini-grid">
+            ${item.relations.edges.map(e => `
+                <div class="mini-card glass-dark">
+                    <img src="${e.node.coverImage.medium}" class="mini-poster">
+                    <div class="mini-info">
+                        <div class="mini-rel">${e.relationType.replace(/_/g, ' ')}</div>
+                        <div class="mini-title">${e.node.title.english || e.node.title.romaji}</div>
+                        <div class="mini-meta">${e.node.format} · ${e.node.status}</div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    ` : '';
+
+    const recommendationsHtml = item.recommendations?.nodes?.length ? `
+        <div class="section-title">Recommendations</div>
+        <div class="mini-grid horizontal">
+            ${item.recommendations.nodes.map(n => {
+                const rec = n.mediaRecommendation;
+                if (!rec) return '';
+                return `
+                    <div class="mini-card glass-dark vertical">
+                        <img src="${rec.coverImage.medium}" class="mini-poster">
+                        <div class="mini-title">${rec.title.english || rec.title.romaji}</div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    ` : '';
+
+    const statsHtml = item.stats ? `
+        <div class="section-title">Statistics</div>
+        <div class="stats-distributions">
+            <div class="dist-group">
+                <h4>Status Distribution</h4>
+                <div class="dist-bar">
+                    ${item.stats.statusDistribution.map(d => `
+                        <div class="bar-seg" style="width: ${(d.amount / item.popularity * 100).toFixed(1)}%; background: var(--color-${d.status.toLowerCase()})" title="${d.status}: ${d.amount.toLocaleString()}"></div>
+                    `).join('')}
+                </div>
+                <div class="dist-legend">
+                    ${item.stats.statusDistribution.map(d => `<span class="legend-item"><i class="dot" style="background: var(--color-${d.status.toLowerCase()})"></i> ${d.status}</span>`).join('')}
+                </div>
+            </div>
+            <div class="dist-group">
+                <h4>Score Distribution</h4>
+                <div class="dist-bar scores">
+                    ${item.stats.scoreDistribution.map(d => {
+                        const maxAmount = Math.max(...item.stats.scoreDistribution.map(sd => sd.amount));
+                        return `
+                            <div class="bar-seg score" style="height: ${(d.amount / maxAmount * 100).toFixed(1)}%; width: calc(10% - 2px); background: var(--accent-color)" title="${d.score}: ${d.amount.toLocaleString()}"></div>
+                        `;
+                    }).join('')}
+                </div>
+                <div class="dist-legend">
+                  <span class="legend-item">Score (10-100)</span>
+                </div>
+            </div>
+        </div>
+    ` : '';
+
+    const linksHtml = item.externalLinks?.length ? `
+        <div class="external-links">
+            ${item.externalLinks.map(l => `
+                <a href="${l.url}" target="_blank" class="ext-link" style="background: ${l.color || 'rgba(255,255,255,0.1)'}">
+                    ${l.site}
+                </a>
+            `).join('')}
+        </div>
+    ` : '';
+
     content = `
       <div class="modal-banner" style="background-image: url('${item.bannerImage || item.coverImage.extraLarge}')"></div>
       <div class="modal-header-content">
@@ -178,25 +262,59 @@ export function openModal(item) {
           <h2>${item.title.english || item.title.romaji}</h2>
           <p class="native-title">${item.title.native}</p>
           <div class="modal-badge-row">${genres}</div>
+          ${linksHtml}
         </div>
       </div>
       <div class="modal-grid">
         <div class="modal-sidebar">
-          <div class="sidebar-item"><h4>Format</h4><p>${item.format || '?'}</p></div>
-          <div class="sidebar-item"><h4>Episodes</h4><p>${item.episodes || item.chapters || '?'}</p></div>
-          <div class="sidebar-item"><h4>Score</h4><p>${item.averageScore ? item.averageScore + '%' : '?'}</p></div>
-          <div class="sidebar-item"><h4>Popularity</h4><p>${item.popularity?.toLocaleString() || '?'}</p></div>
-          <div class="sidebar-item"><h4>Studio</h4><p>${studios}</p></div>
-          <div class="sidebar-item"><h4>Source</h4><p>${item.source || '?'}</p></div>
+          <div class="sidebar-section">
+            <div class="sidebar-item"><h4>Format</h4><p>${item.format || '?'}</p></div>
+            <div class="sidebar-item"><h4>Episodes</h4><p>${item.episodes || item.chapters || '?'}</p></div>
+            <div class="sidebar-item"><h4>Status</h4><p>${item.status || '?'}</p></div>
+            <div class="sidebar-item"><h4>Start Date</h4><p>${item.startDate?.year || '?'}</p></div>
+            <div class="sidebar-item"><h4>Season</h4><p>${item.season || '?'}</p></div>
+            <div class="sidebar-item"><h4>Average Score</h4><p>${item.averageScore ? item.averageScore + '%' : '?'}</p></div>
+            <div class="sidebar-item"><h4>Popularity</h4><p>${item.popularity?.toLocaleString() || '?'}</p></div>
+            <div class="sidebar-item"><h4>Studios</h4><p>${studios}</p></div>
+            <div class="sidebar-item"><h4>Source</h4><p>${sourceFormatted}</p></div>
+            ${item.hashtag ? `<div class="sidebar-item"><h4>Hashtag</h4><p>${item.hashtag}</p></div>` : ''}
+            ${item.synonyms?.length ? `<div class="sidebar-item"><h4>Synonyms</h4><p>${item.synonyms.join(', ')}</p></div>` : ''}
+            <div class="sidebar-item"><h4>Romaji</h4><p>${item.title.romaji}</p></div>
+            ${item.title.english ? `<div class="sidebar-item"><h4>English</h4><p>${item.title.english}</p></div>` : ''}
+            <div class="sidebar-item"><h4>Native</h4><p>${item.title.native}</p></div>
+          </div>
+          
+          <div class="sidebar-section">
+            <div class="section-title small">Tags</div>
+            <div class="tag-list">
+              ${visibleTags.map(t => `
+                <div class="tag-list-item">
+                  <span class="tag-name">${t.name}</span>
+                  <span class="tag-rank">${t.rank}%</span>
+                </div>
+              `).join('')}
+              ${spoilerTags.length ? `<button class="text-btn spoiler-toggle" onclick="this.nextElementSibling.classList.toggle('hidden')">Show Spoiler Tags (+${spoilerTags.length})</button>
+              <div class="tag-list hidden">
+                ${spoilerTags.map(t => `
+                  <div class="tag-list-item spoiler">
+                    <span class="tag-name">${t.name}</span>
+                    <span class="tag-rank">${t.rank}%</span>
+                  </div>
+                `).join('')}
+              </div>` : ''}
+            </div>
+          </div>
         </div>
         <div class="modal-main">
           <div class="section-title">Description</div>
           <div class="modal-description">${formatDescription(item.description)}</div>
-          ${tags ? `<div class="section-title">Notable Tags</div><div class="modal-badge-row">${tags}</div>` : ''}
+          
+          ${trailerHtml}
+          ${relationsHtml}
           ${item.characters?.edges?.length ? `
             <div class="section-title">Featured Characters</div>
             <div class="char-grid">
-              ${item.characters.edges.slice(0, 8).map(e => `
+              ${item.characters.edges.slice(0, 12).map(e => `
                 <div class="char-card">
                   <img src="${e.node.image?.large}" class="char-img">
                   <div class="char-info">
@@ -211,6 +329,8 @@ export function openModal(item) {
               `).join('')}
             </div>
           ` : ''}
+          ${recommendationsHtml}
+          ${statsHtml}
         </div>
       </div>`;
   } else {
@@ -363,7 +483,7 @@ export function addRuleUI(initialData = null, parentContainer = null, isSubField
 /**
  * Adds a new Filter Group to the UI.
  */
-export function addGroupUI(initialData = null) {
+export function addGroupUI(initialData = null, parentContainer = null) {
     const box = document.createElement('div');
     box.className = 'rule-group-box';
     box.dataset.type = 'GROUP';
@@ -371,12 +491,14 @@ export function addGroupUI(initialData = null) {
     box.innerHTML = `
         <div class="rule-group-header">
             <div class="group-title">
-                <i data-lucide="layers"></i>
-                <span>Group Filter</span>
+                <i data-lucide="layers" class="collection-icon"></i>
+                <i data-lucide="square-slash" class="logic-icon hidden"></i>
+                <span class="group-name">Collection Group</span>
             </div>
             <div class="group-controls">
                 <select class="group-path">
-                    ${Object.entries(COLLECTION_PATHS).map(([key, val]) => `<option value="${val}">${key}</option>`).join('')}
+                    <option value="ROOT">Manual Logic</option>
+                    ${Object.entries(COLLECTION_PATHS).filter(([k]) => k !== 'LOGIC').map(([key, val]) => `<option value="${val}">${key}</option>`).join('')}
                 </select>
                 <select class="group-quantifier">
                     ${Object.values(GROUP_TYPES).map(t => `<option value="${t}">${t}</option>`).join('')}
@@ -384,10 +506,14 @@ export function addGroupUI(initialData = null) {
                 <button class="remove-btn" title="Remove Group"><i data-lucide="trash-2"></i></button>
             </div>
         </div>
+        <div class="group-help-text">Filters everything in this block.</div>
         <div class="group-rules-container"></div>
         <div class="group-actions">
             <button class="text-btn add-sub-rule-btn">
                 <i data-lucide="plus"></i> Add Sub-Constraint
+            </button>
+            <button class="text-btn add-sub-group-btn">
+                <i data-lucide="layers"></i> Add Sub-Group
             </button>
         </div>
     `;
@@ -397,25 +523,68 @@ export function addGroupUI(initialData = null) {
     const container = box.querySelector('.group-rules-container');
     const addBtn = box.querySelector('.add-sub-rule-btn');
 
+    const updateGroupContext = () => {
+        const isLogic = pathSelect.value === 'ROOT';
+        box.classList.toggle('logic-group', isLogic);
+        box.querySelector('.group-name').textContent = isLogic ? 'Logic Container' : 'Collection Group';
+        
+        box.querySelector('.collection-icon').classList.toggle('hidden', isLogic);
+        box.querySelector('.logic-icon').classList.toggle('hidden', !isLogic);
+
+        const quantifierText = {
+            ANY: isLogic ? 'Matches if ANY of these rules pass (OR).' : 'Finds items where ANY match.',
+            ALL: isLogic ? 'Matches if ALL of these rules pass (AND).' : 'Finds items where ALL match.',
+            NONE: isLogic ? 'Matches if NONE of these rules pass (NOT).' : 'Finds items where NONE match.'
+        };
+        box.querySelector('.group-help-text').textContent = quantifierText[quantSelect.value];
+    };
+
     if (initialData) {
         pathSelect.value = initialData.path;
         quantSelect.value = initialData.quantifier || 'ANY';
     }
 
-    addBtn.onclick = () => addRuleUI(null, container, true, SUB_FIELDS[pathSelect.value]);
+    const addSubRule = (data = null) => {
+        const isLogic = pathSelect.value === 'ROOT';
+        if (isLogic) {
+            // Use top-level field builder
+            addRuleUI(data, container);
+        } else {
+            // Use sub-field builder
+            addRuleUI(data, container, true, SUB_FIELDS[pathSelect.value]);
+        }
+    };
+
+    const addSubGroup = (data = null) => {
+        addGroupUI(data, container);
+    };
+
+    addBtn.onclick = () => addSubRule();
+    box.querySelector('.add-sub-group-btn').onclick = () => addSubGroup();
+
     pathSelect.onchange = () => {
         container.innerHTML = '';
-        addRuleUI(null, container, true, SUB_FIELDS[pathSelect.value]);
+        updateGroupContext();
+        addSubRule();
     };
+    quantSelect.onchange = updateGroupContext;
     box.querySelector('.remove-btn').onclick = () => box.remove();
 
     if (initialData && initialData.rules) {
-        initialData.rules.forEach(r => addRuleUI(r, container, true, SUB_FIELDS[pathSelect.value]));
+        initialData.rules.forEach(r => {
+            if (r.type === 'GROUP') {
+                addSubGroup(r);
+            } else {
+                addSubRule(r);
+            }
+        });
     } else {
-        addRuleUI(null, container, true, SUB_FIELDS[pathSelect.value]);
+        addSubRule();
     }
+    
+    updateGroupContext();
 
-    UI.rootGroup.appendChild(box);
+    (parentContainer || UI.rootGroup).appendChild(box);
     if (window.lucide) window.lucide.createIcons();
 }
 

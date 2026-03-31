@@ -54,8 +54,8 @@ export const QUERIES = {
           coverImage { extraLarge large }
           averageScore meanScore popularity trending favourites episodes duration chapters volumes
           isLocked synonyms hashtag
-          tags { name category rank }
-          studios { edges { node { name } isMain } }
+          tags { name category rank isGeneralSpoiler isMediaSpoiler }
+          studios { edges { node { name siteUrl } isMain } }
           characters(perPage: 12) { 
             edges { 
               role 
@@ -78,7 +78,35 @@ export const QUERIES = {
               } 
             } 
           }
-          relations { edges { relationType node { id title { romaji } coverImage { medium } } } }
+          relations { 
+            edges { 
+              relationType 
+              node { 
+                id 
+                title { romaji english } 
+                format 
+                type
+                status 
+                coverImage { medium } 
+              } 
+            } 
+          }
+          recommendations(sort: [RATING_DESC, ID], perPage: 7) { 
+            nodes { 
+              mediaRecommendation { 
+                id 
+                title { romaji english } 
+                type
+                coverImage { medium } 
+              } 
+            } 
+          }
+          stats { 
+            statusDistribution { status amount } 
+            scoreDistribution { score amount } 
+          }
+          externalLinks { url site icon color type language }
+          trailer { id site thumbnail }
         }
       }
     }
