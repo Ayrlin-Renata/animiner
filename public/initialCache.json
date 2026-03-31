@@ -1,0 +1,14 @@
+{
+  "genres": [
+    "Action", "Adventure", "Comedy", "Drama", "Ecchi", "Fantasy", "Horror", "Mahou Shoujo", "Mecha", "Music", "Mystery", "Psychological", "Romance", "Sci-Fi", "Slice of Life", "Sports", "Supernatural", "Thriller"
+  ],
+  "tags": [
+    "Isekai", "Anti-Hero", "Male Protagonist", "Magic", "School", "Super Power", "Cyberpunk", "Dystopian", "Time Travel", "Martial Arts", "Demons", "Military", "Post-Apocalyptic", "Space", "Urban Fantasy", "Historical", "Gore", "Psychological Trail", "Battle Royale", "Nihon"
+  ],
+  "studios": [
+    "Madhouse", "MAPPA", "Ufotable", "A-1 Pictures", "Bones", "Shaft", "Kyoto Animation", "Wit Studio", "Production I.G", "Sunrise", "J.C.Staff", "Pierrot", "Toei Animation", "CloverWorks", "TMS Entertainment"
+  ],
+  "formats": [
+    "TV", "TV_SHORT", "MOVIE", "SPECIAL", "OVA", "ONA", "MUSIC", "MANGA", "NOVEL", "ONE_SHOT"
+  ]
+}

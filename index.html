@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AniList Workspace - Advanced Search</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Split CSS -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/modal.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="logo">
+                <i data-lucide="search-code"></i>
+                <h1>Ani<span>Workspace</span></h1>
+            </div>
+            <p class="subtitle">Recursive Deep Search for AniList</p>
+        </header>
+
+        <main>
+            <!-- Search Controls -->
+            <section class="search-panel glass">
+                <div class="main-bar">
+                    <div class="control-group">
+                        <label for="searchMode">Mode</label>
+                        <select id="searchMode">
+                            <option value="MEDIA">Media</option>
+                            <option value="CHARACTER">Character</option>
+                            <option value="STAFF">Staff</option>
+                            <option value="STUDIO">Studio</option>
+                            <option value="USER">User</option>
+                        </select>
+                    </div>
+
+                    <div class="search-input-wrapper">
+                        <i data-lucide="search" class="input-icon"></i>
+                        <input type="text" id="mainSearch" placeholder="Search...">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="targetResults">Target</label>
+                        <input type="number" id="targetResults" value="50" min="1" max="500">
+                    </div>
+
+                    <div class="control-group" id="mediaSortControl">
+                        <label for="mediaSort">Sort</label>
+                        <select id="mediaSort">
+                            <option value="POPULARITY_DESC">Popularity</option>
+                            <option value="SCORE_DESC">Score</option>
+                            <option value="TRENDING_DESC">Trending</option>
+                            <option value="START_DATE_DESC">Date</option>
+                            <option value="FAVOURITES_DESC">Favourites</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group" id="mediaTypeControl">
+                        <label for="mediaType">Type</label>
+                        <select id="mediaType">
+                            <option value="ANIME">Anime</option>
+                            <option value="MANGA">Manga</option>
+                        </select>
+                    </div>
+
+                    <button id="searchBtn" class="primary-btn">
+                        <span>Search</span>
+                        <i data-lucide="send"></i>
+                    </button>
+                    <button id="cancelBtn" class="danger-btn hidden">
+                        <i data-lucide="x-circle"></i>
+                    </button>
+                </div>
+
+                <!-- Progress Dashboard (Hidden by default) -->
+                <div id="progressBanner" class="progress-banner hidden">
+                    <div class="progress-info">
+                        <div class="stat">
+                            <span class="stat-label">Scanned</span>
+                            <span id="scannedCount" class="stat-value">0</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Found</span>
+                            <span id="foundCount" class="stat-value highlight">0</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Status</span>
+                            <span id="scanStatus" class="stat-value">Idle</span>
+                        </div>
+                    </div>
+                    <div id="rateLimitNotice" class="rate-limit-warning hidden">
+                        <i data-lucide="clock"></i>
+                        <span>Rate limit reached... waiting</span>
+                    </div>
+                </div>
+
+                <div class="constraint-builder">
+                    <h3><i data-lucide="filter"></i> Applied Constraints (AND Logic)</h3>
+                    <div id="rootGroup">
+                        <!-- Rule rows will be added here -->
+                    </div>
+                    <button id="addRuleBtn" class="text-btn">
+                        <i data-lucide="plus"></i> Add Constraint
+                    </button>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section id="loading" class="hidden">
+                <div class="loader">
+                    <i data-lucide="loader-2" class="spin"></i>
+                    <span>Searching AniList database...</span>
+                </div>
+            </section>
+
+            <div id="noResults" class="hidden">
+                <p>No results found matching your criteria.</p>
+            </div>
+
+            <section id="resultsGrid" class="results-grid">
+                <!-- Cards will be injected here -->
+            </section>
+        </main>
+    </div>
+
+    <!-- Details Modal -->
+    <div id="modalOverlay" class="modal-overlay hidden">
+        <div class="detail-modal glass">
+            <button id="closeModal" class="close-modal-btn"><i data-lucide="x"></i></button>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <div id="datalistContainer"></div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
