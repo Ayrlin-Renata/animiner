@@ -64,10 +64,10 @@ export const QUERIES = {
     }
   `,
   CHARACTER: `
-    query ($search: String, $page: Int, $id: Int, $isBirthday: Boolean) {
+    query ($search: String, $page: Int, $id: Int, $id_not: Int, $id_in: [Int], $id_not_in: [Int], $isBirthday: Boolean) {
       Page(page: $page, perPage: 50) {
         pageInfo { hasNextPage }
-        characters(search: $search, id: $id, isBirthday: $isBirthday) {
+        characters(search: $search, id: $id, id_not: $id_not, id_in: $id_in, id_not_in: $id_not_in, isBirthday: $isBirthday) {
           id name { full native userPreferred } image { large } description gender age bloodType favourites
           media(perPage: 1) { nodes { title { romaji } coverImage { medium } } }
         }
@@ -75,10 +75,10 @@ export const QUERIES = {
     }
   `,
   STAFF: `
-    query ($search: String, $page: Int, $id: Int, $isBirthday: Boolean) {
+    query ($search: String, $page: Int, $id: Int, $id_not: Int, $id_in: [Int], $id_not_in: [Int], $isBirthday: Boolean) {
       Page(page: $page, perPage: 50) {
         pageInfo { hasNextPage }
-        staff(search: $search, id: $id, isBirthday: $isBirthday) {
+        staff(search: $search, id: $id, id_not: $id_not, id_in: $id_in, id_not_in: $id_not_in, isBirthday: $isBirthday) {
           id name { full native userPreferred } image { large } description gender age bloodType favourites
           languageV2 primaryOccupations homeTown
         }
@@ -86,10 +86,10 @@ export const QUERIES = {
     }
   `,
   STUDIO: `
-    query ($search: String, $page: Int, $id: Int) {
+    query ($search: String, $page: Int, $id: Int, $id_not: Int, $id_in: [Int], $id_not_in: [Int]) {
       Page(page: $page, perPage: 50) {
         pageInfo { hasNextPage }
-        studios(search: $search, id: $id) {
+        studios(search: $search, id: $id, id_not: $id_not, id_in: $id_in, id_not_in: $id_not_in) {
           id name isAnimationStudio favourites
           media(perPage: 1) { nodes { coverImage { medium } } }
         }
@@ -97,10 +97,10 @@ export const QUERIES = {
     }
   `,
   USER: `
-    query ($search: String, $page: Int, $id: Int) {
+    query ($search: String, $page: Int, $id: Int, $isModerator: Boolean) {
       Page(page: $page, perPage: 50) {
         pageInfo { hasNextPage }
-        users(search: $search, id: $id) {
+        users(search: $search, id: $id, isModerator: $isModerator) {
           id name avatar { large } about
         }
       }
@@ -203,64 +203,36 @@ function getApiVariables() {
      vars.sort = [document.getElementById('mediaSort')?.value || 'POPULARITY_DESC'];
   }
 
-  // Map rules to API variables for push-down filtering
+  // Helper to parse list
+  const parseList = (str) => str.split(',').map(s => s.trim()).filter(s => s !== '');
+  const parseIntList = (str) => parseList(str).map(val => parseInt(val)).filter(val => !isNaN(val));
+
   state.rules.forEach(rule => {
     const val = rule.value;
-    const op = rule.operator;
     const path = rule.path;
+    const apiArg = rule.apiArg;
 
-    if (path === 'id') {
-      if (op === 'equals') vars.id = parseInt(val);
-      if (op === 'not_equals') vars.id_not = parseInt(val);
-    } else if (path === 'idMal') {
-      if (op === 'equals') vars.idMal = parseInt(val);
-      if (op === 'not_equals') vars.idMal_not = parseInt(val);
-    } else if (path === 'isAdult') {
-      if (op === 'is') vars.isAdult = (val === 'true');
-    } else if (path === 'isLicensed') {
-      if (op === 'is') vars.isLicensed = (val === 'true');
-    } else if (path === 'format') {
-      if (op === 'equals') vars.format = val;
-      if (op === 'not_equals') vars.format_not = val;
-    } else if (path === 'status') {
-      if (op === 'equals') vars.status = val;
-      if (op === 'not_equals') vars.status_not = val;
-    } else if (path === 'episodes') {
-        if (op === 'equals') vars.episodes = parseInt(val);
-        if (op === 'greater_than') vars.episodes_greater = parseInt(val);
-        if (op === 'less_than') vars.episodes_lesser = parseInt(val);
-    } else if (path === 'duration') {
-        if (op === 'equals') vars.duration = parseInt(val);
-        if (op === 'greater_than') vars.duration_greater = parseInt(val);
-        if (op === 'less_than') vars.duration_lesser = parseInt(val);
-    } else if (path === 'chapters') {
-        if (op === 'equals') vars.chapters = parseInt(val);
-        if (op === 'greater_than') vars.chapters_greater = parseInt(val);
-        if (op === 'less_than') vars.chapters_lesser = parseInt(val);
-    } else if (path === 'volumes') {
-        if (op === 'equals') vars.volumes = parseInt(val);
-        if (op === 'greater_than') vars.volumes_greater = parseInt(val);
-        if (op === 'less_than') vars.volumes_lesser = parseInt(val);
-    } else if (path === 'averageScore') {
-      if (op === 'equals') vars.averageScore = parseInt(val);
-      if (op === 'greater_than') vars.averageScore_greater = parseInt(val);
-      if (op === 'less_than') vars.averageScore_lesser = parseInt(val);
-    } else if (path === 'popularity') {
-      if (op === 'equals') vars.popularity = parseInt(val);
-      if (op === 'greater_than') vars.popularity_greater = parseInt(val);
-      if (op === 'less_than') vars.popularity_lesser = parseInt(val);
-    } else if (path === 'genres') {
-      if (op === 'contains') vars.genre = val;
-    } else if (path === 'tags.name') {
-      if (op === 'contains') vars.tag = val;
-    } else if (path === 'season') {
-      if (op === 'equals') vars.season = val;
-    } else if (path === 'seasonYear') {
-      if (op === 'equals') vars.seasonYear = parseInt(val);
-    } else if (path === 'source') {
-      if (op === 'equals') vars.source = val;
-    } else if (path === 'countryOfOrigin') {
-      if (op === 'equals') vars.countryOfOrigin = val;
+    if (apiArg) {
+        if (apiArg.endsWith('_in') || apiArg.endsWith('_not_in')) {
+            // Check if it should be an array of Ints or Strings
+            // Simple heuristic: if any element is NaN, it's a string list
+            const intList = parseIntList(val);
+            const strList = parseList(val);
+            vars[apiArg] = intList.length === strList.length ? intList : strList;
+        } else if (apiArg === 'isAdult' || apiArg === 'isLicensed' || apiArg === 'isLocked' || apiArg === 'isFavourite') {
+            vars[apiArg] = (val === 'true');
+        } else if (apiArg.includes('Score') || apiArg.includes('popularity') || apiArg.includes('episodes') || 
+                   apiArg.includes('duration') || apiArg.includes('chapters') || apiArg.includes('volumes') || 
+                   apiArg.includes('id') || apiArg.includes('Year') || apiArg.includes('Rank')) {
+            vars[apiArg] = parseInt(val);
+        } else {
+            vars[apiArg] = val;
+        }
+    } else {
+        // Fallback for legacy paths or fields without apiArg
+        if (path === 'isAdult') vars.isAdult = (val === 'true');
+        if (path === 'genre_in') vars.genre_in = parseList(val);
+        if (path === 'genre_not_in') vars.genre_not_in = parseList(val);
     }
   });
 

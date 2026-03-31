@@ -268,14 +268,16 @@ export function addRuleUI() {
     const valContainer = row.querySelector('.val-container');
 
     const updateFields = () => {
-        const fields = FIELDS[catSelect.value];
-        fieldSelect.innerHTML = fields.map(f => `<option value="${f.path}">${f.label}</option>`).join('');
+        const fields = FIELDS[catSelect.value] || [];
+        fieldSelect.innerHTML = fields.map((f, i) => `<option value="${i}">${f.label}</option>`).join('');
         updateOps();
     };
 
     const updateOps = () => {
-        const field = FIELDS[catSelect.value].find(f => f.path === fieldSelect.value);
-        const ops = OPERATORS_BY_TYPE[field.type];
+        const fields = FIELDS[catSelect.value] || [];
+        const field = fields[parseInt(fieldSelect.value)];
+        if (!field) return;
+        const ops = OPERATORS_BY_TYPE[field.type] || [];
         opSelect.innerHTML = ops.map(o => `<option value="${o}">${o.replace('_', ' ')}</option>`).join('');
         updateValInput(field);
     };
@@ -300,6 +302,11 @@ export function addRuleUI() {
             if (values.length === 0) {
               input.innerHTML = '<option value="">No values seen yet</option>';
             }
+        } else if (field.type === 'list') {
+            input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'val-input';
+            input.placeholder = 'Comma separated, e.g. Action, Comedy';
         } else {
             input = document.createElement('input');
             input.type = field.type === 'number' ? 'number' : 'text';

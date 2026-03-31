@@ -6,6 +6,7 @@
 import { state, loadCache } from './state.js';
 import { UI, addRuleUI, resetUI, updateProgress, renderResultsList } from './ui.js';
 import { executeSearch } from './api.js';
+import { FIELDS } from './filter.js';
 
 async function init() {
   await loadCache();
@@ -48,11 +49,22 @@ async function init() {
 
 function updateStateFromUI() {
   const rows = Array.from(UI.rootGroup.querySelectorAll('.rule-row'));
-  state.rules = rows.map(r => ({
-    path: r.querySelector('.field-select').value,
-    operator: r.querySelector('.op-select').value,
-    value: r.querySelector('.val-input, .val-select').value
-  })).filter(r => r.value !== '');
+  state.rules = rows.map(r => {
+    const cat = r.querySelector('.cat-select').value;
+    const fieldIdx = parseInt(r.querySelector('.field-select').value);
+    const fields = FIELDS[cat] || [];
+    const field = fields[fieldIdx];
+    
+    if (!field) return null;
+
+    return {
+      path: field.path,
+      apiArg: field.apiArg,
+      type: field.type,
+      operator: r.querySelector('.op-select').value,
+      value: (r.querySelector('.val-input') || r.querySelector('.val-select'))?.value || ''
+    };
+  }).filter(r => r && r.value !== '');
   
   state.targetMatches = parseInt(UI.targetResults.value || '50');
 }
