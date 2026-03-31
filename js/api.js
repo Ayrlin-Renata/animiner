@@ -55,11 +55,12 @@ export const QUERIES = {
           averageScore meanScore popularity trending favourites episodes duration chapters volumes
           isLocked synonyms hashtag
           tags { name category rank isGeneralSpoiler isMediaSpoiler }
-          studios { edges { node { name siteUrl } isMain } }
+          studios { edges { node { id name siteUrl } isMain } }
           characters(perPage: 12) { 
             edges { 
               role 
               node { 
+                id
                 name { full } 
                 image { large } 
                 gender 
@@ -71,6 +72,7 @@ export const QUERIES = {
             edges { 
               role 
               node { 
+                id
                 name { full } 
                 image { large } 
                 gender 
@@ -92,7 +94,7 @@ export const QUERIES = {
                 popularity
                 startDate { year }
                 tags { name category rank }
-                coverImage { medium } 
+                coverImage { large } 
               } 
             } 
           }
@@ -102,7 +104,7 @@ export const QUERIES = {
                 id 
                 title { romaji english } 
                 type
-                coverImage { medium } 
+                coverImage { large } 
               } 
             } 
           }

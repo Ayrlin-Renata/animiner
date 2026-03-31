@@ -52,7 +52,7 @@
 
 .mini-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 1.2rem;
   margin-bottom: 2.5rem;
 }
@@ -68,8 +68,8 @@
 
 .mini-card {
   display: flex;
-  gap: 1rem;
-  padding: 0.8rem;
+  gap: 1.2rem;
+  padding: 1rem;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.03);
   border-radius: var(--radius-md);
@@ -80,7 +80,7 @@
 
 .mini-card.vertical {
   flex-direction: column;
-  width: 150px;
+  width: 180px;
 }
 
 .mini-card:hover {
@@ -89,15 +89,16 @@
 }
 
 .mini-poster {
-  width: 50px;
-  height: 70px;
+  width: 80px;
+  height: 120px;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 .vertical .mini-poster {
   width: 100%;
-  height: 180px;
+  height: 240px;
 }
 
 .mini-info {

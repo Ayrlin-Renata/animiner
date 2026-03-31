@@ -58,7 +58,7 @@ export function openModal(item) {
         <div class="mini-grid">
             ${item.relations.edges.map(e => `
                 <a href="https://anilist.co/${e.node.type.toLowerCase()}/${e.node.id}" target="_blank" class="mini-card glass-dark no-style">
-                    <img src="${e.node.coverImage.medium}" class="mini-poster">
+                    <img src="${e.node.coverImage.large}" class="mini-poster">
                     <div class="mini-info">
                         <div class="mini-rel">${e.relationType.replace(/_/g, ' ')}</div>
                         <div class="mini-title">${e.node.title.english || e.node.title.romaji}</div>
@@ -77,7 +77,7 @@ export function openModal(item) {
                 if (!rec) return '';
                 return `
                     <a href="https://anilist.co/${rec.type.toLowerCase()}/${rec.id}" target="_blank" class="mini-card glass-dark vertical no-style">
-                        <img src="${rec.coverImage.medium}" class="mini-poster">
+                        <img src="${rec.coverImage.large}" class="mini-poster">
                         <div class="mini-title">${rec.title.english || rec.title.romaji}</div>
                     </a>
                 `;
@@ -142,6 +142,9 @@ export function openModal(item) {
             <div class="modal-actions">
               <button class="action-btn watched-btn ${isWatched ? 'active' : ''}" title="${isWatched ? 'Watched! (Click to Unmark)' : 'Mark as Watched'}" onclick="window.toggleWatched(${item.id}, '${(item.title.english || item.title.romaji || '').replace(/'/g, "\\'")}', '${item.coverImage.large}', this)">
                 <i data-lucide="${isWatched ? 'check-circle' : 'eye'}"></i>
+              </button>
+              <button class="action-btn block-btn" title="Block Reference" onclick="window.blockItem(${item.id}, '${(item.title.english || item.title.romaji || '').replace(/'/g, "\\'")}', '${item.coverImage.large}', true)">
+                <i data-lucide="shield-off"></i>
               </button>
               <button class="action-btn" title="Copy AniList Link" onclick="window.copyToClipboard('${anilistUrl}', this)">
                 <i data-lucide="copy"></i>
@@ -227,6 +230,39 @@ export function openModal(item) {
               `).join('')}
             </div>
           ` : ''}
+          ${item.studios?.edges?.length ? `
+            <div class="section-title">Studios</div>
+            <div class="mini-grid">
+              ${item.studios.edges.map(e => `
+                <a href="https://anilist.co/studio/${e.node.id}" target="_blank" class="mini-card glass-dark no-style">
+                  <div class="mini-info">
+                    <div class="mini-rel">${e.isMain ? 'Main Studio' : 'Producer'}</div>
+                    <div class="mini-title">${e.node.name}</div>
+                  </div>
+                </a>
+              `).join('')}
+            </div>
+          ` : ''}
+
+          ${item.staff?.edges?.length ? `
+            <div class="section-title">Featured Staff</div>
+            <div class="char-grid">
+              ${item.staff.edges.slice(0, 8).map(e => `
+                <a href="https://anilist.co/staff/${e.node.id}" target="_blank" class="char-card no-style">
+                  <img src="${e.node.image?.large}" class="char-img">
+                  <div class="char-info">
+                    <p class="char-name">${e.node.name?.full}</p>
+                    <p class="char-role">${e.role}</p>
+                    <div class="char-traits">
+                      ${e.node.gender ? `<span class="trait-badge">${e.node.gender}</span>` : ''}
+                      ${e.node.age ? `<span class="trait-badge">${e.node.age}</span>` : ''}
+                    </div>
+                  </div>
+                </a>
+              `).join('')}
+            </div>
+          ` : ''}
+
           ${recommendationsHtml}
           ${statsHtml}
         </div>
@@ -286,7 +322,9 @@ export function openBlacklistManager() {
                                 ${image ? `<img src="${image}" class="blacklist-thumb">` : '<div class="blacklist-thumb-placeholder">?</div>'}
                                 <span class="item-title">${title}</span>
                             </div>
-                            <button class="remove-btn" onclick="window.unblockItem(${id})">Unblock</button>
+                             <button class="remove-btn" title="Unblock" onclick="window.unblockItem(${id})">
+                                <i data-lucide="trash-2"></i>
+                             </button>
                         </div>
                     `;
                 }).join('')}
@@ -296,10 +334,11 @@ export function openBlacklistManager() {
     UI.modalContent.innerHTML = content;
     UI.modalOverlay.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+    if (window.lucide) window.lucide.createIcons();
 }
 
 // Global exposure for non-module clicks
-window.blockItem = (id, title, image) => {
+window.blockItem = (id, title, image, hideModal = false) => {
     const list = state.blacklist[state.searchMode];
     const exists = list.some(item => (typeof item === 'object' ? item.id : item) === id);
     if (!exists) {
@@ -314,12 +353,17 @@ window.blockItem = (id, title, image) => {
             }
         });
     }
+    
+    if (hideModal) {
+        UI.modalOverlay.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
 };
 
 window.unblockItem = (id) => {
     state.blacklist[state.searchMode] = state.blacklist[state.searchMode].filter(item => (typeof item === 'object' ? item.id : item) !== id);
     import('../state.js').then(m => m.saveSettings());
-    openBlacklistManager(); // Refresh view
+    window.openBlacklistManager(); // Refresh view
 };
 
 window.toggleWatched = (id, title, image, btn) => {
@@ -388,7 +432,9 @@ export function openWatchedManager() {
                                 ${image ? `<img src="${image}" class="blacklist-thumb">` : '<div class="blacklist-thumb-placeholder">?</div>'}
                                 <span class="item-title">${title}</span>
                             </div>
-                            <button class="remove-btn" onclick="window.toggleWatched(${id}, '', '', null); openWatchedManager();">Remove</button>
+                             <button class="remove-btn" title="Remove" onclick="window.toggleWatched(${id}, '', '', null); window.openWatchedManager();">
+                                <i data-lucide="trash-2"></i>
+                             </button>
                         </div>
                     `;
                 }).join('')}
@@ -398,6 +444,7 @@ export function openWatchedManager() {
     UI.modalContent.innerHTML = content;
     UI.modalOverlay.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+    if (window.lucide) window.lucide.createIcons();
 }
 
 function getAnilistUrl(item) {
@@ -427,4 +474,5 @@ window.copyToClipboard = (text, btn) => {
             if (window.lucide) window.lucide.createIcons();
         }, 2000);
     });
-};
+};window.openBlacklistManager = openBlacklistManager;
+window.openWatchedManager = openWatchedManager;
