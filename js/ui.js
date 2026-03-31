@@ -55,16 +55,16 @@ export function updateDatalist() {
     }
   });
 
-  // Also update any existing selects that depend on seen values
-  document.querySelectorAll('.val-select[data-seen-key]').forEach(select => {
-    const key = select.dataset.seenKey;
+  // Also update any existing comboboxes that depend on seen values
+  document.querySelectorAll('.combobox-input[data-seen-key]').forEach(input => {
+    const key = input.dataset.seenKey;
     const values = state.seenValues[key] || [];
-    const currentVal = select.value;
-    
-    // Only update if the number of options changed to avoid unnecessary flickering
-    if (select.options.length !== values.length) {
-      select.innerHTML = values.map(v => `<option value="${v}">${v}</option>`).join('');
-      if (values.includes(currentVal)) select.value = currentVal;
+    // The results list is typically generated on focusing, so we just ensure the data is ready.
+    // If the results list is currently visible, we might want to refresh it.
+    const results = input.parentNode.querySelector('.combobox-results');
+    if (results && results.classList.contains('show')) {
+        // Simple trick: trigger a fake input event to refresh filtering
+        input.dispatchEvent(new Event('input'));
     }
   });
 }
@@ -295,41 +295,38 @@ export function addRuleUI(initialData = null) {
     };
 
     const updateValInput = (field) => {
+        valContainer.innerHTML = '';
         let input;
+        
         if (field.type === 'boolean') {
             input = document.createElement('select');
             input.className = 'val-select';
             input.innerHTML = `<option value="true">true</option><option value="false">false</option>`;
+            valContainer.appendChild(input);
         } else if (field.type === 'enum' && field.options) {
-            input = document.createElement('select');
-            input.className = 'val-select';
-            input.innerHTML = field.options.map(o => `<option value="${o}">${o}</option>`).join('');
+            input = createCombobox(field.options, 'Select option...', field);
+            valContainer.appendChild(input);
         } else if (field.seenKey) {
-            // User requested dropdown for these
-            input = document.createElement('select');
-            input.className = 'val-select';
-            input.dataset.seenKey = field.seenKey; 
             const values = state.seenValues[field.seenKey] || [];
-            input.innerHTML = values.map(v => `<option value="${v}">${v}</option>`).join('');
-            if (values.length === 0) {
-              input.innerHTML = '<option value="">No values seen yet</option>';
-            }
+            input = createCombobox(values, 'Search values...', field);
+            valContainer.appendChild(input);
         } else if (field.type === 'list') {
             input = document.createElement('input');
             input.type = 'text';
             input.className = 'val-input';
             input.placeholder = 'Comma separated, e.g. Action, Comedy';
+            valContainer.appendChild(input);
         } else {
             input = document.createElement('input');
             input.type = field.type === 'number' ? 'number' : 'text';
             input.className = 'val-input';
             input.placeholder = 'Value...';
+            valContainer.appendChild(input);
         }
-        valContainer.innerHTML = '';
-        valContainer.appendChild(input);
         
         if (initialData && initialData.value !== undefined) {
-            input.value = initialData.value;
+            const actualInput = input.classList.contains('combobox-container') ? input.querySelector('input') : input;
+            actualInput.value = initialData.value;
         }
     };
 
@@ -365,6 +362,58 @@ export function syncUI() {
     const typeCtrl = document.getElementById('mediaTypeControl');
     if (sortCtrl) sortCtrl.style.display = isMedia ? 'flex' : 'none';
     if (typeCtrl) typeCtrl.style.display = isMedia ? 'flex' : 'none';
+}
+
+function createCombobox(options, placeholder, field) {
+    const container = document.createElement('div');
+    container.className = 'combobox-container';
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'combobox-input val-input';
+    input.placeholder = placeholder;
+    if (field.seenKey) input.dataset.seenKey = field.seenKey;
+
+    const results = document.createElement('div');
+    results.className = 'combobox-results glass-dark';
+    
+    const updateResults = (filterText = '') => {
+        // If it's a seenKey, always get latest from state
+        const currentOptions = field.seenKey ? (state.seenValues[field.seenKey] || []) : options;
+        const filtered = currentOptions.filter(o => o.toLowerCase().includes(filterText.toLowerCase()));
+        
+        results.innerHTML = filtered.map(o => `<div class="combobox-item">${o}</div>`).join('');
+        
+        if (filtered.length > 0) {
+            results.classList.add('show');
+        } else {
+            results.classList.remove('show');
+        }
+
+        // Add click listeners to items
+        results.querySelectorAll('.combobox-item').forEach(item => {
+            item.onclick = (e) => {
+                input.value = e.target.textContent;
+                results.classList.remove('show');
+                // Trigger change for persistence
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            };
+        });
+    };
+
+    input.oninput = (e) => updateResults(e.target.value);
+    input.onfocus = () => updateResults(input.value);
+    
+    // Hide results on blur, but delay to allow click to trigger
+    input.onblur = () => {
+        setTimeout(() => {
+            results.classList.remove('show');
+        }, 200);
+    };
+
+    container.appendChild(input);
+    container.appendChild(results);
+    return container;
 }
 
 export function resetUI(skipDefaultRule = false) {
