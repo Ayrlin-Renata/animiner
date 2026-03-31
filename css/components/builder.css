@@ -1,0 +1,154 @@
+/* css/components/builder.css */
+
+.constraint-builder {
+  padding-bottom: 1rem;
+}
+
+.constraint-builder h3 {
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 1.1rem;
+  color: var(--accent-hover);
+}
+
+.rule-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 1.2rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  margin-bottom: 2.5rem; /* Increased for logic indicator */
+  animation: fadeIn 0.3s ease;
+  position: relative;
+}
+
+.rule-row select, .rule-row input {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.rule-top, .rule-bottom {
+  display: flex;
+  gap: 0.8rem;
+  width: 100%;
+  align-items: center;
+}
+
+.rule-top .cat-select { flex: 1; }
+.rule-top .field-select { flex: 2; }
+.rule-bottom .op-select { flex: 1; }
+.rule-bottom .val-container { flex: 3; }
+
+/* AND Logic indicator */
+#rootGroup > .rule-row:not(:last-child)::after,
+#rootGroup > .rule-group-box:not(:last-child)::after {
+  content: 'AND';
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: block;
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--accent-hover);
+  background: rgba(26, 38, 54, 0.98);
+  width: 44px;
+  padding: 0.2rem 0;
+  border-radius: 4px;
+  letter-spacing: 0.1em;
+  border: 1px solid rgba(146, 86, 243, 0.3);
+  z-index: 10;
+}
+
+#rootGroup > .rule-row:not(:last-child),
+#rootGroup > .rule-group-box:not(:last-child) {
+  margin-bottom: 2.5rem;
+}
+
+#rootGroup {
+  position: relative;
+}
+
+/* Nested Rule Groups */
+.rule-group-box {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--glass-border);
+  border-left: 4px solid var(--success-color); /* Green for Collection */
+  border-radius: var(--radius-md);
+  margin-bottom: 1.5rem;
+  overflow: visible; /* Prevent combobox clipping */
+  animation: fadeIn 0.3s ease;
+  position: relative;
+}
+
+.rule-group-box.logic-group {
+  border-left-color: var(--accent-color); /* Purple/Violet for Logic */
+  background: rgba(146, 86, 243, 0.03);
+}
+
+.rule-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 1.2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.group-title {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.logic-group .group-title {
+  color: var(--accent-hover);
+}
+
+.group-controls {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.group-path {
+  min-width: 140px;
+  flex: 1;
+}
+
+.group-quantifier {
+  min-width: 90px;
+}
+
+.group-help-text {
+  font-size: 0.75rem;
+  padding: 0.5rem 1.2rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  opacity: 0.8;
+  background: rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.group-rules-container {
+  padding: 1.2rem;
+  padding-bottom: 0.5rem;
+}
+
+.group-rules-container .rule-row {
+  background: rgba(0, 0, 0, 0.1);
+  margin-bottom: 0.8rem;
+}
+
+.group-actions {
+  padding: 0.8rem 1.2rem;
+  display: flex;
+  justify-content: flex-end;
+}

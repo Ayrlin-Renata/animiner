@@ -16,6 +16,13 @@ export const state = {
   rateLimitRemaining: 90,
   rateLimitReset: 0,
   searchMode: 'MEDIA', // MEDIA, CHARACTER, STAFF, STUDIO, USER
+  blacklist: {
+    MEDIA: [],
+    CHARACTER: [],
+    STAFF: [],
+    STUDIO: [],
+    USER: []
+  },
   seenValues: {
     genres: [],
     tags: [],
@@ -69,19 +76,21 @@ export function saveSettings() {
   const settings = {
     searchMode: state.searchMode,
     targetMatches: state.targetMatches,
-    rules: state.rules
+    rules: state.rules,
+    blacklist: state.blacklist
   };
-  localStorage.setItem('al_search_settings_v2', JSON.stringify(settings));
+  localStorage.setItem('al_search_settings_v3', JSON.stringify(settings));
 }
 
 export function loadSettings() {
-  const local = localStorage.getItem('al_search_settings_v2');
+  const local = localStorage.getItem('al_search_settings_v3');
   if (local) {
     try {
       const parsed = JSON.parse(local);
       state.searchMode = parsed.searchMode || state.searchMode;
       state.targetMatches = parsed.targetMatches || state.targetMatches;
       state.rules = parsed.rules || state.rules;
+      state.blacklist = parsed.blacklist || state.blacklist;
       return true;
     } catch (e) { console.error('Failed to parse settings'); }
   }

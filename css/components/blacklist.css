@@ -1,0 +1,63 @@
+/* css/components/blacklist.css */
+
+.blacklist-manager {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.blacklist-manager h2 {
+  margin-bottom: 0.5rem;
+  color: var(--accent-hover);
+}
+
+.blacklist-manager .section-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+}
+
+.blacklist-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.blacklist-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+}
+
+.item-id {
+  font-family: monospace;
+  color: var(--text-secondary);
+}
+
+/* Polished Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 2rem;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  margin-top: 1rem;
+  color: var(--text-secondary);
+}
+
+.empty-msg {
+  text-align: center;
+  opacity: 0.5;
+  font-style: italic;
+  margin: 0;
+}

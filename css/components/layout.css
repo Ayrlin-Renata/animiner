@@ -1,58 +1,9 @@
-#app {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 2rem;
-}
+/* css/components/layout.css */
 
-header {
-  text-align: center;
-  margin-bottom: 3rem;
-  padding: 2rem 0;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
-}
-
-.logo i {
-  color: var(--accent-color);
-  width: 38px;
-  height: 38px;
-}
-
-header h1 {
-  font-size: 2.5rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-
-header h1 span {
-  background: linear-gradient(90deg, var(--accent-color), #bc7aff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.subtitle {
-  color: var(--text-secondary);
-  font-size: 1rem;
-  opacity: 0.8;
-}
-
-.results-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 2rem;
-}
-
-/* Search Layout */
 .search-panel {
   padding: 2rem;
   margin-bottom: 2rem;
-  position: relative;
+  position: relative; /* Added for absolute children */
 }
 
 .search-header-actions {
@@ -68,26 +19,12 @@ header h1 span {
 
 .main-bar {
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
   align-items: flex-end;
   flex-wrap: wrap;
   padding-bottom: 1.5rem;
   margin-bottom: 1.5rem;
   border-bottom: 1px solid var(--glass-border);
-}
-
-/* Give all control groups in main-bar a consistent sizing */
-.main-bar .control-group {
-  min-width: 100px;
-  flex: 1 1 100px;
-}
-
-.main-bar .search-input-wrapper {
-  flex: 3 1 200px;
-}
-
-.main-bar #searchBtn {
-  flex-shrink: 0;
 }
 
 .search-input-wrapper {
@@ -176,42 +113,4 @@ header h1 span {
   background: rgba(247, 121, 164, 0.1);
   padding: 0.5rem 1rem;
   border-radius: 20px;
-}
-
-@media (max-width: 768px) {
-  #app { padding: 1rem; }
-  .results-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
-  .main-bar { gap: 0.8rem; }
-  .search-header-actions {
-    position: static;
-    transform: none;
-    justify-content: center;
-    margin-bottom: 1rem;
-    padding-top: 0.5rem;
-  }
-  .search-panel {
-    padding-top: 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .main-bar .control-group {
-    flex: 1 1 calc(50% - 0.5rem);
-  }
-  .main-bar .search-input-wrapper {
-    flex: 1 1 100%;
-  }
-  .main-bar #searchBtn,
-  .main-bar #cancelBtn {
-    flex: 1 1 100%;
-    justify-content: center;
-  }
-  .share-btn-pill {
-    flex: 1;
-    min-width: unset;
-  }
-  .search-header-actions {
-    width: 100%;
-    gap: 0.5rem;
-  }
 }

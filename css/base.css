@@ -112,6 +112,7 @@ input::placeholder {
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
   border-radius: var(--radius-lg);
+  overflow: visible; /* Always expand to contain children */
 }
 
 .spin { animation: rotate 2s linear infinite; }

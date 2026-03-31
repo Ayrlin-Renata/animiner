@@ -13,13 +13,18 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- Favicon -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔍</text></svg>">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔍</text></svg>">
 
     <!-- Split CSS -->
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/layout.css">
-    <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/modal.css">
+    <link rel="stylesheet" href="css/builder.css">
+    <link rel="stylesheet" href="css/cards.css">
+    <link rel="stylesheet" href="css/forms.css">
+    <link rel="stylesheet" href="css/buttons.css">
+    <link rel="stylesheet" href="css/blacklist.css">
 </head>
 
 <body>
@@ -36,6 +41,9 @@
             <!-- Search Controls -->
             <section class="search-panel glass">
                 <div class="search-header-actions">
+                    <button id="blacklistBtn" class="share-btn-pill secondary" title="Manage Blacklist">
+                        <i data-lucide="shield-off"></i> Blacklist
+                    </button>
                     <button id="shareBtn" class="share-btn-pill">
                         <i data-lucide="share-2"></i> Share Filters
                     </button>
@@ -113,17 +121,31 @@
                 </div>
 
                 <div class="constraint-builder">
-                    <h3><i data-lucide="filter"></i> Applied Constraints</h3>
-                    <div id="rootGroup">
-                        <!-- Rule rows will be added here -->
-                    </div>
-                    <div class="builder-actions">
-                        <button id="addRuleBtn" class="text-btn">
-                            <i data-lucide="plus"></i> Add Constraint
+                    <h3>
+                        <i data-lucide="filter"></i>
+                        Applied Constraints
+                        <button id="toggleFiltersBtn" class="text-btn toggle-btn">
+                            <i data-lucide="chevron-up"></i> Hide Filters
                         </button>
-                        <button id="addGroupBtn" class="text-btn secondary">
-                            <i data-lucide="layers"></i> Add Filter Group
-                        </button>
+                    </h3>
+                    <div id="filterContent">
+                        <div id="rootGroup">
+                            <!-- Rule rows will be added here -->
+                        </div>
+                        <div class="builder-actions">
+                            <button id="addRuleBtn" class="text-btn">
+                                <i data-lucide="plus"></i> Add Constraint
+                            </button>
+                            <button id="addGroupBtn" class="text-btn secondary">
+                                <i data-lucide="layers"></i> Add Filter Group
+                            </button>
+                        </div>
+                        <div class="filter-search-bar">
+                            <button id="filterSearchBtn" class="primary-btn filter-search-btn">
+                                <i data-lucide="search"></i>
+                                <span>Search</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </section>

@@ -1,10 +1,5 @@
-/**
- * main.js
- * High-level orchestration and event handling.
- */
-
 import { state, loadCache, saveSettings, loadSettings } from './state.js';
-import { UI, addRuleUI, addGroupUI, resetUI, updateProgress, renderResultsList, syncUI } from './ui.js';
+import { UI, addRuleUI, addGroupUI, resetUI, updateProgress, renderResultsList, syncUI, toggleFilters, openBlacklistManager, updateToggleFilterAccent } from './ui.js';
 import { executeSearch } from './api.js';
 import { FIELDS, SUB_FIELDS } from './filter.js';
 
@@ -13,19 +8,33 @@ async function init() {
   const hasSavedSettings = loadSettings();
   
   // Event listeners
-  UI.searchBtn.onclick = () => {
+  const runSearch = () => {
     updateStateFromUI();
+    toggleFilters(true); // Auto-collapse on search
     executeSearch(updateProgress, (results) => {
       renderResultsList(results);
     });
   };
 
+  UI.searchBtn.onclick = runSearch;
+
+  // Bottom filter search button mirrors main search
+  if (UI.filterSearchBtn) {
+    UI.filterSearchBtn.onclick = runSearch;
+  }
+
   UI.cancelBtn.onclick = () => {
     state.isCancelled = true;
   };
 
-  UI.addRuleBtn.onclick = () => addRuleUI();
-  UI.addGroupBtn.onclick = () => addGroupUI();
+  UI.addRuleBtn.onclick = () => { addRuleUI(); updateToggleFilterAccent(); };
+  UI.addGroupBtn.onclick = () => { addGroupUI(); updateToggleFilterAccent(); };
+
+  // Watch rootGroup for rule removals to update accent
+  if (UI.rootGroup) {
+    new MutationObserver(() => updateToggleFilterAccent())
+      .observe(UI.rootGroup, { childList: true, subtree: false });
+  }
 
   UI.searchMode.onchange = (e) => {
     state.searchMode = e.target.value;
@@ -78,6 +87,16 @@ async function init() {
     syncUI();
   } else {
     resetUI();
+  }
+
+  // Blacklist manager logic
+  if (UI.blacklistBtn) {
+    UI.blacklistBtn.onclick = () => openBlacklistManager();
+  }
+
+  // Toggle Filters logic
+  if (UI.toggleFiltersBtn) {
+    UI.toggleFiltersBtn.onclick = () => toggleFilters();
   }
 
   // Share button logic

@@ -1,0 +1,49 @@
+/* css/components/combobox.css */
+
+.combobox-container {
+  position: relative;
+  width: 100%;
+}
+
+.combobox-results {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  right: 0;
+  background: rgba(21, 31, 46, 0.98);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--accent-color);
+  border-radius: var(--radius-md);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 9999; /* Strong z-index for overlaps */
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+  display: none;
+}
+
+.combobox-results.show {
+  display: block;
+  animation: slideDown 0.2s ease-out;
+}
+
+.combobox-item {
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.combobox-item:last-child {
+  border-bottom: none;
+}
+
+.combobox-item:hover, .combobox-item.selected {
+  background: rgba(2, 169, 255, 0.2);
+  color: var(--accent-color);
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

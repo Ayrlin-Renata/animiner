@@ -1,0 +1,38 @@
+/* css/components/forms.css */
+
+/* Global inputs and selects */
+input,
+select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  padding: 0 1rem;
+  height: 46px; /* Fixed height for consistency */
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: all var(--transition-fast);
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(2, 169, 255, 0.2);
+}
+
+.val-container {
+  display: flex;
+  flex: 1;
+  width: 100%;
+}
+
+.val-container input, .val-container select {
+  width: 100%;
+}
+
+/* Combobox Component structure is handled in combobox.css */

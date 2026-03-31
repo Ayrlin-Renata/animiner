@@ -1,0 +1,97 @@
+/**
+ * js/ui/base.js
+ * UI Base Registry and State Sync.
+ */
+
+import { state } from '../state.js';
+
+export const UI = {
+  mainSearch: document.getElementById('mainSearch'),
+  searchMode: document.getElementById('searchMode'),
+  targetResults: document.getElementById('targetResults'),
+  mediaSort: document.getElementById('mediaSort'),
+  mediaType: document.getElementById('mediaType'),
+  searchBtn: document.getElementById('searchBtn'),
+  cancelBtn: document.getElementById('cancelBtn'),
+  addRuleBtn: document.getElementById('addRuleBtn'),
+  addGroupBtn: document.getElementById('addGroupBtn'),
+  blacklistBtn: document.getElementById('blacklistBtn'),
+  toggleFiltersBtn: document.getElementById('toggleFiltersBtn'),
+  filterContent: document.getElementById('filterContent'),
+  shareBtn: document.getElementById('shareBtn'),
+  rootGroup: document.getElementById('rootGroup'),
+  resultsGrid: document.getElementById('resultsGrid'),
+  loading: document.getElementById('loading'),
+  noResults: document.getElementById('noResults'),
+  modalOverlay: document.getElementById('modalOverlay'),
+  modalContent: document.getElementById('modalContent'),
+  closeModal: document.getElementById('closeModal'),
+  datalistContainer: document.getElementById('datalistContainer'),
+  progressBanner: document.getElementById('progressBanner'),
+  scannedCount: document.getElementById('scannedCount'),
+  foundCount: document.getElementById('foundCount'),
+  scanStatus: document.getElementById('scanStatus'),
+  rateLimitNotice: document.getElementById('rateLimitNotice'),
+  filterSearchBtn: document.getElementById('filterSearchBtn'),
+};
+
+/**
+ * Updates the datalist with unique values seen during the session.
+ */
+export function updateDatalist() {
+  if (!UI.datalistContainer) return;
+  
+  UI.datalistContainer.innerHTML = '';
+  
+  Object.keys(state.seenValues).forEach(key => {
+    const values = state.seenValues[key];
+    if (Array.isArray(values) && values.length > 0) {
+      const dl = document.createElement('datalist');
+      dl.id = `dl-${key}`;
+      
+      values.forEach(val => {
+        const opt = document.createElement('option');
+        opt.value = val;
+        dl.appendChild(opt);
+      });
+      
+      UI.datalistContainer.appendChild(dl);
+    }
+  });
+
+  // Also update any existing comboboxes that depend on seen values
+  document.querySelectorAll('.combobox-input[data-seen-key]').forEach(input => {
+    const key = input.dataset.seenKey;
+    const values = state.seenValues[key] || [];
+    const results = input.parentNode.querySelector('.combobox-results');
+    if (results && results.classList.contains('show')) {
+        input.dispatchEvent(new Event('input'));
+    }
+  });
+}
+
+/**
+ * Synchronizes the global search controls with current state.
+ */
+export function syncUI() {
+    if (UI.searchMode) UI.searchMode.value = state.searchMode;
+    if (UI.targetResults) UI.targetResults.value = state.targetMatches;
+    
+    const isMedia = state.searchMode === 'MEDIA';
+    const sortCtrl = document.getElementById('mediaSortControl');
+    const typeCtrl = document.getElementById('mediaTypeControl');
+    if (sortCtrl) sortCtrl.style.display = isMedia ? 'flex' : 'none';
+    if (typeCtrl) typeCtrl.style.display = isMedia ? 'flex' : 'none';
+
+    updateToggleFilterAccent();
+}
+
+/**
+ * Accents the toggle filters button when there are active rules.
+ */
+export function updateToggleFilterAccent() {
+    const btn = UI.toggleFiltersBtn;
+    if (!btn) return;
+    const hasRules = UI.rootGroup && UI.rootGroup.children.length > 0;
+    btn.classList.toggle('has-filters', hasRules);
+}
