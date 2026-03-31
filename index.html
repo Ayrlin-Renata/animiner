@@ -35,6 +35,11 @@
         <main>
             <!-- Search Controls -->
             <section class="search-panel glass">
+                <div class="search-header-actions">
+                    <button id="shareBtn" class="share-btn-pill">
+                        <i data-lucide="share-2"></i> Share Filters
+                    </button>
+                </div>
                 <div class="main-bar">
                     <div class="control-group">
                         <label for="searchMode">Mode</label>
@@ -108,7 +113,7 @@
                 </div>
 
                 <div class="constraint-builder">
-                    <h3><i data-lucide="filter"></i> Applied Constraints (AND Logic)</h3>
+                    <h3><i data-lucide="filter"></i> Applied Constraints</h3>
                     <div id="rootGroup">
                         <!-- Rule rows will be added here -->
                     </div>

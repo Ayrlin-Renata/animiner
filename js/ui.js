@@ -17,6 +17,7 @@ export const UI = {
   cancelBtn: document.getElementById('cancelBtn'),
   addRuleBtn: document.getElementById('addRuleBtn'),
   addGroupBtn: document.getElementById('addGroupBtn'),
+  shareBtn: document.getElementById('shareBtn'),
   rootGroup: document.getElementById('rootGroup'),
   resultsGrid: document.getElementById('resultsGrid'),
   loading: document.getElementById('loading'),

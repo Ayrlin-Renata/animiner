@@ -52,9 +52,23 @@ async function init() {
   };
 
   // Initial UI state
-  if (hasSavedSettings && state.rules.length > 0) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const filterData = urlParams.get('f');
+  
+  let rulesToLoad = state.rules;
+
+  if (filterData) {
+    try {
+        const decoded = JSON.parse(decodeURIComponent(atob(filterData)));
+        state.searchMode = decoded.m || state.searchMode;
+        state.rules = decoded.r || [];
+        rulesToLoad = state.rules;
+    } catch (e) { console.error('Failed to parse URL filters'); }
+  }
+
+  if (rulesToLoad.length > 0) {
     resetUI(true);
-    state.rules.forEach(rule => {
+    rulesToLoad.forEach(rule => {
       if (rule.type === 'GROUP') {
         addGroupUI(rule);
       } else {
@@ -64,6 +78,29 @@ async function init() {
     syncUI();
   } else {
     resetUI();
+  }
+
+  // Share button logic
+  if (UI.shareBtn) {
+    UI.shareBtn.onclick = () => {
+        updateStateFromUI();
+        const data = {
+            m: state.searchMode,
+            r: state.rules
+        };
+        const encoded = btoa(encodeURIComponent(JSON.stringify(data)));
+        const url = new URL(window.location.href);
+        url.searchParams.set('f', encoded);
+        
+        navigator.clipboard.writeText(url.toString()).then(() => {
+            const originalHTML = UI.shareBtn.innerHTML;
+            UI.shareBtn.innerHTML = '<i data-lucide="check"></i> Copied!';
+            setTimeout(() => {
+                UI.shareBtn.innerHTML = originalHTML;
+                if (window.lucide) window.lucide.createIcons();
+            }, 2000);
+        });
+    };
   }
 }
 
