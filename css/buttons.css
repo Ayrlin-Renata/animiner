@@ -149,7 +149,6 @@
   background: rgba(146, 86, 243, 0.1);
 }
 
-/* Accented state when filters are active */
 .toggle-btn.has-filters {
   opacity: 1;
   background: rgba(146, 86, 243, 0.15);

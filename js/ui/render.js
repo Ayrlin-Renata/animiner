@@ -51,7 +51,7 @@ export function renderResultsList(items) {
 
   const fragment = document.createDocumentFragment();
   
-  items.slice(0, state.targetMatches).forEach(item => {
+  items.forEach(item => {
     const card = document.createElement('div');
     card.className = 'media-card glass';
     

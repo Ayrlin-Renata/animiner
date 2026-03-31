@@ -103,6 +103,36 @@
   background: rgba(146, 86, 243, 0.03);
 }
 
+/* Relation Groups — amber accent, distinct from green (collection) and purple (logic) */
+.rule-group-box.relation-group {
+  border-left-color: #f5a623;
+  background: rgba(245, 166, 35, 0.03);
+}
+
+.relation-group .group-title {
+  color: #f5a623;
+}
+
+.group-rel-type {
+  min-width: 140px;
+  width: 160px;
+}
+
+.relation-group .group-quantifier {
+  min-width: 100px;
+  width: 110px;
+}
+
+.text-btn.relation-btn {
+  color: #f5a623;
+  border-color: rgba(245, 166, 35, 0.3);
+}
+.text-btn.relation-btn:hover {
+  border-color: #f5a623;
+  background: rgba(245, 166, 35, 0.08);
+  color: #fbbf24;
+}
+
 .rule-group-header {
   display: flex;
   justify-content: space-between;
@@ -220,5 +250,37 @@
   .group-actions .text-btn {
     flex: 1;
     justify-content: center;
+  }
+}
+
+/* Filter Summary Banner — matching progress-banner style */
+.filter-summary-banner {
+  display: flex;
+  background: rgba(146, 86, 243, 0.05);
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius-md);
+  margin: 1rem 0 1.5rem 0;
+  border: 1px solid rgba(146, 86, 243, 0.15);
+  animation: fadeIn 0.3s ease;
+}
+
+.filter-summary-stats {
+  display: flex;
+  gap: 2.5rem;
+  width: 100%;
+}
+
+.filter-summary-banner.hidden {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .filter-summary-stats {
+    gap: 1rem;
+    justify-content: space-between;
+  }
+  
+  .filter-summary-stats .stat-value {
+    font-size: 1.1rem;
   }
 }

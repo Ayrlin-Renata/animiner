@@ -19,6 +19,38 @@ export const GROUP_TYPES = {
     NONE: 'NONE'
 };
 
+export const RELATION_TYPES = [
+    'ANY',
+    'ADAPTATION',
+    'PREQUEL',
+    'SEQUEL',
+    'PARENT',
+    'SIDE_STORY',
+    'CHARACTER',
+    'SUMMARY',
+    'ALTERNATIVE',
+    'SPIN_OFF',
+    'OTHER',
+    'SOURCE',
+    'COMPILATION',
+    'CONTAINS'
+];
+
+// Fields available on relation nodes (subset of full media fields)
+export const RELATION_FIELDS = [
+    { label: 'ID',            path: 'id',                type: 'number' },
+    { label: 'Title',         path: 'title.romaji',      type: 'string' },
+    { label: 'Format',        path: 'format',            type: 'enum', options: ['TV','TV_SHORT','MOVIE','SPECIAL','OVA','ONA','MUSIC','MANGA','NOVEL','ONE_SHOT'] },
+    { label: 'Type',          path: 'type',              type: 'enum', options: ['ANIME','MANGA'] },
+    { label: 'Status',        path: 'status',            type: 'enum', options: ['FINISHED','RELEASING','NOT_YET_RELEASED','CANCELLED','HIATUS'] },
+    { label: 'Genre',         path: 'genres',            type: 'collection', seenKey: 'genres' },
+    { label: 'Tag Name',      path: 'tags.name',         type: 'collection', seenKey: 'tags' },
+    { label: 'Tag Category',  path: 'tags.category',     type: 'collection' },
+    { label: 'Average Score', path: 'averageScore',      type: 'number' },
+    { label: 'Popularity',    path: 'popularity',        type: 'number' },
+    { label: 'Start Year',    path: 'startDate.year',    type: 'number' },
+];
+
 export const COLLECTION_PATHS = {
     CHARACTERS: 'characters.edges',
     STAFF: 'staff.edges',
@@ -273,6 +305,31 @@ export function evaluateRule(item, rule) {
         if (quantifier === GROUP_TYPES.ANY) return matchingItems.length > 0;
         if (quantifier === GROUP_TYPES.ALL) return matchingItems.length === collection.length && collection.length > 0;
         if (quantifier === GROUP_TYPES.NONE) return matchingItems.length === 0;
+        return true;
+    }
+
+    // RELATION groups — filter relation edges by type, evaluate sub-rules on related media node
+    if (type === 'RELATION') {
+        const quantifier = rule.quantifier || GROUP_TYPES.NONE;
+        const subRules = rule.rules || [];
+        const relType = rule.relationType || 'ANY';
+
+        const edges = item.relations?.edges || [];
+        const targetEdges = relType === 'ANY' ? edges : edges.filter(e => e.relationType === relType);
+
+        if (subRules.length === 0) {
+            if (quantifier === GROUP_TYPES.ANY)  return targetEdges.length > 0;
+            if (quantifier === GROUP_TYPES.NONE) return targetEdges.length === 0;
+            return true;
+        }
+
+        const matchingNodes = targetEdges.filter(edge =>
+            subRules.every(subRule => evaluateRule(edge.node, subRule))
+        );
+
+        if (quantifier === GROUP_TYPES.ANY)  return matchingNodes.length > 0;
+        if (quantifier === GROUP_TYPES.ALL)  return matchingNodes.length === targetEdges.length && targetEdges.length > 0;
+        if (quantifier === GROUP_TYPES.NONE) return matchingNodes.length === 0;
         return true;
     }
 

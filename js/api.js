@@ -86,7 +86,12 @@ export const QUERIES = {
                 title { romaji english } 
                 format 
                 type
-                status 
+                status
+                genres
+                averageScore
+                popularity
+                startDate { year }
+                tags { name category rank }
                 coverImage { medium } 
               } 
             } 
@@ -207,7 +212,10 @@ export async function executeSearch(onProgress, onComplete) {
                       state.searchMode === 'STAFF' ? 'staff' :
                       state.searchMode === 'STUDIO' ? 'studios' : 'users';
 
-      const items = (data?.Page?.[listKey] || []).filter(item => !state.blacklist[state.searchMode].includes(item.id));
+      const items = (data?.Page?.[listKey] || []).filter(item => {
+        const id = item.id;
+        return !state.blacklist[state.searchMode].some(b => (typeof b === 'object' ? b.id : b) === id);
+      });
       state.hasNextPage = data?.Page?.pageInfo?.hasNextPage || false;
       
       state.results = [...state.results, ...items];

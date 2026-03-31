@@ -5,7 +5,7 @@
 
 import { UI, syncUI, updateDatalist } from './base.js';
 import { state } from '../state.js';
-import { FIELDS, RECURSIVE_CATEGORIES, OPERATORS_BY_TYPE, COLLECTION_PATHS, GROUP_TYPES, SUB_FIELDS } from '../filter.js';
+import { FIELDS, RECURSIVE_CATEGORIES, OPERATORS_BY_TYPE, COLLECTION_PATHS, GROUP_TYPES, SUB_FIELDS, RELATION_TYPES, RELATION_FIELDS } from '../filter.js';
 import { createCombobox } from './combobox.js';
 
 export function addRuleUI(initialData = null, parentContainer = null, isSubField = false, subFields = null) {
@@ -234,6 +234,81 @@ export function addGroupUI(initialData = null, parentContainer = null) {
     if (window.lucide) window.lucide.createIcons();
 }
 
+/**
+ * Relation Group — filters based on properties of connected/related media.
+ * Evaluates sub-rules against the relation's media node.
+ */
+export function addRelationGroupUI(initialData = null, parentContainer = null) {
+    const box = document.createElement('div');
+    box.className = 'rule-group-box relation-group';
+    box.dataset.type = 'RELATION';
+
+    box.innerHTML = `
+        <div class="rule-group-header">
+            <div class="group-title">
+                <i data-lucide="git-branch-plus"></i>
+                <span class="group-name">Relation Filter</span>
+            </div>
+            <div class="group-controls">
+                <select class="group-rel-type" title="Relation Type">
+                    ${RELATION_TYPES.map(t => `<option value="${t}">${t === 'ANY' ? 'Any Relation' : t.replace(/_/g, ' ')}</option>`).join('')}
+                </select>
+                <select class="group-quantifier">
+                    <option value="NONE">has NONE</option>
+                    <option value="ANY">has ANY</option>
+                    <option value="ALL">has ALL</option>
+                </select>
+                <button class="remove-btn" title="Remove Relation Filter"><i data-lucide="trash-2"></i></button>
+            </div>
+        </div>
+        <div class="group-help-text">No related media of this type passes all sub-constraints.</div>
+        <div class="group-rules-container"></div>
+        <div class="group-actions">
+            <button class="text-btn add-relation-rule-btn">
+                <i data-lucide="plus"></i> Add Sub-Constraint
+            </button>
+        </div>
+    `;
+
+    const relTypeSelect  = box.querySelector('.group-rel-type');
+    const quantSelect    = box.querySelector('.group-quantifier');
+    const container      = box.querySelector('.group-rules-container');
+
+    const updateHelp = () => {
+        const rt = relTypeSelect.value === 'ANY' ? 'any relation' : relTypeSelect.value.replace(/_/g, ' ').toLowerCase();
+        const qt = quantSelect.value;
+        const texts = {
+            NONE: `No ${rt} matches all sub-constraints (exclude if found).`,
+            ANY:  `At least one ${rt} matches all sub-constraints.`,
+            ALL:  `Every ${rt} matches all sub-constraints.`,
+        };
+        box.querySelector('.group-help-text').textContent = texts[qt];
+    };
+
+    const addSubRule = (data = null) => {
+        // Create a rule row using RELATION_FIELDS directly (isSubField mode, no category picker)
+        addRuleUI(data, container, true, RELATION_FIELDS);
+    };
+
+    box.querySelector('.add-relation-rule-btn').onclick = () => addSubRule();
+    box.querySelector('.remove-btn').onclick = () => box.remove();
+    relTypeSelect.onchange = updateHelp;
+    quantSelect.onchange   = updateHelp;
+
+    // Load saved state
+    if (initialData) {
+        relTypeSelect.value = initialData.relationType || 'ANY';
+        quantSelect.value   = initialData.quantifier   || 'NONE';
+        (initialData.rules || []).forEach(r => addSubRule(r));
+    } else {
+        addSubRule(); // Start with one empty rule
+    }
+
+    updateHelp();
+    (parentContainer || UI.rootGroup).appendChild(box);
+    if (window.lucide) window.lucide.createIcons();
+}
+
 export function resetUI(skipDefaultRule = false) {
     UI.resultsGrid.innerHTML = '';
     UI.rootGroup.innerHTML = '';
@@ -265,4 +340,7 @@ export function toggleFilters(forceCollapse = null) {
         btn.innerHTML = '<i data-lucide="chevron-up"></i> Hide Filters';
     }
     if (window.lucide) window.lucide.createIcons();
+
+    // Refresh badge visibility after state change
+    import('./base.js').then(m => m.updateToggleFilterAccent());
 }

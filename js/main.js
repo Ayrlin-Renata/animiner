@@ -1,5 +1,5 @@
 import { state, loadCache, saveSettings, loadSettings } from './state.js';
-import { UI, addRuleUI, addGroupUI, resetUI, updateProgress, renderResultsList, syncUI, toggleFilters, openBlacklistManager, updateToggleFilterAccent } from './ui.js';
+import { UI, addRuleUI, addGroupUI, addRelationGroupUI, resetUI, updateProgress, renderResultsList, syncUI, toggleFilters, openBlacklistManager, updateToggleFilterAccent } from './ui.js';
 import { executeSearch } from './api.js';
 import { FIELDS, SUB_FIELDS } from './filter.js';
 
@@ -27,8 +27,11 @@ async function init() {
     state.isCancelled = true;
   };
 
-  UI.addRuleBtn.onclick = () => { addRuleUI(); updateToggleFilterAccent(); };
-  UI.addGroupBtn.onclick = () => { addGroupUI(); updateToggleFilterAccent(); };
+  UI.addRuleBtn.onclick    = () => { addRuleUI();            updateToggleFilterAccent(); };
+  UI.addGroupBtn.onclick   = () => { addGroupUI();           updateToggleFilterAccent(); };
+  if (UI.addRelationBtn) {
+    UI.addRelationBtn.onclick = () => { addRelationGroupUI(); updateToggleFilterAccent(); };
+  }
 
   // Watch rootGroup for rule removals to update accent
   if (UI.rootGroup) {
@@ -80,6 +83,8 @@ async function init() {
     rulesToLoad.forEach(rule => {
       if (rule.type === 'GROUP') {
         addGroupUI(rule);
+      } else if (rule.type === 'RELATION') {
+        addRelationGroupUI(rule);
       } else {
         addRuleUI(rule);
       }
@@ -131,21 +136,33 @@ function updateStateFromUI() {
 
 function collectRulesRecursive(container) {
   const rules = [];
-  
-  // Direct children can be rule-rows or rule-group-boxes
-  const children = Array.from(container.children);
-  
-  children.forEach(child => {
+  Array.from(container.children).forEach(child => {
     if (child.classList.contains('rule-row')) {
       const rule = parseRuleRow(child);
       if (rule) rules.push(rule);
     } else if (child.classList.contains('rule-group-box')) {
-      const group = parseGroupbox(child);
-      if (group) rules.push(group);
+      if (child.dataset.type === 'RELATION') {
+        const rel = parseRelationBox(child);
+        if (rel) rules.push(rel);
+      } else {
+        const group = parseGroupbox(child);
+        if (group) rules.push(group);
+      }
     }
   });
-  
   return rules;
+}
+
+function parseRelationBox(box) {
+  const relationType = box.querySelector('.group-rel-type')?.value || 'ANY';
+  const quantifier   = box.querySelector('.group-quantifier')?.value || 'NONE';
+  const container    = box.querySelector('.group-rules-container');
+  return {
+    type: 'RELATION',
+    relationType,
+    quantifier,
+    rules: collectRulesRecursive(container)
+  };
 }
 
 function parseRuleRow(row) {

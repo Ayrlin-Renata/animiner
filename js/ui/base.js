@@ -33,6 +33,7 @@ export const UI = {
   scanStatus: document.getElementById('scanStatus'),
   rateLimitNotice: document.getElementById('rateLimitNotice'),
   filterSearchBtn: document.getElementById('filterSearchBtn'),
+  addRelationBtn:  document.getElementById('addRelationBtn'),
 };
 
 /**
@@ -87,11 +88,50 @@ export function syncUI() {
 }
 
 /**
- * Accents the toggle filters button when there are active rules.
+ * Accents the toggle filters button and shows/hides the filter summary banner.
  */
 export function updateToggleFilterAccent() {
     const btn = UI.toggleFiltersBtn;
     if (!btn) return;
-    const hasRules = UI.rootGroup && UI.rootGroup.children.length > 0;
-    btn.classList.toggle('has-filters', hasRules);
+
+    const rootGroup = UI.rootGroup;
+    const ruleCount  = rootGroup ? rootGroup.querySelectorAll('.rule-row').length : 0;
+    const groupCount = rootGroup ? rootGroup.querySelectorAll('.rule-group-box').length : 0;
+    const totalCount = ruleCount + groupCount;
+
+    btn.classList.toggle('has-filters', totalCount > 0);
+
+    // Inject banner once, then update content
+    let banner = document.getElementById('filterSummaryBanner');
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'filterSummaryBanner';
+        banner.className = 'filter-summary-banner hidden';
+        // Insert after the constraint-builder heading
+        const heading = document.querySelector('.constraint-builder h3');
+        if (heading) heading.after(banner);
+    }
+
+    const isHidden = UI.filterContent?.classList.contains('hidden-height');
+    if (totalCount > 0 && isHidden) {
+        banner.innerHTML = `
+            <div class="filter-summary-stats">
+                <div class="stat">
+                    <span class="stat-label">Constraints</span>
+                    <span class="stat-value highlight">${ruleCount}</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Groups</span>
+                    <span class="stat-value">${groupCount}</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Status</span>
+                    <span class="stat-value" style="color: var(--accent-hover); font-size: 1rem;">Active</span>
+                </div>
+            </div>
+        `;
+        banner.classList.remove('hidden');
+    } else {
+        banner.classList.add('hidden');
+    }
 }
