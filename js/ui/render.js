@@ -37,6 +37,12 @@ export function updateProgress(data) {
     UI.rateLimitNotice.classList.add('hidden');
   }
 
+  // Clear previous results on new scan start (Page 1)
+  if (state.isScanning && state.page === 1 && (!data.filteredItems || data.filteredItems.length === 0)) {
+    if (UI.resultsGrid) UI.resultsGrid.innerHTML = '';
+    UI.noResults?.classList.add('hidden');
+  }
+
   if (data.filteredItems && data.filteredItems.length > 0) {
     renderResultsList(data.filteredItems);
   }
