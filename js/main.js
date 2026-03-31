@@ -5,7 +5,38 @@ import { FIELDS, SUB_FIELDS } from './filter.js';
 
 async function init() {
   await loadCache();
-  const hasSavedSettings = loadSettings();
+  loadSettings();
+  
+  // URL Overrides
+  const urlParams = new URLSearchParams(window.location.search);
+  const filterData = urlParams.get('f');
+  if (filterData) {
+    try {
+        const decoded = JSON.parse(decodeURIComponent(atob(filterData)));
+        state.searchMode = decoded.m    || state.searchMode;
+        state.targetMatches = decoded.t || state.targetMatches;
+        state.sort = decoded.s          || state.sort;
+        state.mediaType = decoded.y     || state.mediaType;
+        state.rules = decoded.r         || [];
+    } catch (e) { console.error('Failed to parse URL filters'); }
+  }
+
+  // Initial UI state - do this AFTER state is finalized from URL
+  if (state.rules.length > 0) {
+    resetUI(true);
+    state.rules.forEach(rule => {
+      if (rule.type === 'GROUP') {
+        addGroupUI(rule);
+      } else if (rule.type === 'RELATION') {
+        addRelationGroupUI(rule);
+      } else {
+        addRuleUI(rule);
+      }
+    });
+    syncUI();
+  } else {
+    resetUI();
+  }
   
   // Event listeners
   const runSearch = () => {
@@ -18,7 +49,6 @@ async function init() {
 
   UI.searchBtn.onclick = runSearch;
 
-  // Bottom filter search button mirrors main search
   if (UI.filterSearchBtn) {
     UI.filterSearchBtn.onclick = runSearch;
   }
@@ -55,7 +85,6 @@ async function init() {
     document.body.style.overflow = 'auto';
   };
 
-  // Close modal on click outside
   UI.modalOverlay.onclick = (e) => {
     if (e.target === UI.modalOverlay) {
         UI.modalOverlay.classList.add('hidden');
@@ -63,43 +92,10 @@ async function init() {
     }
   };
 
-  // Initial UI state
-  const urlParams = new URLSearchParams(window.location.search);
-  const filterData = urlParams.get('f');
-  
-  let rulesToLoad = state.rules;
-
-  if (filterData) {
-    try {
-        const decoded = JSON.parse(decodeURIComponent(atob(filterData)));
-        state.searchMode = decoded.m || state.searchMode;
-        state.rules = decoded.r || [];
-        rulesToLoad = state.rules;
-    } catch (e) { console.error('Failed to parse URL filters'); }
-  }
-
-  if (rulesToLoad.length > 0) {
-    resetUI(true);
-    rulesToLoad.forEach(rule => {
-      if (rule.type === 'GROUP') {
-        addGroupUI(rule);
-      } else if (rule.type === 'RELATION') {
-        addRelationGroupUI(rule);
-      } else {
-        addRuleUI(rule);
-      }
-    });
-    syncUI();
-  } else {
-    resetUI();
-  }
-
-  // Blacklist manager logic
   if (UI.blacklistBtn) {
     UI.blacklistBtn.onclick = () => openBlacklistManager();
   }
 
-  // Toggle Filters logic
   if (UI.toggleFiltersBtn) {
     UI.toggleFiltersBtn.onclick = () => toggleFilters();
   }
@@ -110,6 +106,9 @@ async function init() {
         updateStateFromUI();
         const data = {
             m: state.searchMode,
+            t: state.targetMatches,
+            s: state.sort,
+            y: state.mediaType,
             r: state.rules
         };
         const encoded = btoa(encodeURIComponent(JSON.stringify(data)));
@@ -131,6 +130,8 @@ async function init() {
 function updateStateFromUI() {
   state.rules = collectRulesRecursive(UI.rootGroup);
   state.targetMatches = parseInt(UI.targetResults.value || '50');
+  state.sort = UI.mediaSort?.value || state.sort;
+  state.mediaType = UI.mediaType?.value || state.mediaType;
   saveSettings();
 }
 

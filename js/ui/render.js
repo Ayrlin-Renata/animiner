@@ -15,6 +15,15 @@ export function updateProgress(data) {
 
   UI.progressBanner.classList.remove('hidden');
   
+  // Toggle buttons visibility based on scanning state
+  if (state.isScanning) {
+    UI.searchBtn?.classList.add('hidden');
+    UI.cancelBtn?.classList.remove('hidden');
+  } else {
+    UI.searchBtn?.classList.remove('hidden');
+    UI.cancelBtn?.classList.add('hidden');
+  }
+
   if (data.status) {
     UI.scanStatus.textContent = data.status;
   }

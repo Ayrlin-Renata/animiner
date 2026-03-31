@@ -36,9 +36,8 @@
   background: var(--danger-color);
   color: white;
   border: none;
-  height: 46px;
-  width: 46px;
-  padding: 0;
+  height: 48px;
+  padding: 0 1.5rem;
   border-radius: var(--radius-md);
   cursor: pointer;
   display: flex;
