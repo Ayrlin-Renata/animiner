@@ -4,6 +4,8 @@
  * Supports path traversal for nested arrays (e.g. studios.edges.node.name).
  */
 
+import { state } from './state.js';
+
 export const FIELD_TYPES = {
     STRING: 'string',
     NUMBER: 'number',
@@ -38,17 +40,17 @@ export const RELATION_TYPES = [
 
 // Fields available on relation nodes (subset of full media fields)
 export const RELATION_FIELDS = [
-    { label: 'ID',            path: 'id',                type: 'number' },
-    { label: 'Title',         path: 'title.romaji',      type: 'string' },
-    { label: 'Format',        path: 'format',            type: 'enum', options: ['TV','TV_SHORT','MOVIE','SPECIAL','OVA','ONA','MUSIC','MANGA','NOVEL','ONE_SHOT'] },
-    { label: 'Type',          path: 'type',              type: 'enum', options: ['ANIME','MANGA'] },
-    { label: 'Status',        path: 'status',            type: 'enum', options: ['FINISHED','RELEASING','NOT_YET_RELEASED','CANCELLED','HIATUS'] },
-    { label: 'Genre',         path: 'genres',            type: 'collection', seenKey: 'genres' },
-    { label: 'Tag Name',      path: 'tags.name',         type: 'collection', seenKey: 'tags' },
-    { label: 'Tag Category',  path: 'tags.category',     type: 'collection' },
-    { label: 'Average Score', path: 'averageScore',      type: 'number' },
-    { label: 'Popularity',    path: 'popularity',        type: 'number' },
-    { label: 'Start Year',    path: 'startDate.year',    type: 'number' },
+    { label: 'ID', path: 'id', type: 'number' },
+    { label: 'Title', path: 'title.romaji', type: 'string' },
+    { label: 'Format', path: 'format', type: 'enum', options: ['TV', 'TV_SHORT', 'MOVIE', 'SPECIAL', 'OVA', 'ONA', 'MUSIC', 'MANGA', 'NOVEL', 'ONE_SHOT'] },
+    { label: 'Type', path: 'type', type: 'enum', options: ['ANIME', 'MANGA'] },
+    { label: 'Status', path: 'status', type: 'enum', options: ['FINISHED', 'RELEASING', 'NOT_YET_RELEASED', 'CANCELLED', 'HIATUS'] },
+    { label: 'Genre', path: 'genres', type: 'collection', seenKey: 'genres' },
+    { label: 'Tag Name', path: 'tags.name', type: 'collection', seenKey: 'tags' },
+    { label: 'Tag Category', path: 'tags.category', type: 'collection' },
+    { label: 'Average Score', path: 'averageScore', type: 'number' },
+    { label: 'Popularity', path: 'popularity', type: 'number' },
+    { label: 'Start Year', path: 'startDate.year', type: 'number' },
 ];
 
 export const COLLECTION_PATHS = {
@@ -253,206 +255,201 @@ export function getValueByPath(obj, path) {
  * Returns { success: boolean, terms: string[] } for highlighting match reasons in the UI.
  */
 export function evaluateRule(item, rule) {
-    const { path, operator, value, type } = rule;
-    let actualValue = getValueByPath(item, path);
-    const terms = []; // Track matching string terms for highlighting
+    const { type, path, operator, value } = rule;
 
-    // Helper to add matching terms
-    const addMatch = (val) => {
-        if (val && typeof val === 'string') terms.push(val.toLowerCase());
+    // Matches object: { [path]: Set<term> }
+    const matches = {};
+    const addMatch = (sourcePath, term) => {
+        if (!term || typeof term !== 'string') return;
+        const normalized = term.toLowerCase().trim();
+        if (normalized.length < 2) return;
+        if (!matches[sourcePath]) matches[sourcePath] = new Set();
+        matches[sourcePath].add(normalized);
     };
 
+    const mergeMatches = (otherMatches) => {
+        if (!otherMatches) return;
+        Object.entries(otherMatches).forEach(([p, terms]) => {
+            if (!matches[p]) matches[p] = new Set();
+            terms.forEach(t => matches[p].add(t));
+        });
+    };
+
+    // SAFETY GUARD: If value is empty/invalid but required, we skip (success=true)
+    if (value === '' || value === null || value === undefined) {
+        if (rule.type !== 'GROUP' && rule.type !== 'RELATION' && 
+            type !== 'boolean' && operator !== 'is' && operator !== 'equals' && operator !== 'not_equals') {
+            return { success: true, matches: {} };
+        }
+    }
+
+    if (rule.type === 'GROUP' || type === 'GROUP') {
+        const quantifier = rule.quantifier || GROUP_TYPES.ANY;
+        const subRules = rule.rules || [];
+
+        // Special handling for LOGIC/ROOT groups that apply to the current object
+        if (rule.path === COLLECTION_PATHS.LOGIC) {
+            if (subRules.length === 0) return { success: true, matches: {} };
+            const subResults = subRules.map(sr => evaluateRule(item, sr));
+            subResults.forEach(r => mergeMatches(r.matches));
+
+            if (quantifier === GROUP_TYPES.ALL) return { success: subResults.every(r => r.success), matches: matches };
+            if (quantifier === GROUP_TYPES.ANY) return { success: subResults.some(r => r.success), matches: matches };
+            if (quantifier === GROUP_TYPES.NONE) return { success: !subResults.some(r => r.success), matches: {} };
+            return { success: true, matches: {} };
+        }
+
+        // Standard Collection Groups (Characters, Staff, etc.)
+        const collection = getValueByPath(item, path);
+        if (!collection || !Array.isArray(collection)) return { success: false, matches: {} };
+        
+        const subResults = collection.map(entry => {
+            const entryResults = subRules.map(sr => evaluateRule(entry, sr));
+            const entryMatches = {};
+            entryResults.forEach(r => {
+                Object.entries(r.matches).forEach(([p, terms]) => {
+                    // Prepend parent path for collection rules to distinguish them
+                    const fullPath = `${path}.${p}`;
+                    if (!entryMatches[fullPath]) entryMatches[fullPath] = new Set();
+                    terms.forEach(t => entryMatches[fullPath].add(t));
+                });
+            });
+            return { 
+                success: quantifier === GROUP_TYPES.ALL ? entryResults.every(r => r.success) : entryResults.some(r => r.success),
+                matches: entryMatches
+            };
+        });
+
+        const allPass = quantifier === GROUP_TYPES.ALL ? subResults.every(r => r.success) : 
+                       quantifier === GROUP_TYPES.ANY ? subResults.some(r => r.success) :
+                       !subResults.some(r => r.success);
+        
+        subResults.forEach(r => { if (r.success) mergeMatches(r.matches); });
+        return { success: allPass, matches: matches };
+    }
+
+    if (rule.type === 'RELATION') {
+        const { relationType, quantifier } = rule;
+        const subRules = rule.rules || [];
+        const relations = item.relations?.edges || [];
+        
+        const filteredRels = relationType === 'ANY' ? relations : relations.filter(e => e.relationType === relationType);
+        if (filteredRels.length === 0) return { success: quantifier === 'NONE', matches: {} };
+
+        const subResults = filteredRels.map(edge => {
+            const entryResults = subRules.map(sr => evaluateRule(edge.node, sr));
+            const entryMatches = {};
+            entryResults.forEach(r => {
+                Object.entries(r.matches).forEach(([p, terms]) => {
+                    const fullPath = `relations.${p}`;
+                    if (!entryMatches[fullPath]) entryMatches[fullPath] = new Set();
+                    terms.forEach(t => entryMatches[fullPath].add(t));
+                });
+            });
+            return {
+                success: entryResults.every(r => r.success),
+                matches: entryMatches
+            };
+        });
+
+        const allPass = quantifier === 'ALL' ? subResults.every(r => r.success) :
+                       quantifier === 'ANY' ? subResults.some(r => r.success) :
+                       !subResults.some(r => r.success);
+        
+        subResults.forEach(r => { if (r.success) mergeMatches(r.matches); });
+        return { success: allPass, matches: matches };
+    }
+
+    // Leaf Rule Logic
+    let success = false;
+    let actualValue = getValueByPath(item, path);
     // Special handling for fuzzy dates (objects { year, month, day })
     if (actualValue && typeof actualValue === 'object' && 'year' in actualValue) {
         actualValue = (actualValue.year || 0) * 10000 + (actualValue.month || 0) * 100 + (actualValue.day || 0);
     }
-
-    const target = value?.toString().toLowerCase().trim();
+    const target = value?.toString().toLowerCase().trim() || '';
 
     // Special handling for LIST detection (comma separated values)
     const isListValue = value?.includes(',');
-
     if (type === FIELD_TYPES.LIST || isListValue) {
         const list = value.split(',').map(s => s.trim().toLowerCase()).filter(s => s !== '');
         const itemValStr = actualValue?.toString().toLowerCase();
-        
         let success = false;
         if (operator === OPERATORS.EQUALS || operator === OPERATORS.IS) {
             success = list.includes(itemValStr);
         } else if (operator === OPERATORS.NOT_EQUALS) {
             success = !list.includes(itemValStr);
         }
-        if (success && itemValStr) addMatch(itemValStr);
-        return { success, terms };
+        if (success && itemValStr) addMatch(path, itemValStr);
+        return { success, matches };
     }
 
-    if (type === 'GROUP') {
-        const quantifier = rule.quantifier || GROUP_TYPES.ANY;
-        const subRules = rule.rules || [];
-
-        // Special handling for LOGIC/ROOT groups that apply to the current object
-        if (rule.path === COLLECTION_PATHS.LOGIC) {
-            if (subRules.length === 0) return { success: true, terms: [] };
-
-            const subResults = subRules.map(sr => evaluateRule(item, sr));
-            const allTerms = subResults.flatMap(r => r.terms);
-
-            if (quantifier === GROUP_TYPES.ALL) return { success: subResults.every(r => r.success), terms: allTerms };
-            if (quantifier === GROUP_TYPES.ANY) return { success: subResults.some(r => r.success), terms: allTerms };
-            if (quantifier === GROUP_TYPES.NONE) return { success: !subResults.some(r => r.success), terms: [] };
-            return { success: true, terms: [] };
-        }
-
-        // Standard Collection Groups (Characters, Staff, etc.)
-        const collection = getValueByPath(item, path);
-        if (!collection || !Array.isArray(collection)) return { success: false, terms: [] };
-        
-        // If no sub-rules, treat as "any item exists"
-        if (subRules.length === 0) return { success: collection.length > 0, terms: [] };
-
-        const itemMatches = collection.map(subItem => {
-            const subResults = subRules.map(sr => evaluateRule(subItem, sr));
-            return {
-                success: subResults.every(r => r.success),
-                terms: subResults.flatMap(r => r.terms)
-            };
-        });
-
-        const activeMatches = itemMatches.filter(m => m.success);
-        const matchTerms = activeMatches.flatMap(m => m.terms);
-
-        if (quantifier === GROUP_TYPES.ANY) return { success: activeMatches.length > 0, terms: matchTerms };
-        if (quantifier === GROUP_TYPES.ALL) return { success: activeMatches.length === collection.length && collection.length > 0, terms: matchTerms };
-        if (quantifier === GROUP_TYPES.NONE) return { success: activeMatches.length === 0, terms: [] };
-        return { success: true, terms: [] };
-    }
-
-    // RELATION groups — filter relation edges by type, evaluate sub-rules on related media node
-    if (type === 'RELATION') {
-        const quantifier = rule.quantifier || GROUP_TYPES.NONE;
-        const subRules = rule.rules || [];
-        const relType = rule.relationType || 'ANY';
-
-        const edges = item.relations?.edges || [];
-        const targetEdges = relType === 'ANY' ? edges : edges.filter(e => e.relationType === relType);
-
-        if (subRules.length === 0) {
-            if (quantifier === GROUP_TYPES.ANY)  return { success: targetEdges.length > 0, terms: [] };
-            if (quantifier === GROUP_TYPES.NONE) return { success: targetEdges.length === 0, terms: [] };
-            return { success: true, terms: [] };
-        }
-
-        const nodeMatches = targetEdges.map(edge => {
-            const subResults = subRules.map(sr => evaluateRule(edge.node, sr));
-            return {
-                success: subResults.every(r => r.success),
-                terms: subResults.flatMap(r => r.terms)
-            };
-        });
-
-        const activeMatches = nodeMatches.filter(m => m.success);
-        const matchTerms = activeMatches.flatMap(m => m.terms);
-
-        if (quantifier === GROUP_TYPES.ANY)  return { success: activeMatches.length > 0, terms: matchTerms };
-        if (quantifier === GROUP_TYPES.ALL)  return { success: activeMatches.length === targetEdges.length && targetEdges.length > 0, terms: matchTerms };
-        if (quantifier === GROUP_TYPES.NONE) return { success: activeMatches.length === 0, terms: [] };
-        return { success: true, terms: [] };
-    }
-
-    let success = true;
     switch (operator) {
-        case OPERATORS.CONTAINS:
+        case OPERATORS.EQUALS:
+        case OPERATORS.IS:
             if (Array.isArray(actualValue)) {
-                // For collections (Tags/Genres), use EXACT item matching even with "contains"
-                const matchesItem = actualValue.some(v => v?.toString().toLowerCase() === target);
-                success = matchesItem;
-                if (success) addMatch(target);
+                const found = actualValue.filter(v => v?.toString().toLowerCase() === target);
+                success = found.length > 0;
+                if (success) found.forEach(f => addMatch(path, f));
             } else {
-                success = actualValue?.toString().toLowerCase().includes(target);
-                if (success) addMatch(actualValue);
+                success = actualValue?.toString().toLowerCase() === target;
+                if (success) addMatch(path, actualValue);
             }
             break;
-
+        case OPERATORS.NOT_EQUALS:
+            success = actualValue?.toString().toLowerCase() !== target;
+            break;
+        case OPERATORS.CONTAINS:
+            if (Array.isArray(actualValue)) {
+                success = actualValue.some(v => v?.toString().toLowerCase() === target);
+                if (success) addMatch(path, target);
+            } else {
+                success = actualValue?.toString().toLowerCase().includes(target);
+                if (success) addMatch(path, target);
+            }
+            break;
         case OPERATORS.NOT_CONTAINS:
             if (Array.isArray(actualValue)) {
-                // For collections (Tags/Genres), use EXACT item exclusion
-                const violator = actualValue.find(v => v?.toString().toLowerCase() === target);
-                success = !violator;
+                success = !actualValue.some(v => v?.toString().toLowerCase() === target);
             } else {
                 success = !actualValue?.toString().toLowerCase().includes(target);
             }
             break;
-
-        case OPERATORS.EQUALS:
-        case OPERATORS.IS:
-            if (Array.isArray(actualValue)) {
-                const foundItems = actualValue.filter(v => v?.toString().toLowerCase() === target);
-                success = foundItems.length > 0;
-                if (success) foundItems.forEach(fi => addMatch(fi));
-            } else {
-                // Handle boolean
-                if (target === 'true' || target === 'false') {
-                    success = String(actualValue) === target;
-                } else {
-                    success = actualValue?.toString().toLowerCase() === target;
-                    if (success) addMatch(actualValue);
-                }
-            }
-            break;
-
-        case OPERATORS.NOT_EQUALS:
-            if (Array.isArray(actualValue)) {
-                success = !actualValue.some(v => v?.toString().toLowerCase() === target);
-            } else {
-                success = actualValue?.toString().toLowerCase() !== target;
-            }
-            break;
-
         case OPERATORS.GREATER:
-            success = safeParseNumber(actualValue) > safeParseNumber(value);
+            success = parseFloat(actualValue) > parseFloat(value);
             break;
-
         case OPERATORS.LESSER:
-            success = safeParseNumber(actualValue) < safeParseNumber(value);
+            success = parseFloat(actualValue) < parseFloat(value);
             break;
-
-        case OPERATORS.BETWEEN:
-            const numbers = value.split(/[- ]+/).map(safeParseNumber);
-            const [min, max] = numbers;
-            const valNumber = safeParseNumber(actualValue);
-            success = valNumber >= min && valNumber <= max;
-            break;
-
         case OPERATORS.REGEX_MATCH:
             try {
                 if (!actualValue) {
                     success = false;
                 } else {
-                    const re = new RegExp(value, 'i');
-                    success = re.test(actualValue.toString());
-                    // For regex, the matching chunk might be hard to isolate perfectly, 
-                    // but we can add the whole string as a highlight hint.
-                    if (success) addMatch(actualValue);
+                    const re = new RegExp(value, 'gi');
+                    const text = actualValue.toString();
+                    const matchesFound = text.match(re);
+                    success = !!matchesFound;
+                    if (success && matchesFound) {
+                        matchesFound.forEach(m => addMatch(path, m.trim()));
+                    }
                 }
             } catch (e) { success = false; }
             break;
-
         case OPERATORS.REGEX_NOT_MATCH:
             try {
-                if (!actualValue) {
-                    success = true;
-                } else {
-                    const re = new RegExp(value, 'i');
+                if (!actualValue) success = true;
+                else {
+                    const re = new RegExp(value, 'gi');
                     success = !re.test(actualValue.toString());
                 }
             } catch (e) { success = true; }
             break;
-
         default:
             success = true;
     }
 
-    return { success, terms };
+    return { success, matches };
 }
 
 /**
@@ -460,20 +457,83 @@ export function evaluateRule(item, rule) {
  */
 export function filterResults(results, rules) {
     if (!rules || rules.length === 0) return results;
-    
+
+    let debugTriggered = false;
     return results.filter(item => {
         const ruleResults = rules.map(rule => ({
             rule,
             result: evaluateRule(item, rule)
         }));
         const allPass = ruleResults.every(r => r.result.success);
-        
-        if (allPass) {
-            // Attach unique matching terms to the item for highlighting in UI
-            const allTerms = ruleResults.flatMap(r => r.result.terms);
-            item._matchTerms = [...new Set(allTerms)].filter(t => t.length > 2);
+
+        if (!allPass && !debugTriggered && state.isScanning) {
+            const findDeepFailure = (res) => {
+                const fail = res.find(r => !r.result.success);
+                if (!fail) return null;
+                if (fail.rule.type === 'GROUP' || fail.rule.type === 'RELATION') {
+                    // Try to evaluate its children to see why it failed
+                    const subResults = (fail.rule.rules || []).map(sr => ({
+                        rule: sr,
+                        result: evaluateRule(item, sr)
+                    }));
+                    const deep = findDeepFailure(subResults);
+                    return deep || fail;
+                }
+                return fail;
+            };
+
+            const failure = findDeepFailure(ruleResults);
+            if (failure) {
+                console.warn(`[Filter Debug] "${item.title.romaji || 'Unknown'}" rejected by rule:`, {
+                    path: failure.rule.path,
+                    op: failure.rule.operator,
+                    expected: failure.rule.value,
+                    actual: getValueByPath(item, failure.rule.path),
+                    cause: (failure.rule.type === 'GROUP' || failure.rule.type === 'RELATION') ? `Group (${failure.rule.quantifier}) failed` : 'Leaf match failed'
+                });
+            }
+            debugTriggered = true;
         }
-        
+
+        if (allPass) {
+            // Success TRACE: Deep report of why it matched
+            if (state.isScanning) {
+                const getDeepTrace = (res) => {
+                    return res.map(r => {
+                        const base = `${r.rule.path}:${r.result.success ? 'PASS' : 'FAIL'}`;
+                        if (r.rule.rules) {
+                            const subRes = r.rule.rules.map(sr => ({ rule: sr, result: evaluateRule(item, sr) }));
+                            return { [base]: getDeepTrace(subRes) };
+                        }
+                        return base;
+                    });
+                };
+                console.info(`[Match Trail] "${item.title.romaji}" FOUND:`, getDeepTrace(ruleResults));
+            }
+
+            // Attach unique matching terms to the item for highlighting in UI
+            // This now uses path-specific tracking to prevent "highlight bleed"
+            const allMatches = {};
+            ruleResults.forEach(r => {
+                if (r.result.matches) {
+                    Object.entries(r.result.matches).forEach(([p, terms]) => {
+                        if (!allMatches[p]) allMatches[p] = new Set();
+                        terms.forEach(t => allMatches[p].add(t));
+                    });
+                }
+            });
+
+            // Convert Sets back to arrays for JSON compatibility and UI consumption
+            item._matchDetails = {};
+            Object.entries(allMatches).forEach(([p, termsSet]) => {
+                item._matchDetails[p] = [...termsSet].filter(t => t && t.length >= 2);
+            });
+            
+            if (state.isScanning) {
+                console.info(`[Match Trail] "${item.title.romaji || 'Unknown'}" FOUND. Reasons:`, item._matchDetails);
+            }
+        }
+
         return allPass;
     });
 }

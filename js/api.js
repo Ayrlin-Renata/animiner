@@ -202,6 +202,15 @@ export async function executeSearch(onProgress, onComplete) {
       }
 
       const { data, errors } = await res.json();
+      
+      // DIAGNOSTIC LOGGING
+      console.log(`[Search] Page ${state.page} Response:`, { 
+        variables: body.variables, 
+        hasData: !!data?.Page,
+        itemCount: data?.Page?.[state.searchMode === 'MEDIA' ? 'media' : 'items']?.length || 0,
+        errors: errors 
+      });
+
       if (errors) {
           console.error('GraphQL Errors:', errors);
           break;
@@ -265,13 +274,19 @@ function getApiVariables() {
 
   /**
    * Recursively extract API-compatible filters from a rule list and its nested groups.
+   * ONLY rules that are logically mandatory (ALL of ALL) can be pushed to the global API request.
    */
-  const extractApiFilters = (rules, groupType = 'ALL', groupPath = 'ROOT') => {
+  const extractApiFilters = (rules, isMandatory = true) => {
     rules.forEach(rule => {
       if (rule.type === 'GROUP') {
-        if (rule.quantifier === 'ALL' || groupType === 'ALL') {
-          extractApiFilters(rule.rules || [], rule.quantifier, rule.path);
-        } else if (rule.quantifier === 'ANY' || rule.quantifier === 'NONE') {
+        // A path is only mandatory if it's an ALL group inside a mandatory parent
+        const childrenAreMandatory = isMandatory && rule.quantifier === 'ALL';
+        
+        if (childrenAreMandatory) {
+          extractApiFilters(rule.rules || [], true);
+        } else if (isMandatory && (rule.quantifier === 'ANY' || rule.quantifier === 'NONE')) {
+          // SMART CONSOLIDATION: If a mandatory ANY group has children with the same path, 
+          // we can still optimize it. (e.g. Mandatory AND (Genre A OR Genre B) -> genre_in: [A,B])
           const childRules = (rule.rules || []).filter(r => r.type !== 'GROUP');
           if (childRules.length > 0) {
             const firstPath = childRules[0].path;
@@ -286,11 +301,19 @@ function getApiVariables() {
               applyRuleToVars(mockRule, rule.quantifier);
             }
           }
+          // But their deeper children are definitely NOT mandatory path
+          extractApiFilters(rule.rules || [], false);
+        } else {
+          // Path is optional (ANY or NONE)
+          extractApiFilters(rule.rules || [], false);
         }
         return;
       }
 
-      applyRuleToVars(rule, groupType);
+      // Leaf rules: Only apply to global variables if they are in a mandatory path
+      if (isMandatory) {
+        applyRuleToVars(rule, 'ALL');
+      }
     });
   };
 
@@ -362,8 +385,12 @@ function getApiVariables() {
         } else if (apiArg === 'minimumTagRank' || apiArg.includes('Score') || path === 'popularity' || path === 'trending' || 
                    path === 'episodes' || path === 'duration' || path === 'chapters' || path === 'volumes' || 
                    path === 'id' || path === 'idMal' || path === 'seasonYear') {
-            vars[apiArg] = parseInt(val);
+            const parsed = parseInt(val);
+            if (!isNaN(parsed)) {
+                vars[apiArg] = parsed;
+            }
         } else {
+            if (val.trim() === '') return; // Skip empty string filters for the API
             if (groupType === 'ALL' && vars[apiArg]) return;
             vars[apiArg] = val;
         }

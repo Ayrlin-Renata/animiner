@@ -123,16 +123,19 @@ export function addRuleUI(initialData = null, parentContainer = null, isSubField
     fieldSelect.onchange = updateOps;
     row.querySelector('.remove-btn').onclick = () => row.remove();
 
-    if (initialData && catSelect) {
-        for (const cat of availableCategories) {
-            if (FIELDS[cat].some(f => f.path === initialData.path)) {
-                catSelect.value = cat;
-                break;
-            }
-        }
+    if (initialData && initialData.path && !isSubField) {
+        // Try to find which category this path belongs to
+        const cat = Object.keys(FIELDS).find(c => FIELDS[c].some(f => f.path === initialData.path));
+        if (cat) catSelect.value = cat;
     }
 
-    updateFields();
+    if (!initialData && catSelect) {
+        // Default to Content -> Tag Name for better workflow
+        catSelect.value = RECURSIVE_CATEGORIES.CONTENT;
+        updateFields();
+    } else {
+        updateFields();
+    }
     
     // Drag and Drop Event listeners for Rule Rows
     const handle = row.querySelector('.rule-drag-handle');
@@ -270,11 +273,11 @@ export function addGroupUI(initialData = null, parentContainer = null) {
         window.draggedElement = null;
     }
 
-    container.ondragover = (e) => {
+    box.ondragover = (e) => {
         e.preventDefault();
         e.stopPropagation();
         const draggable = window.draggedElement;
-        if (!draggable || draggable === box) return;
+        if (!draggable || draggable === box || draggable.contains(box)) return;
 
         const afterElement = getDragAfterElement(container, e.clientY, draggable);
         if (afterElement !== draggable.nextElementSibling) {
@@ -392,11 +395,11 @@ export function addRelationGroupUI(initialData = null, parentContainer = null) {
         window.draggedElement = null;
     }
 
-    container.ondragover = (e) => {
+    box.ondragover = (e) => {
         e.preventDefault();
         e.stopPropagation();
         const draggable = window.draggedElement;
-        if (!draggable || draggable === box) return;
+        if (!draggable || draggable === box || draggable.contains(box)) return;
 
         const afterElement = getDragAfterElement(container, e.clientY, draggable);
         if (afterElement !== draggable.nextElementSibling) {

@@ -14,13 +14,16 @@ export function highlightText(text, terms) {
   
   // Create a regex that matches any of the terms, escaping them for safety
   const escapedTerms = sortedTerms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  const regex = new RegExp(`(${escapedTerms.join('|')})`, 'gi');
+  // Use word boundaries to prevent substring matches (e.g. "his" in "this")
+  const regex = new RegExp(`\\b(${escapedTerms.join('|')})\\b`, 'gi');
   
   return text.replace(regex, '<mark class="match-highlight">$1</mark>');
 }
 
-export function formatDescription(html, terms) {
+export function formatDescription(html, item) {
   if (!html) return 'No description available.';
+  // Isolated Highlighting: Only use terms that were actually found in the description field
+  const terms = item?._matchDetails?.['description'] || [];
   const clean = html.replace(/<br\s*\/?>/gi, '\n').replace(/<\/?[^>]+(>|$)/g, "");
   return highlightText(clean, terms);
 }
@@ -30,10 +33,11 @@ export function openModal(item) {
   let content = '';
   
   if (state.searchMode === 'MEDIA') {
-    const matchTerms = item._matchTerms || [];
+    const details = item._matchDetails || {};
     const genres = item.genres?.map(g => {
-        const isMatch = matchTerms.some(t => g.toLowerCase().includes(t));
-        return `<span class="tag ${isMatch ? 'match-highlight-tag' : ''}">${highlightText(g, matchTerms)}</span>`;
+        const terms = details['genres'] || [];
+        const isMatch = terms.some(t => new RegExp(`\\b${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(g));
+        return `<span class="tag ${isMatch ? 'match-highlight-tag' : ''}">${highlightText(g, terms)}</span>`;
     }).join(' ') || '';
     const studios = item.studios?.edges?.filter(e => e.isMain).map(e => e.node.name).join(', ') || 'Unknown';
     const sourceFormatted = item.source?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) || '?';
@@ -155,27 +159,35 @@ export function openModal(item) {
           <div class="sidebar-section">
             <div class="section-title small">Tags</div>
             <div class="tag-list">
-              ${visibleTags.map(t => `
-                <div class="tag-list-item ${matchTerms.some(mt => t.name.toLowerCase().includes(mt)) ? 'match-highlight-tag' : ''}">
-                  <span class="tag-name">${highlightText(t.name, matchTerms)}</span>
-                  <span class="tag-rank">${t.rank}%</span>
-                </div>
-              `).join('')}
-              ${spoilerTags.length ? `<button class="text-btn spoiler-toggle" onclick="this.nextElementSibling.classList.toggle('hidden')">Show Spoiler Tags (+${spoilerTags.length})</button>
-              <div class="tag-list hidden">
-                ${spoilerTags.map(t => `
-                  <div class="tag-list-item spoiler ${matchTerms.some(mt => t.name.toLowerCase().includes(mt)) ? 'match-highlight-tag' : ''}">
-                    <span class="tag-name">${highlightText(t.name, matchTerms)}</span>
+              ${visibleTags.map(t => {
+                const terms = details['tags.name'] || [];
+                const isMatch = terms.some(mt => new RegExp(`\\b${mt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(t.name));
+                return `
+                  <div class="tag-list-item ${isMatch ? 'match-highlight-tag' : ''}">
+                    <span class="tag-name">${highlightText(t.name, terms)}</span>
                     <span class="tag-rank">${t.rank}%</span>
                   </div>
-                `).join('')}
+                `;
+              }).join('')}
+              ${spoilerTags.length ? `<button class="text-btn spoiler-toggle" onclick="this.nextElementSibling.classList.toggle('hidden')">Show Spoiler Tags (+${spoilerTags.length})</button>
+              <div class="tag-list hidden">
+                ${spoilerTags.map(t => {
+                  const terms = details['tags.name'] || [];
+                  const isMatch = terms.some(mt => new RegExp(`\\b${mt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(t.name));
+                  return `
+                    <div class="tag-list-item spoiler ${isMatch ? 'match-highlight-tag' : ''}">
+                      <span class="tag-name">${highlightText(t.name, terms)}</span>
+                      <span class="tag-rank">${t.rank}%</span>
+                    </div>
+                  `;
+                }).join('')}
               </div>` : ''}
             </div>
           </div>
         </div>
         <div class="modal-main">
           <div class="section-title">Description</div>
-          <div class="modal-description">${formatDescription(item.description, matchTerms)}</div>
+          <div class="modal-description">${formatDescription(item.description, item)}</div>
           
           ${trailerHtml}
           ${relationsHtml}
@@ -216,7 +228,7 @@ export function openModal(item) {
       <div class="modal-grid simple">
         <div class="modal-main">
           <div class="section-title">About</div>
-          <div class="modal-description">${formatDescription(item.description || item.about)}</div>
+          <div class="modal-description">${formatDescription(item.description || item.about, item)}</div>
         </div>
       </div>`;
   }

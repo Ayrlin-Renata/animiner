@@ -271,9 +271,14 @@
 }
 
 .group-rules-container.drag-over {
-  background: rgba(146, 86, 243, 0.08) !important;
+  background: rgba(146, 86, 243, 0.12) !important;
   outline: 2px dashed var(--accent-color);
   outline-offset: -2px;
+}
+
+.rule-group-box.drag-over {
+  border-color: var(--accent-color);
+  background: rgba(146, 86, 243, 0.05);
 }
 
 #rootGroup.drag-over {
