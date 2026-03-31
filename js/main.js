@@ -4,9 +4,9 @@
  */
 
 import { state, loadCache, saveSettings, loadSettings } from './state.js';
-import { UI, addRuleUI, resetUI, updateProgress, renderResultsList, syncUI } from './ui.js';
+import { UI, addRuleUI, addGroupUI, resetUI, updateProgress, renderResultsList, syncUI } from './ui.js';
 import { executeSearch } from './api.js';
-import { FIELDS } from './filter.js';
+import { FIELDS, SUB_FIELDS } from './filter.js';
 
 async function init() {
   await loadCache();
@@ -24,7 +24,8 @@ async function init() {
     state.isCancelled = true;
   };
 
-  UI.addRuleBtn.onclick = addRuleUI;
+  UI.addRuleBtn.onclick = () => addRuleUI();
+  UI.addGroupBtn.onclick = () => addGroupUI();
 
   UI.searchMode.onchange = (e) => {
     state.searchMode = e.target.value;
@@ -52,8 +53,14 @@ async function init() {
 
   // Initial UI state
   if (hasSavedSettings && state.rules.length > 0) {
-    resetUI(true); // Clear everything but don't add default rule yet
-    state.rules.forEach(rule => addRuleUI(rule));
+    resetUI(true);
+    state.rules.forEach(rule => {
+      if (rule.type === 'GROUP') {
+        addGroupUI(rule);
+      } else {
+        addRuleUI(rule);
+      }
+    });
     syncUI();
   } else {
     resetUI();
@@ -61,27 +68,57 @@ async function init() {
 }
 
 function updateStateFromUI() {
-  const rows = Array.from(UI.rootGroup.querySelectorAll('.rule-row'));
-  state.rules = rows.map(r => {
-    const cat = r.querySelector('.cat-select').value;
-    const fieldIdx = parseInt(r.querySelector('.field-select').value);
-    const fields = FIELDS[cat] || [];
-    const field = fields[fieldIdx];
-    
-    if (!field) return null;
-
-    return {
-      path: field.path,
-      label: field.label, // Store label too for better restoration matching
-      apiArg: field.apiArg,
-      type: field.type,
-      operator: r.querySelector('.op-select').value,
-      value: (r.querySelector('.val-input') || r.querySelector('.val-select'))?.value || ''
-    };
-  }).filter(r => r && r.value !== '');
-  
+  state.rules = collectRulesRecursive(UI.rootGroup);
   state.targetMatches = parseInt(UI.targetResults.value || '50');
   saveSettings();
+}
+
+function collectRulesRecursive(container) {
+  const rules = [];
+  
+  // Direct children can be rule-rows or rule-group-boxes
+  const children = Array.from(container.children);
+  
+  children.forEach(child => {
+    if (child.classList.contains('rule-row')) {
+      const rule = parseRuleRow(child);
+      if (rule) rules.push(rule);
+    } else if (child.classList.contains('rule-group-box')) {
+      const group = parseGroupbox(child);
+      if (group) rules.push(group);
+    }
+  });
+  
+  return rules;
+}
+
+function parseRuleRow(row) {
+  const path = row.dataset.path;
+  const type = row.dataset.type;
+  const label = row.dataset.label;
+
+  if (!path) return null;
+
+  return {
+    path,
+    label,
+    type,
+    operator: row.querySelector('.op-select').value,
+    value: (row.querySelector('.val-input') || row.querySelector('.val-select'))?.value || ''
+  };
+}
+
+function parseGroupbox(box) {
+  const path = box.querySelector('.group-path').value;
+  const quantifier = box.querySelector('.group-quantifier').value;
+  const container = box.querySelector('.group-rules-container');
+  
+  return {
+    type: 'GROUP',
+    path,
+    quantifier,
+    rules: collectRulesRecursive(container)
+  };
 }
 
 // Global initialization

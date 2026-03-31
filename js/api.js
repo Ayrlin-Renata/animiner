@@ -56,8 +56,28 @@ export const QUERIES = {
           isLocked synonyms hashtag
           tags { name category rank }
           studios { edges { node { name } isMain } }
-          characters(perPage: 6) { edges { role node { name { full } image { large } } } }
-          staff(perPage: 6) { edges { role node { name { full } image { large } } } }
+          characters(perPage: 12) { 
+            edges { 
+              role 
+              node { 
+                name { full } 
+                image { large } 
+                gender 
+                age 
+              } 
+            } 
+          }
+          staff(perPage: 8) { 
+            edges { 
+              role 
+              node { 
+                name { full } 
+                image { large } 
+                gender 
+                age 
+              } 
+            } 
+          }
           relations { edges { relationType node { id title { romaji } coverImage { medium } } } }
         }
       }
@@ -208,7 +228,9 @@ function getApiVariables() {
   const parseIntList = (str) => parseList(str).map(val => parseInt(val)).filter(val => !isNaN(val));
 
   state.rules.forEach(rule => {
-    const val = rule.value;
+    if (rule.type === 'GROUP') return;
+    
+    const val = rule.value || '';
     const path = rule.path;
     const op = rule.operator;
 

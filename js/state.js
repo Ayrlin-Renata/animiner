@@ -22,6 +22,7 @@ export const state = {
     studios: [],
     characterNames: [],
     staffNames: [],
+    genders: ['Male', 'Female', 'Non-binary'],
     formats: ['TV', 'TV_SHORT', 'MOVIE', 'SPECIAL', 'OVA', 'ONA', 'MUSIC', 'MANGA', 'NOVEL', 'ONE_SHOT']
   }
 };
@@ -32,13 +33,25 @@ export function updateSeenValues(items, mode) {
       m.genres?.forEach(g => addSeen('genres', g));
       m.tags?.forEach(t => addSeen('tags', t.name));
       m.studios?.edges?.forEach(e => addSeen('studios', e.node.name));
-      m.characters?.edges?.forEach(e => addSeen('characterNames', e.node.name.full));
-      m.staff?.edges?.forEach(e => addSeen('staffNames', e.node.name.full));
+      m.characters?.edges?.forEach(e => {
+        addSeen('characterNames', e.node.name?.full);
+        addSeen('genders', e.node.gender);
+      });
+      m.staff?.edges?.forEach(e => {
+        addSeen('staffNames', e.node.name?.full);
+        addSeen('genders', e.node.gender);
+      });
     });
   } else if (mode === 'CHARACTER') {
-    items.forEach(c => addSeen('characterNames', c.name.full));
+    items.forEach(c => {
+      addSeen('characterNames', c.name?.full);
+      addSeen('genders', c.gender);
+    });
   } else if (mode === 'STAFF') {
-    items.forEach(s => addSeen('staffNames', s.name.full));
+    items.forEach(s => {
+      addSeen('staffNames', s.name?.full);
+      addSeen('genders', s.gender);
+    });
   } else if (mode === 'STUDIO') {
     items.forEach(s => addSeen('studios', s.name));
   }

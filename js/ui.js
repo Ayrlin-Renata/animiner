@@ -5,7 +5,7 @@
  */
 
 import { state } from './state.js';
-import { FIELDS, RECURSIVE_CATEGORIES, OPERATORS_BY_TYPE } from './filter.js';
+import { FIELDS, RECURSIVE_CATEGORIES, OPERATORS_BY_TYPE, COLLECTION_PATHS, GROUP_TYPES, SUB_FIELDS } from './filter.js';
 
 export const UI = {
   mainSearch: document.getElementById('mainSearch'),
@@ -16,6 +16,7 @@ export const UI = {
   searchBtn: document.getElementById('searchBtn'),
   cancelBtn: document.getElementById('cancelBtn'),
   addRuleBtn: document.getElementById('addRuleBtn'),
+  addGroupBtn: document.getElementById('addGroupBtn'),
   rootGroup: document.getElementById('rootGroup'),
   resultsGrid: document.getElementById('resultsGrid'),
   loading: document.getElementById('loading'),
@@ -197,10 +198,14 @@ export function openModal(item) {
             <div class="char-grid">
               ${item.characters.edges.slice(0, 8).map(e => `
                 <div class="char-card">
-                  <img src="${e.node.image.large}" class="char-img">
+                  <img src="${e.node.image?.large}" class="char-img">
                   <div class="char-info">
-                    <p class="char-name">${e.node.name.full}</p>
+                    <p class="char-name">${e.node.name?.full}</p>
                     <p class="char-role">${e.role}</p>
+                    <div class="char-traits">
+                      ${e.node.gender ? `<span class="trait-badge">${e.node.gender}</span>` : ''}
+                      ${e.node.age ? `<span class="trait-badge">${e.node.age}</span>` : ''}
+                    </div>
                   </div>
                 </div>
               `).join('')}
@@ -233,11 +238,11 @@ export function openModal(item) {
   if (window.lucide) window.lucide.createIcons();
 }
 
-export function addRuleUI(initialData = null) {
+export function addRuleUI(initialData = null, parentContainer = null, isSubField = false, subFields = null) {
     const row = document.createElement('div');
     row.className = 'rule-row';
 
-    const availableCategories = Object.keys(FIELDS).filter(cat => {
+    const availableCategories = isSubField ? [] : Object.keys(FIELDS).filter(cat => {
         if (state.searchMode === 'MEDIA') return true;
         const mapping = {
             CHARACTER: [RECURSIVE_CATEGORIES.CHARACTER, RECURSIVE_CATEGORIES.IDENTIFIERS],
@@ -250,9 +255,9 @@ export function addRuleUI(initialData = null) {
 
     row.innerHTML = `
     <div class="rule-top">
-      <select class="cat-select">
+      ${isSubField ? '' : `<select class="cat-select">
         ${availableCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
-      </select>
+      </select>`}
       <select class="field-select"></select>
       <button class="remove-btn" title="Remove Constraint"><i data-lucide="trash-2"></i></button>
     </div>
@@ -268,12 +273,11 @@ export function addRuleUI(initialData = null) {
     const valContainer = row.querySelector('.val-container');
 
     const updateFields = () => {
-        const fields = FIELDS[catSelect.value] || [];
+        const fields = isSubField ? subFields : (FIELDS[catSelect?.value] || []);
         fieldSelect.innerHTML = fields.map((f, i) => `<option value="${i}">${f.label}</option>`).join('');
         
         if (initialData && initialData.path) {
-            // Find field by path to restore it
-            const idx = fields.findIndex(f => f.path === initialData.path && f.label === (initialData.label || f.label));
+            const idx = fields.findIndex(f => f.path === initialData.path && (initialData.label ? f.label === initialData.label : true));
             if (idx !== -1) fieldSelect.value = idx;
         }
         
@@ -281,9 +285,15 @@ export function addRuleUI(initialData = null) {
     };
 
     const updateOps = () => {
-        const fields = FIELDS[catSelect.value] || [];
+        const fields = isSubField ? subFields : (FIELDS[catSelect?.value] || []);
         const field = fields[parseInt(fieldSelect.value)];
         if (!field) return;
+
+        // CRITICAL: Set attributes for reliable state extraction
+        row.dataset.path = field.path;
+        row.dataset.type = field.type;
+        row.dataset.label = field.label;
+
         const ops = OPERATORS_BY_TYPE[field.type] || [];
         opSelect.innerHTML = ops.map(o => `<option value="${o}">${o.replace('_', ' ')}</option>`).join('');
         
@@ -330,12 +340,12 @@ export function addRuleUI(initialData = null) {
         }
     };
 
-    catSelect.onchange = updateFields;
+    if (catSelect) catSelect.onchange = updateFields;
     fieldSelect.onchange = updateOps;
     row.querySelector('.remove-btn').onclick = () => row.remove();
 
     // Set initial category if restoration
-    if (initialData) {
+    if (initialData && catSelect) {
         // Find category by looking which one contains the path
         for (const cat of availableCategories) {
             if (FIELDS[cat].some(f => f.path === initialData.path)) {
@@ -346,7 +356,66 @@ export function addRuleUI(initialData = null) {
     }
 
     updateFields();
-    UI.rootGroup.appendChild(row);
+    (parentContainer || UI.rootGroup).appendChild(row);
+    if (window.lucide) window.lucide.createIcons();
+}
+
+/**
+ * Adds a new Filter Group to the UI.
+ */
+export function addGroupUI(initialData = null) {
+    const box = document.createElement('div');
+    box.className = 'rule-group-box';
+    box.dataset.type = 'GROUP';
+
+    box.innerHTML = `
+        <div class="rule-group-header">
+            <div class="group-title">
+                <i data-lucide="layers"></i>
+                <span>Group Filter</span>
+            </div>
+            <div class="group-controls">
+                <select class="group-path">
+                    ${Object.entries(COLLECTION_PATHS).map(([key, val]) => `<option value="${val}">${key}</option>`).join('')}
+                </select>
+                <select class="group-quantifier">
+                    ${Object.values(GROUP_TYPES).map(t => `<option value="${t}">${t}</option>`).join('')}
+                </select>
+                <button class="remove-btn" title="Remove Group"><i data-lucide="trash-2"></i></button>
+            </div>
+        </div>
+        <div class="group-rules-container"></div>
+        <div class="group-actions">
+            <button class="text-btn add-sub-rule-btn">
+                <i data-lucide="plus"></i> Add Sub-Constraint
+            </button>
+        </div>
+    `;
+
+    const pathSelect = box.querySelector('.group-path');
+    const quantSelect = box.querySelector('.group-quantifier');
+    const container = box.querySelector('.group-rules-container');
+    const addBtn = box.querySelector('.add-sub-rule-btn');
+
+    if (initialData) {
+        pathSelect.value = initialData.path;
+        quantSelect.value = initialData.quantifier || 'ANY';
+    }
+
+    addBtn.onclick = () => addRuleUI(null, container, true, SUB_FIELDS[pathSelect.value]);
+    pathSelect.onchange = () => {
+        container.innerHTML = '';
+        addRuleUI(null, container, true, SUB_FIELDS[pathSelect.value]);
+    };
+    box.querySelector('.remove-btn').onclick = () => box.remove();
+
+    if (initialData && initialData.rules) {
+        initialData.rules.forEach(r => addRuleUI(r, container, true, SUB_FIELDS[pathSelect.value]));
+    } else {
+        addRuleUI(null, container, true, SUB_FIELDS[pathSelect.value]);
+    }
+
+    UI.rootGroup.appendChild(box);
     if (window.lucide) window.lucide.createIcons();
 }
 

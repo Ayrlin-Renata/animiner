@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,19 +11,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    
+
     <!-- Split CSS -->
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/modal.css">
 </head>
+
 <body>
     <div id="app">
         <header>
             <div class="logo">
                 <i data-lucide="search-code"></i>
-                <h1>Ani<span>Workspace</span></h1>
+                <h1>Ani<span>Miner</span></h1>
             </div>
             <p class="subtitle">Recursive Deep Search for AniList</p>
         </header>
@@ -46,7 +48,7 @@
                         <i data-lucide="search" class="input-icon"></i>
                         <input type="text" id="mainSearch" placeholder="Search...">
                     </div>
-                    
+
                     <div class="control-group">
                         <label for="targetResults">Target</label>
                         <input type="number" id="targetResults" value="50" min="1" max="500">
@@ -107,9 +109,14 @@
                     <div id="rootGroup">
                         <!-- Rule rows will be added here -->
                     </div>
-                    <button id="addRuleBtn" class="text-btn">
-                        <i data-lucide="plus"></i> Add Constraint
-                    </button>
+                    <div class="builder-actions">
+                        <button id="addRuleBtn" class="text-btn">
+                            <i data-lucide="plus"></i> Add Constraint
+                        </button>
+                        <button id="addGroupBtn" class="text-btn secondary">
+                            <i data-lucide="layers"></i> Add Filter Group
+                        </button>
+                    </div>
                 </div>
             </section>
 
@@ -143,4 +150,5 @@
 
     <script type="module" src="js/main.js"></script>
 </body>
+
 </html>

@@ -13,6 +13,18 @@ export const FIELD_TYPES = {
     LIST: 'list'
 };
 
+export const GROUP_TYPES = {
+    ANY: 'ANY',
+    ALL: 'ALL',
+    NONE: 'NONE'
+};
+
+export const COLLECTION_PATHS = {
+    CHARACTERS: 'characters.edges',
+    STAFF: 'staff.edges',
+    STUDIOS: 'studios.edges'
+};
+
 export const RECURSIVE_CATEGORIES = {
     IDENTIFIERS: 'Identifiers',
     TIMELINE: 'Timeline',
@@ -98,8 +110,8 @@ export const FIELDS = {
     ],
     [RECURSIVE_CATEGORIES.CHARACTER]: [
         { label: 'Char Full Name', path: 'characters.edges.node.name.full', type: FIELD_TYPES.COLLECTION, seenKey: 'characterNames' },
-        { label: 'Char Gender', path: 'gender', type: FIELD_TYPES.STRING },
-        { label: 'Char Age', path: 'age', type: FIELD_TYPES.STRING },
+        { label: 'Char Gender', path: 'gender', type: FIELD_TYPES.STRING, seenKey: 'genders' },
+        { label: 'Char Age', path: 'age', type: FIELD_TYPES.NUMBER },
         { label: 'Blood Type', path: 'bloodType', type: FIELD_TYPES.STRING },
         { label: 'Favourites', path: 'favourites', type: FIELD_TYPES.NUMBER },
         { label: 'Is Favourite', path: 'isFavourite', type: FIELD_TYPES.BOOLEAN },
@@ -107,7 +119,7 @@ export const FIELDS = {
     ],
     [RECURSIVE_CATEGORIES.STAFF]: [
         { label: 'Staff Full Name', path: 'staff.edges.node.name.full', type: FIELD_TYPES.COLLECTION, seenKey: 'staffNames' },
-        { label: 'Staff Gender', path: 'gender', type: FIELD_TYPES.STRING },
+        { label: 'Staff Gender', path: 'gender', type: FIELD_TYPES.STRING, seenKey: 'genders' },
         { label: 'Staff Age', path: 'age', type: FIELD_TYPES.NUMBER },
         { label: 'Language', path: 'languageV2', type: FIELD_TYPES.STRING },
         { label: 'Occupations', path: 'primaryOccupations', type: FIELD_TYPES.COLLECTION },
@@ -121,6 +133,25 @@ export const FIELDS = {
     [RECURSIVE_CATEGORIES.USER]: [
         { label: 'Username', path: 'name', type: FIELD_TYPES.STRING },
         { label: 'User ID', path: 'id', type: FIELD_TYPES.NUMBER }
+    ]
+};
+
+export const SUB_FIELDS = {
+    [COLLECTION_PATHS.CHARACTERS]: [
+        { label: 'Role', path: 'role', type: FIELD_TYPES.ENUM, options: ['MAIN', 'SUPPORTING', 'BACKGROUND'] },
+        { label: 'Name', path: 'node.name.full', type: FIELD_TYPES.STRING, seenKey: 'characterNames' },
+        { label: 'Gender', path: 'node.gender', type: FIELD_TYPES.STRING, seenKey: 'genders' },
+        { label: 'Age', path: 'node.age', type: FIELD_TYPES.NUMBER },
+        { label: 'Voice Actor', path: 'voiceActor.name.full', type: FIELD_TYPES.STRING, seenKey: 'staffNames' }
+    ],
+    [COLLECTION_PATHS.STAFF]: [
+        { label: 'Role', path: 'role', type: FIELD_TYPES.STRING },
+        { label: 'Name', path: 'node.name.full', type: FIELD_TYPES.STRING, seenKey: 'staffNames' },
+        { label: 'Gender', path: 'node.gender', type: FIELD_TYPES.STRING, seenKey: 'genders' }
+    ],
+    [COLLECTION_PATHS.STUDIOS]: [
+        { label: 'Name', path: 'node.name', type: FIELD_TYPES.STRING, seenKey: 'studios' },
+        { label: 'Main Studio', path: 'isMain', type: FIELD_TYPES.BOOLEAN }
     ]
 };
 
@@ -148,6 +179,16 @@ export const OPERATORS_BY_TYPE = {
  * Gets value from a nested object using a dot-notated path string.
  * Handles recursion in arrays automatically.
  */
+/**
+ * Tries to extract the FIRST number from a string (e.g. "45 years" -> 45).
+ */
+function safeParseNumber(val) {
+    if (typeof val === 'number') return val;
+    if (!val) return NaN;
+    const match = val.toString().match(/(\d+(\.\d+)?)/);
+    return match ? parseFloat(match[0]) : NaN;
+}
+
 export function getValueByPath(obj, path) {
     if (obj === null || obj === undefined || !path) return obj;
     const parts = path.split('.');
@@ -186,7 +227,7 @@ export function evaluateRule(item, rule) {
     const target = value?.toString().toLowerCase().trim();
 
     // Special handling for LIST detection (comma separated values)
-    const isListValue = value.includes(',');
+    const isListValue = value?.includes(',');
 
     if (type === FIELD_TYPES.LIST || isListValue) {
         const list = value.split(',').map(s => s.trim().toLowerCase()).filter(s => s !== '');
@@ -198,6 +239,26 @@ export function evaluateRule(item, rule) {
         if (operator === OPERATORS.NOT_EQUALS) {
             return !list.includes(itemValStr);
         }
+    }
+
+    if (type === 'GROUP') {
+        const collection = getValueByPath(item, path);
+        if (!collection || !Array.isArray(collection)) return false;
+        
+        const quantifier = rule.quantifier || GROUP_TYPES.ANY;
+        const subRules = rule.rules || [];
+        
+        // If no sub-rules, treat as "any item exists" or similar
+        if (subRules.length === 0) return collection.length > 0;
+
+        const matchingItems = collection.filter(subItem => 
+            subRules.every(subRule => evaluateRule(subItem, subRule))
+        );
+
+        if (quantifier === GROUP_TYPES.ANY) return matchingItems.length > 0;
+        if (quantifier === GROUP_TYPES.ALL) return matchingItems.length === collection.length && collection.length > 0;
+        if (quantifier === GROUP_TYPES.NONE) return matchingItems.length === 0;
+        return true;
     }
 
     switch (operator) {
@@ -229,14 +290,15 @@ export function evaluateRule(item, rule) {
             return actualValue?.toString().toLowerCase() !== target;
 
         case OPERATORS.GREATER:
-            return Number(actualValue) > Number(value);
+            return safeParseNumber(actualValue) > safeParseNumber(value);
 
         case OPERATORS.LESSER:
-            return Number(actualValue) < Number(value);
+            return safeParseNumber(actualValue) < safeParseNumber(value);
 
         case OPERATORS.BETWEEN:
-            const [min, max] = value.split(/[- ]+/).map(Number);
-            const valNumber = Number(actualValue);
+            const numbers = value.split(/[- ]+/).map(safeParseNumber);
+            const [min, max] = numbers;
+            const valNumber = safeParseNumber(actualValue);
             return valNumber >= min && valNumber <= max;
 
         default:
