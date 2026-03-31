@@ -14,7 +14,7 @@ export function updateProgress(data) {
   if (!UI.progressBanner) return;
 
   UI.progressBanner.classList.remove('hidden');
-  
+
   // Toggle buttons visibility based on scanning state
   if (state.isScanning) {
     UI.searchBtn?.classList.add('hidden');
@@ -30,7 +30,7 @@ export function updateProgress(data) {
 
   if (data.scanned !== undefined) UI.scannedCount.textContent = data.scanned;
   if (data.found !== undefined) UI.foundCount.textContent = data.found;
-  
+
   if (data.rateLimit) {
     UI.rateLimitNotice.classList.remove('hidden');
   } else {
@@ -46,7 +46,7 @@ export function updateProgress(data) {
   if (data.filteredItems && data.filteredItems.length > 0) {
     renderResultsList(data.filteredItems);
   }
-  
+
   // Refresh datalist as new values come in
   updateDatalist();
 }
@@ -56,7 +56,7 @@ export function updateProgress(data) {
  */
 export function renderResultsList(items) {
   if (!UI.resultsGrid) return;
-  
+
   if (items.length === 0 && !state.isScanning) {
     UI.resultsGrid.innerHTML = '';
     UI.noResults.classList.remove('hidden');
@@ -65,11 +65,11 @@ export function renderResultsList(items) {
   UI.noResults.classList.add('hidden');
 
   const fragment = document.createDocumentFragment();
-  
+
   items.forEach(item => {
     const card = document.createElement('div');
     card.className = 'media-card glass';
-    
+
     let title = '';
     let image = '';
     let meta = '';
@@ -92,6 +92,21 @@ export function renderResultsList(items) {
       meta = `<span>User</span>`;
     }
 
+    // Winning Conditions (Badges)
+    const details = item._matchDetails || {};
+    let reasonHtml = '';
+
+    // 1. Tags (Max 5)
+    const matchedTags = [...(details['tags.name'] || []), ...(details['genres'] || [])];
+    const visibleTags = matchedTags.slice(0, 5);
+    reasonHtml += visibleTags.map(t => `<span class="match-badge">${t}</span>`).join('');
+
+    // 2. Keywords (Description matches, distinct style)
+    const keywords = details['description'] || [];
+    if (keywords.length > 0) {
+      reasonHtml += keywords.slice(0, 5).map(kw => `<span class="keyword-badge">${kw}</span>`).join('');
+    }
+
     card.innerHTML = `
       <img src="${image || 'https://via.placeholder.com/200x300?text=No+Image'}" alt="${title}" loading="lazy">
       <button class="block-card-btn" title="Block this result" onclick="event.stopPropagation(); window.blockItem(${item.id}, '${(title || '').replace(/'/g, "\\'")}', '${image || ''}')">
@@ -100,13 +115,14 @@ export function renderResultsList(items) {
       <div class="info">
         <h3>${title}</h3>
         <div class="meta">${meta}</div>
+        <div class="match-reasons">${reasonHtml}</div>
       </div>
     `;
-    
+
     card.addEventListener('click', () => openModal(item));
     fragment.appendChild(card);
   });
-  
+
   UI.resultsGrid.innerHTML = '';
   UI.resultsGrid.appendChild(fragment);
   if (window.lucide) window.lucide.createIcons();

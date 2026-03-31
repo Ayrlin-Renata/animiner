@@ -230,3 +230,33 @@
   border-color: var(--danger-color);
   box-shadow: 0 0 15px rgba(232, 93, 117, 0.4);
 }
+
+.match-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+  pointer-events: none;
+}
+
+.match-badge {
+  font-size: 0.65rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(146, 86, 243, 0.15); /* Purple accent background */
+  color: #bc7aff; /* Purple accent text */
+  border: 1px solid rgba(146, 86, 243, 0.2);
+  white-space: nowrap;
+}
+
+.keyword-badge {
+  font-size: 0.65rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08); /* Subtle grey/white background */
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  font-style: italic;
+  font-weight: 500;
+  white-space: nowrap;
+}
