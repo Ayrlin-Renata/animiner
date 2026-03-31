@@ -223,7 +223,14 @@ export async function executeSearch(onProgress, onComplete) {
 
       const items = (data?.Page?.[listKey] || []).filter(item => {
         const id = item.id;
-        return !state.blacklist[state.searchMode].some(b => (typeof b === 'object' ? b.id : b) === id);
+        const isBlacklisted = state.blacklist[state.searchMode].some(b => (typeof b === 'object' ? b.id : b) === id);
+        if (isBlacklisted) return false;
+        
+        if (!state.showWatched) {
+            const isWatched = state.watched[state.searchMode].some(w => (typeof w === 'object' ? w.id : w) === id);
+            if (isWatched) return false;
+        }
+        return true;
       });
       state.hasNextPage = data?.Page?.pageInfo?.hasNextPage || false;
       

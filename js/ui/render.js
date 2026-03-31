@@ -107,11 +107,18 @@ export function renderResultsList(items) {
       reasonHtml += keywords.slice(0, 5).map(kw => `<span class="keyword-badge">${kw}</span>`).join('');
     }
 
+    const isWatched = state.watched[state.searchMode]?.some(w => (typeof w === 'object' ? w.id : w) === item.id);
+    
     card.innerHTML = `
       <img src="${image || 'https://via.placeholder.com/200x300?text=No+Image'}" alt="${title}" loading="lazy">
-      <button class="block-card-btn" title="Block this result" onclick="event.stopPropagation(); window.blockItem(${item.id}, '${(title || '').replace(/'/g, "\\'")}', '${image || ''}')">
-        <i data-lucide="shield-off"></i>
-      </button>
+      <div class="card-actions-top">
+        <button class="action-card-btn watched-btn ${isWatched ? 'active' : ''}" title="${isWatched ? 'Unmark Watched' : 'Mark as Watched'}" onclick="event.stopPropagation(); window.toggleWatched(${item.id}, '${(title || '').replace(/'/g, "\\'")}', '${image || ''}')">
+          <i data-lucide="${isWatched ? 'check-circle' : 'eye'}"></i>
+        </button>
+        <button class="action-card-btn block-btn" title="Block this result" onclick="event.stopPropagation(); window.blockItem(${item.id}, '${(title || '').replace(/'/g, "\\'")}', '${image || ''}')">
+          <i data-lucide="shield-off"></i>
+        </button>
+      </div>
       <div class="info">
         <h3>${title}</h3>
         <div class="meta">${meta}</div>

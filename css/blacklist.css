@@ -1,28 +1,28 @@
 /* css/blacklist.css */
 
 .blacklist-manager {
-    max-width: 600px;
+    max-width: 800px;
     margin: 0 auto;
-    padding: 1rem;
+    padding: 2rem;
+    min-height: 50vh;
 }
 
 .blacklist-manager h2 {
   margin-bottom: 0.5rem;
   color: var(--accent-hover);
+  font-size: 1.8rem;
 }
 
 .blacklist-manager .section-desc {
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: var(--text-secondary);
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 .blacklist-items {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
-  max-height: 400px;
-  overflow-y: auto;
+  gap: 1rem;
   padding-right: 0.5rem;
 }
 

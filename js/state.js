@@ -24,6 +24,14 @@ export const state = {
     STUDIO: [],
     USER: []
   },
+  watched: {
+    MEDIA: [],
+    CHARACTER: [],
+    STAFF: [],
+    STUDIO: [],
+    USER: []
+  },
+  showWatched: false,
   seenValues: {
     genres: [],
     tags: [],
@@ -80,7 +88,9 @@ export function saveSettings() {
     sort: state.sort,
     mediaType: state.mediaType,
     rules: state.rules,
-    blacklist: state.blacklist
+    blacklist: state.blacklist,
+    watched: state.watched,
+    showWatched: state.showWatched
   };
   localStorage.setItem('al_search_settings_v3', JSON.stringify(settings));
 }
@@ -96,6 +106,8 @@ export function loadSettings() {
       state.mediaType = parsed.mediaType || state.mediaType;
       state.rules = parsed.rules || state.rules;
       state.blacklist = parsed.blacklist || state.blacklist;
+      state.watched = parsed.watched || state.watched;
+      state.showWatched = parsed.showWatched ?? state.showWatched;
       return true;
     } catch (e) { console.error('Failed to parse settings'); }
   }

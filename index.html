@@ -41,9 +41,13 @@
             <!-- Search Controls -->
             <section class="search-panel glass">
                 <div class="search-header-actions">
+                    <button id="watchedBtn" class="share-btn-pill secondary watched-list-btn" title="Manage Watched List">
+                        <i data-lucide="check-circle"></i> Watched
+                    </button>
                     <button id="blacklistBtn" class="share-btn-pill secondary" title="Manage Blacklist">
                         <i data-lucide="shield-off"></i> Blacklist
                     </button>
+                    
                     <button id="shareBtn" class="share-btn-pill">
                         <i data-lucide="share-2"></i> Share Filters
                     </button>
@@ -87,6 +91,15 @@
                             <option value="ANIME">Anime</option>
                             <option value="MANGA">Manga</option>
                         </select>
+                    </div>
+
+                    <div class="control-group switch-group">
+                        <label class="spacer-label">&nbsp;</label>
+                        <label class="switch-container" title="Show watched items in results">
+                            <input type="checkbox" id="showWatchedToggle">
+                            <span class="switch-slider"></span>
+                            <span class="switch-text">Show Watched</span>
+                        </label>
                     </div>
 
                     <button id="searchBtn" class="primary-btn">

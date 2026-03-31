@@ -1,7 +1,8 @@
 import { state, loadCache, saveSettings, loadSettings } from './state.js';
-import { UI, addRuleUI, addGroupUI, addRelationGroupUI, resetUI, updateProgress, renderResultsList, syncUI, toggleFilters, openBlacklistManager, updateToggleFilterAccent } from './ui.js';
+import { UI, addRuleUI, addGroupUI, addRelationGroupUI, resetUI, updateProgress, renderResultsList, syncUI, toggleFilters, updateToggleFilterAccent } from './ui.js';
 import { getDragAfterElement, resetDragState } from './ui/builder.js';
 import { executeSearch } from './api.js';
+import { openBlacklistManager, openWatchedManager } from './ui/modal.js';
 import { FIELDS, SUB_FIELDS, RELATION_FIELDS } from './filter.js';
 import { compressFilterData, decompressFilterData } from './compression.js';
 
@@ -108,7 +109,17 @@ async function init() {
   };
 
   if (UI.blacklistBtn) {
-    UI.blacklistBtn.onclick = () => openBlacklistManager();
+    UI.blacklistBtn?.addEventListener('click', openBlacklistManager);
+  }
+  UI.watchedBtn?.addEventListener('click', openWatchedManager);
+  
+  const showWatchedToggle = document.getElementById('showWatchedToggle');
+  if (showWatchedToggle) {
+    showWatchedToggle.checked = state.showWatched;
+    showWatchedToggle.addEventListener('change', (e) => {
+      state.showWatched = e.target.checked;
+      saveSettings();
+    });
   }
 
   if (UI.toggleFiltersBtn) {

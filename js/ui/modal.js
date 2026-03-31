@@ -57,14 +57,14 @@ export function openModal(item) {
         <div class="section-title">Relations</div>
         <div class="mini-grid">
             ${item.relations.edges.map(e => `
-                <div class="mini-card glass-dark">
+                <a href="https://anilist.co/${e.node.type.toLowerCase()}/${e.node.id}" target="_blank" class="mini-card glass-dark no-style">
                     <img src="${e.node.coverImage.medium}" class="mini-poster">
                     <div class="mini-info">
                         <div class="mini-rel">${e.relationType.replace(/_/g, ' ')}</div>
                         <div class="mini-title">${e.node.title.english || e.node.title.romaji}</div>
                         <div class="mini-meta">${e.node.format} · ${e.node.status}</div>
                     </div>
-                </div>
+                </a>
             `).join('')}
         </div>
     ` : '';
@@ -76,10 +76,10 @@ export function openModal(item) {
                 const rec = n.mediaRecommendation;
                 if (!rec) return '';
                 return `
-                    <div class="mini-card glass-dark vertical">
+                    <a href="https://anilist.co/${rec.type.toLowerCase()}/${rec.id}" target="_blank" class="mini-card glass-dark vertical no-style">
                         <img src="${rec.coverImage.medium}" class="mini-poster">
                         <div class="mini-title">${rec.title.english || rec.title.romaji}</div>
-                    </div>
+                    </a>
                 `;
             }).join('')}
         </div>
@@ -127,6 +127,8 @@ export function openModal(item) {
     ` : '';
 
     const anilistUrl = getAnilistUrl(item);
+    const isWatched = state.watched[state.searchMode]?.some(w => (typeof w === 'object' ? w.id : w) === item.id);
+    
     content = `
       <div class="modal-banner" style="background-image: url('${item.bannerImage || item.coverImage.extraLarge}')"></div>
       <div class="modal-header-content">
@@ -138,6 +140,9 @@ export function openModal(item) {
               <p class="native-title">${item.title.native}</p>
             </div>
             <div class="modal-actions">
+              <button class="action-btn watched-btn ${isWatched ? 'active' : ''}" title="${isWatched ? 'Watched! (Click to Unmark)' : 'Mark as Watched'}" onclick="window.toggleWatched(${item.id}, '${(item.title.english || item.title.romaji || '').replace(/'/g, "\\'")}', '${item.coverImage.large}', this)">
+                <i data-lucide="${isWatched ? 'check-circle' : 'eye'}"></i>
+              </button>
               <button class="action-btn" title="Copy AniList Link" onclick="window.copyToClipboard('${anilistUrl}', this)">
                 <i data-lucide="copy"></i>
               </button>
@@ -208,7 +213,7 @@ export function openModal(item) {
             <div class="section-title">Featured Characters</div>
             <div class="char-grid">
               ${item.characters.edges.slice(0, 12).map(e => `
-                <div class="char-card">
+                <a href="https://anilist.co/character/${e.node.id}" target="_blank" class="char-card no-style">
                   <img src="${e.node.image?.large}" class="char-img">
                   <div class="char-info">
                     <p class="char-name">${e.node.name?.full}</p>
@@ -218,7 +223,7 @@ export function openModal(item) {
                       ${e.node.age ? `<span class="trait-badge">${e.node.age}</span>` : ''}
                     </div>
                   </div>
-                </div>
+                </a>
               `).join('')}
             </div>
           ` : ''}
@@ -316,6 +321,84 @@ window.unblockItem = (id) => {
     import('../state.js').then(m => m.saveSettings());
     openBlacklistManager(); // Refresh view
 };
+
+window.toggleWatched = (id, title, image, btn) => {
+    const list = state.watched[state.searchMode];
+    const index = list.findIndex(item => (typeof item === 'object' ? item.id : item) === id);
+    let isWatched = false;
+
+    if (index === -1) {
+        list.push({ id, title, image });
+        isWatched = true;
+    } else {
+        list.splice(index, 1);
+        isWatched = false;
+    }
+
+    import('../state.js').then(m => m.saveSettings());
+
+    // Update visuals if button was passed (Modal)
+    if (btn) {
+        const icon = btn.querySelector('i');
+        if (icon) {
+            icon.setAttribute('data-lucide', isWatched ? 'check-circle' : 'eye');
+            if (window.lucide) window.lucide.createIcons();
+        }
+        btn.classList.toggle('active', isWatched);
+        btn.setAttribute('title', isWatched ? 'Watched! (Click to Unmark)' : 'Mark as Watched');
+    }
+
+    // Update result cards visually
+    const cards = document.querySelectorAll('.media-card');
+    cards.forEach(card => {
+        const watchedBtn = card.querySelector(`.watched-btn[onclick*="toggleWatched(${id},"]`);
+        if (watchedBtn) {
+            const icon = watchedBtn.querySelector('i');
+            if (icon) {
+                icon.setAttribute('data-lucide', isWatched ? 'check-circle' : 'eye');
+                if (window.lucide) window.lucide.createIcons();
+            }
+            watchedBtn.classList.toggle('active', isWatched);
+            watchedBtn.setAttribute('title', isWatched ? 'Unmark Watched' : 'Mark as Watched');
+            
+            // If we are marked as watched and "Include Watched" is OFF, hide the card
+            if (isWatched && !state.showWatched) {
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.8)';
+                setTimeout(() => card.remove(), 300);
+            }
+        }
+    });
+};
+
+export function openWatchedManager() {
+    const list = state.watched[state.searchMode] || [];
+    let content = `
+        <div class="blacklist-manager watched-manager">
+            <h2>Watched List (${state.searchMode})</h2>
+            <p class="section-desc">These items are hidden from searches unless you enable "Include Watched".</p>
+            <div class="blacklist-items">
+                ${list.length === 0 ? '<div class="empty-state"><p class="empty-msg">No watched items yet.</p></div>' : list.map(item => {
+                    const id = typeof item === 'object' ? item.id : item;
+                    const title = item.title || `Item ID: ${id}`;
+                    const image = item.image || '';
+                    return `
+                        <div class="blacklist-item">
+                            <div class="blacklist-item-info">
+                                ${image ? `<img src="${image}" class="blacklist-thumb">` : '<div class="blacklist-thumb-placeholder">?</div>'}
+                                <span class="item-title">${title}</span>
+                            </div>
+                            <button class="remove-btn" onclick="window.toggleWatched(${id}, '', '', null); openWatchedManager();">Remove</button>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+    UI.modalContent.innerHTML = content;
+    UI.modalOverlay.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
 
 function getAnilistUrl(item) {
     const base = 'https://anilist.co';
