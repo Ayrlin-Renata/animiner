@@ -233,7 +233,7 @@ export function openModal(item) {
   if (window.lucide) window.lucide.createIcons();
 }
 
-export function addRuleUI() {
+export function addRuleUI(initialData = null) {
     const row = document.createElement('div');
     row.className = 'rule-row';
 
@@ -270,6 +270,13 @@ export function addRuleUI() {
     const updateFields = () => {
         const fields = FIELDS[catSelect.value] || [];
         fieldSelect.innerHTML = fields.map((f, i) => `<option value="${i}">${f.label}</option>`).join('');
+        
+        if (initialData && initialData.path) {
+            // Find field by path to restore it
+            const idx = fields.findIndex(f => f.path === initialData.path && f.label === (initialData.label || f.label));
+            if (idx !== -1) fieldSelect.value = idx;
+        }
+        
         updateOps();
     };
 
@@ -279,6 +286,11 @@ export function addRuleUI() {
         if (!field) return;
         const ops = OPERATORS_BY_TYPE[field.type] || [];
         opSelect.innerHTML = ops.map(o => `<option value="${o}">${o.replace('_', ' ')}</option>`).join('');
+        
+        if (initialData && initialData.operator) {
+            opSelect.value = initialData.operator;
+        }
+        
         updateValInput(field);
     };
 
@@ -315,18 +327,47 @@ export function addRuleUI() {
         }
         valContainer.innerHTML = '';
         valContainer.appendChild(input);
+        
+        if (initialData && initialData.value !== undefined) {
+            input.value = initialData.value;
+        }
     };
 
     catSelect.onchange = updateFields;
     fieldSelect.onchange = updateOps;
     row.querySelector('.remove-btn').onclick = () => row.remove();
 
+    // Set initial category if restoration
+    if (initialData) {
+        // Find category by looking which one contains the path
+        for (const cat of availableCategories) {
+            if (FIELDS[cat].some(f => f.path === initialData.path)) {
+                catSelect.value = cat;
+                break;
+            }
+        }
+    }
+
     updateFields();
     UI.rootGroup.appendChild(row);
     if (window.lucide) window.lucide.createIcons();
 }
 
-export function resetUI() {
+/**
+ * Synchronizes the global search controls with current state.
+ */
+export function syncUI() {
+    if (UI.searchMode) UI.searchMode.value = state.searchMode;
+    if (UI.targetResults) UI.targetResults.value = state.targetMatches;
+    
+    const isMedia = state.searchMode === 'MEDIA';
+    const sortCtrl = document.getElementById('mediaSortControl');
+    const typeCtrl = document.getElementById('mediaTypeControl');
+    if (sortCtrl) sortCtrl.style.display = isMedia ? 'flex' : 'none';
+    if (typeCtrl) typeCtrl.style.display = isMedia ? 'flex' : 'none';
+}
+
+export function resetUI(skipDefaultRule = false) {
     UI.resultsGrid.innerHTML = '';
     UI.rootGroup.innerHTML = '';
     UI.progressBanner.classList.add('hidden');
@@ -337,11 +378,9 @@ export function resetUI() {
     // Refresh datalist on reset/mode change
     updateDatalist();
     
-    addRuleUI();
+    if (!skipDefaultRule) {
+        addRuleUI();
+    }
 
-    const isMedia = state.searchMode === 'MEDIA';
-    const sortCtrl = document.getElementById('mediaSortControl');
-    const typeCtrl = document.getElementById('mediaTypeControl');
-    if (sortCtrl) sortCtrl.style.display = isMedia ? 'flex' : 'none';
-    if (typeCtrl) typeCtrl.style.display = isMedia ? 'flex' : 'none';
+    syncUI();
 }

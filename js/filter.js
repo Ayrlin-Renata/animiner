@@ -46,34 +46,21 @@ export const SEARCH_MODE_CATEGORIES = {
 export const FIELDS = {
     [RECURSIVE_CATEGORIES.IDENTIFIERS]: [
         { label: 'AL ID', path: 'id', type: FIELD_TYPES.NUMBER },
-        { label: 'AL ID (In List)', path: 'id', type: FIELD_TYPES.LIST, apiArg: 'id_in' },
-        { label: 'AL ID (Exclude)', path: 'id', type: FIELD_TYPES.NUMBER, apiArg: 'id_not' },
-        { label: 'AL ID (Exclude List)', path: 'id', type: FIELD_TYPES.LIST, apiArg: 'id_not_in' },
-        { label: 'MAL ID', path: 'idMal', type: FIELD_TYPES.NUMBER },
-        { label: 'MAL ID (In List)', path: 'idMal', type: FIELD_TYPES.LIST, apiArg: 'idMal_in' },
-        { label: 'MAL ID (Exclude)', path: 'idMal', type: FIELD_TYPES.NUMBER, apiArg: 'idMal_not' },
-        { label: 'MAL ID (Exclude List)', path: 'idMal', type: FIELD_TYPES.LIST, apiArg: 'idMal_not_in' }
+        { label: 'MAL ID', path: 'idMal', type: FIELD_TYPES.NUMBER }
     ],
     [RECURSIVE_CATEGORIES.TIMELINE]: [
         { label: 'Start Year', path: 'startDate.year', type: FIELD_TYPES.NUMBER },
-        { label: 'Start Date (Greater)', path: 'startDate', type: FIELD_TYPES.NUMBER, apiArg: 'startDate_greater' },
-        { label: 'Start Date (Lesser)', path: 'startDate', type: FIELD_TYPES.NUMBER, apiArg: 'startDate_lesser' },
+        { label: 'Start Date', path: 'startDate', type: FIELD_TYPES.NUMBER },
         { label: 'End Year', path: 'endDate.year', type: FIELD_TYPES.NUMBER },
-        { label: 'End Date (Greater)', path: 'endDate', type: FIELD_TYPES.NUMBER, apiArg: 'endDate_greater' },
-        { label: 'End Date (Lesser)', path: 'endDate', type: FIELD_TYPES.NUMBER, apiArg: 'endDate_lesser' },
+        { label: 'End Date', path: 'endDate', type: FIELD_TYPES.NUMBER },
         { label: 'Season', path: 'season', type: FIELD_TYPES.ENUM, options: ['WINTER', 'SPRING', 'SUMMER', 'FALL'] },
         { label: 'Season Year', path: 'seasonYear', type: FIELD_TYPES.NUMBER },
-        { label: 'Airing At (Greater)', path: 'airingAt', type: FIELD_TYPES.NUMBER, apiArg: 'airingAt_greater' },
-        { label: 'Airing At (Lesser)', path: 'airingAt', type: FIELD_TYPES.NUMBER, apiArg: 'airingAt_lesser' }
+        { label: 'Airing At', path: 'airingAt', type: FIELD_TYPES.NUMBER }
     ],
     [RECURSIVE_CATEGORIES.FORMATS]: [
         { label: 'Type', path: 'type', type: FIELD_TYPES.ENUM, options: ['ANIME', 'MANGA'] },
         { label: 'Format', path: 'format', type: FIELD_TYPES.ENUM, options: ['TV', 'TV_SHORT', 'MOVIE', 'SPECIAL', 'OVA', 'ONA', 'MUSIC', 'MANGA', 'NOVEL', 'ONE_SHOT'] },
-        { label: 'Format (In List)', path: 'format', type: FIELD_TYPES.LIST, apiArg: 'format_in', options: ['TV', 'TV_SHORT', 'MOVIE', 'SPECIAL', 'OVA', 'ONA', 'MUSIC', 'MANGA', 'NOVEL', 'ONE_SHOT'] },
-        { label: 'Format (Exclude)', path: 'format', type: FIELD_TYPES.ENUM, apiArg: 'format_not', options: ['TV', 'TV_SHORT', 'MOVIE', 'SPECIAL', 'OVA', 'ONA', 'MUSIC', 'MANGA', 'NOVEL', 'ONE_SHOT'] },
         { label: 'Status', path: 'status', type: FIELD_TYPES.ENUM, options: ['FINISHED', 'RELEASING', 'NOT_YET_RELEASED', 'CANCELLED', 'HIATUS'] },
-        { label: 'Status (In List)', path: 'status', type: FIELD_TYPES.LIST, apiArg: 'status_in', options: ['FINISHED', 'RELEASING', 'NOT_YET_RELEASED', 'CANCELLED', 'HIATUS'] },
-        { label: 'Status (Exclude)', path: 'status', type: FIELD_TYPES.ENUM, apiArg: 'status_not', options: ['FINISHED', 'RELEASING', 'NOT_YET_RELEASED', 'CANCELLED', 'HIATUS'] },
         { label: 'Source', path: 'source', type: FIELD_TYPES.ENUM, options: ['ORIGINAL', 'MANGA', 'LIGHT_NOVEL', 'VISUAL_NOVEL', 'VIDEO_GAME', 'OTHER', 'NOVEL', 'DOUJINSHI', 'ANIME', 'WEB_NOVEL', 'LIVE_ACTION', 'GAME', 'COMIC', 'MULTIMEDIA_PROJECT', 'PICTURE_BOOK'] },
         { label: 'Country', path: 'countryOfOrigin', type: FIELD_TYPES.STRING },
         { label: 'Is Adult', path: 'isAdult', type: FIELD_TYPES.BOOLEAN },
@@ -83,45 +70,24 @@ export const FIELDS = {
     ],
     [RECURSIVE_CATEGORIES.CONTENT]: [
         { label: 'Episodes', path: 'episodes', type: FIELD_TYPES.NUMBER },
-        { label: 'Episodes (Greater)', path: 'episodes', type: FIELD_TYPES.NUMBER, apiArg: 'episodes_greater' },
-        { label: 'Episodes (Lesser)', path: 'episodes', type: FIELD_TYPES.NUMBER, apiArg: 'episodes_lesser' },
         { label: 'Duration', path: 'duration', type: FIELD_TYPES.NUMBER },
-        { label: 'Duration (Greater)', path: 'duration', type: FIELD_TYPES.NUMBER, apiArg: 'duration_greater' },
-        { label: 'Duration (Lesser)', path: 'duration', type: FIELD_TYPES.NUMBER, apiArg: 'duration_lesser' },
         { label: 'Chapters', path: 'chapters', type: FIELD_TYPES.NUMBER },
-        { label: 'Chapters (Greater)', path: 'chapters', type: FIELD_TYPES.NUMBER, apiArg: 'chapters_greater' },
-        { label: 'Chapters (Lesser)', path: 'chapters', type: FIELD_TYPES.NUMBER, apiArg: 'chapters_lesser' },
         { label: 'Volumes', path: 'volumes', type: FIELD_TYPES.NUMBER },
-        { label: 'Volumes (Greater)', path: 'volumes', type: FIELD_TYPES.NUMBER, apiArg: 'volumes_greater' },
-        { label: 'Volumes (Lesser)', path: 'volumes', type: FIELD_TYPES.NUMBER, apiArg: 'volumes_lesser' },
         { label: 'Genres', path: 'genres', type: FIELD_TYPES.COLLECTION, seenKey: 'genres' },
-        { label: 'Genres (In List)', path: 'genres', type: FIELD_TYPES.LIST, seenKey: 'genres', apiArg: 'genre_in' },
-        { label: 'Genres (Exclude List)', path: 'genres', type: FIELD_TYPES.LIST, seenKey: 'genres', apiArg: 'genre_not_in' },
         { label: 'Tag Name', path: 'tags.name', type: FIELD_TYPES.COLLECTION, seenKey: 'tags' },
-        { label: 'Tag (In List)', path: 'tags.name', type: FIELD_TYPES.LIST, seenKey: 'tags', apiArg: 'tag_in' },
-        { label: 'Tag (Exclude List)', path: 'tags.name', type: FIELD_TYPES.LIST, seenKey: 'tags', apiArg: 'tag_not_in' },
         { label: 'Tag Category', path: 'tags.category', type: FIELD_TYPES.COLLECTION },
-        { label: 'Tag Category (In List)', path: 'tags.category', type: FIELD_TYPES.LIST, apiArg: 'tagCategory_in' },
-        { label: 'Tag Category (Exclude List)', path: 'tags.category', type: FIELD_TYPES.LIST, apiArg: 'tagCategory_not_in' },
-        { label: 'Min Tag Rank', path: 'tags.rank', type: FIELD_TYPES.NUMBER, apiArg: 'minimumTagRank' },
+        { label: 'Min Tag Rank', path: 'tags.rank', type: FIELD_TYPES.NUMBER },
         { label: 'Synonyms', path: 'synonyms', type: FIELD_TYPES.COLLECTION },
         { label: 'Hashtag', path: 'hashtag', type: FIELD_TYPES.STRING }
     ],
     [RECURSIVE_CATEGORIES.METRICS]: [
         { label: 'Average Score', path: 'averageScore', type: FIELD_TYPES.NUMBER },
-        { label: 'Average Score (Greater)', path: 'averageScore', type: FIELD_TYPES.NUMBER, apiArg: 'averageScore_greater' },
-        { label: 'Average Score (Lesser)', path: 'averageScore', type: FIELD_TYPES.NUMBER, apiArg: 'averageScore_lesser' },
-        { label: 'Average Score (Exclude)', path: 'averageScore', type: FIELD_TYPES.NUMBER, apiArg: 'averageScore_not' },
         { label: 'Mean Score', path: 'meanScore', type: FIELD_TYPES.NUMBER },
         { label: 'Popularity', path: 'popularity', type: FIELD_TYPES.NUMBER },
-        { label: 'Popularity (Greater)', path: 'popularity', type: FIELD_TYPES.NUMBER, apiArg: 'popularity_greater' },
-        { label: 'Popularity (Lesser)', path: 'popularity', type: FIELD_TYPES.NUMBER, apiArg: 'popularity_lesser' },
-        { label: 'Popularity (Exclude)', path: 'popularity', type: FIELD_TYPES.NUMBER, apiArg: 'popularity_not' },
         { label: 'Trending', path: 'trending', type: FIELD_TYPES.NUMBER },
         { label: 'Favourites', path: 'favourites', type: FIELD_TYPES.NUMBER },
         { label: 'On List', path: 'onList', type: FIELD_TYPES.BOOLEAN },
-        { label: 'Licensed By', path: 'licensedBy', type: FIELD_TYPES.COLLECTION },
-        { label: 'Licensed By (In List)', path: 'licensedBy', type: FIELD_TYPES.LIST, apiArg: 'licensedBy_in' }
+        { label: 'Licensed By', path: 'licensedBy', type: FIELD_TYPES.COLLECTION }
     ],
     [RECURSIVE_CATEGORIES.STUDIO]: [
         { label: 'Studio Name', path: 'studios.edges.node.name', type: FIELD_TYPES.COLLECTION, seenKey: 'studios' },
@@ -219,13 +185,18 @@ export function evaluateRule(item, rule) {
 
     const target = value?.toString().toLowerCase().trim();
 
-    // Special handling for LIST type (comma separated values)
-    if (type === FIELD_TYPES.LIST || operator === OPERATORS.EQUALS || operator === OPERATORS.NOT_EQUALS) {
-        if (type === FIELD_TYPES.LIST) {
-            const list = value.split(',').map(s => s.trim().toLowerCase()).filter(s => s !== '');
-            const itemValStr = actualValue?.toString().toLowerCase();
-            const isInList = list.includes(itemValStr);
-            return operator === OPERATORS.EQUALS ? isInList : !isInList;
+    // Special handling for LIST detection (comma separated values)
+    const isListValue = value.includes(',');
+
+    if (type === FIELD_TYPES.LIST || isListValue) {
+        const list = value.split(',').map(s => s.trim().toLowerCase()).filter(s => s !== '');
+        const itemValStr = actualValue?.toString().toLowerCase();
+        
+        if (operator === OPERATORS.EQUALS || operator === OPERATORS.IS) {
+            return list.includes(itemValStr);
+        }
+        if (operator === OPERATORS.NOT_EQUALS) {
+            return !list.includes(itemValStr);
         }
     }
 

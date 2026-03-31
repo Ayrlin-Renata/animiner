@@ -210,29 +210,60 @@ function getApiVariables() {
   state.rules.forEach(rule => {
     const val = rule.value;
     const path = rule.path;
-    const apiArg = rule.apiArg;
+    const op = rule.operator;
+
+    // Helper to parse list
+    const parseList = (str) => str.split(',').map(s => s.trim()).filter(s => s !== '');
+    const parseIntList = (str) => parseList(str).map(val => parseInt(val)).filter(val => !isNaN(val));
+
+    // Intelligence: Map path + operator to API argument
+    let apiArg = path;
+    const isList = val.includes(',');
+
+    if (path === 'id' || path === 'idMal') {
+        if (op === 'not_equals') apiArg = isList ? `${path}_not_in` : `${path}_not`;
+        else if (op === 'equals' && isList) apiArg = `${path}_in`;
+    } else if (path === 'startDate' || path === 'endDate' || path === 'airingAt') {
+        if (op === 'greater_than') apiArg = `${path}_greater`;
+        else if (op === 'less_than') apiArg = `${path}_lesser`;
+    } else if (path === 'episodes' || path === 'duration' || path === 'chapters' || path === 'volumes' || 
+               path === 'averageScore' || path === 'popularity' || path === 'trending') {
+        if (op === 'greater_than') apiArg = `${path}_greater`;
+        else if (op === 'less_than') apiArg = `${path}_lesser`;
+        else if (op === 'not_equals') apiArg = `${path}_not`;
+    } else if (path === 'format' || path === 'status') {
+        if (op === 'not_equals') apiArg = isList ? `${path}_not_in` : `${path}_not`;
+        else if (op === 'equals' && isList) apiArg = `${path}_in`;
+    } else if (path === 'genres') {
+        if (op === 'contains' && !isList) apiArg = 'genre';
+        else if (op === 'equals' && isList) apiArg = 'genre_in';
+        else if (op === 'not_equals' && isList) apiArg = 'genre_not_in';
+    } else if (path === 'tags.name') {
+        if (op === 'contains' && !isList) apiArg = 'tag';
+        else if (op === 'equals' && isList) apiArg = 'tag_in';
+        else if (op === 'not_equals' && isList) apiArg = 'tag_not_in';
+    } else if (path === 'tags.category') {
+        if (op === 'equals' && isList) apiArg = 'tagCategory_in';
+        else if (op === 'not_equals' && isList) apiArg = 'tagCategory_not_in';
+    } else if (path === 'tags.rank') {
+        apiArg = 'minimumTagRank';
+    }
 
     if (apiArg) {
-        if (apiArg.endsWith('_in') || apiArg.endsWith('_not_in')) {
-            // Check if it should be an array of Ints or Strings
-            // Simple heuristic: if any element is NaN, it's a string list
+        if (apiArg.endsWith('_in') || apiArg.endsWith('_not_in') || apiArg === 'genre_in' || apiArg === 'genre_not_in' || 
+            apiArg === 'tag_in' || apiArg === 'tag_not_in' || apiArg === 'tagCategory_in' || apiArg === 'tagCategory_not_in') {
             const intList = parseIntList(val);
             const strList = parseList(val);
-            vars[apiArg] = intList.length === strList.length ? intList : strList;
-        } else if (apiArg === 'isAdult' || apiArg === 'isLicensed' || apiArg === 'isLocked' || apiArg === 'isFavourite') {
+            vars[apiArg] = intList.length === strList.length && intList.length > 0 ? intList : strList;
+        } else if (path === 'isAdult' || path === 'isLicensed' || path === 'isLocked' || path === 'isFavourite') {
             vars[apiArg] = (val === 'true');
-        } else if (apiArg.includes('Score') || apiArg.includes('popularity') || apiArg.includes('episodes') || 
-                   apiArg.includes('duration') || apiArg.includes('chapters') || apiArg.includes('volumes') || 
-                   apiArg.includes('id') || apiArg.includes('Year') || apiArg.includes('Rank')) {
+        } else if (apiArg === 'minimumTagRank' || apiArg.includes('Score') || path === 'popularity' || path === 'trending' || 
+                   path === 'episodes' || path === 'duration' || path === 'chapters' || path === 'volumes' || 
+                   path === 'id' || path === 'idMal' || path === 'seasonYear') {
             vars[apiArg] = parseInt(val);
         } else {
             vars[apiArg] = val;
         }
-    } else {
-        // Fallback for legacy paths or fields without apiArg
-        if (path === 'isAdult') vars.isAdult = (val === 'true');
-        if (path === 'genre_in') vars.genre_in = parseList(val);
-        if (path === 'genre_not_in') vars.genre_not_in = parseList(val);
     }
   });
 

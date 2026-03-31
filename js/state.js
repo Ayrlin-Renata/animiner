@@ -52,6 +52,29 @@ function addSeen(key, val) {
   }
 }
 
+export function saveSettings() {
+  const settings = {
+    searchMode: state.searchMode,
+    targetMatches: state.targetMatches,
+    rules: state.rules
+  };
+  localStorage.setItem('al_search_settings_v2', JSON.stringify(settings));
+}
+
+export function loadSettings() {
+  const local = localStorage.getItem('al_search_settings_v2');
+  if (local) {
+    try {
+      const parsed = JSON.parse(local);
+      state.searchMode = parsed.searchMode || state.searchMode;
+      state.targetMatches = parsed.targetMatches || state.targetMatches;
+      state.rules = parsed.rules || state.rules;
+      return true;
+    } catch (e) { console.error('Failed to parse settings'); }
+  }
+  return false;
+}
+
 export async function loadCache() {
   try {
     const response = await fetch('/initialCache.json');

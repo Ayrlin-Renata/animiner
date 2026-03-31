@@ -3,13 +3,14 @@
  * High-level orchestration and event handling.
  */
 
-import { state, loadCache } from './state.js';
-import { UI, addRuleUI, resetUI, updateProgress, renderResultsList } from './ui.js';
+import { state, loadCache, saveSettings, loadSettings } from './state.js';
+import { UI, addRuleUI, resetUI, updateProgress, renderResultsList, syncUI } from './ui.js';
 import { executeSearch } from './api.js';
 import { FIELDS } from './filter.js';
 
 async function init() {
   await loadCache();
+  const hasSavedSettings = loadSettings();
   
   // Event listeners
   UI.searchBtn.onclick = () => {
@@ -28,6 +29,12 @@ async function init() {
   UI.searchMode.onchange = (e) => {
     state.searchMode = e.target.value;
     resetUI();
+    saveSettings();
+  };
+
+  UI.targetResults.onchange = () => {
+    updateStateFromUI();
+    saveSettings();
   };
 
   UI.closeModal.onclick = () => {
@@ -44,7 +51,13 @@ async function init() {
   };
 
   // Initial UI state
-  addRuleUI();
+  if (hasSavedSettings && state.rules.length > 0) {
+    resetUI(true); // Clear everything but don't add default rule yet
+    state.rules.forEach(rule => addRuleUI(rule));
+    syncUI();
+  } else {
+    resetUI();
+  }
 }
 
 function updateStateFromUI() {
@@ -59,6 +72,7 @@ function updateStateFromUI() {
 
     return {
       path: field.path,
+      label: field.label, // Store label too for better restoration matching
       apiArg: field.apiArg,
       type: field.type,
       operator: r.querySelector('.op-select').value,
@@ -67,6 +81,7 @@ function updateStateFromUI() {
   }).filter(r => r && r.value !== '');
   
   state.targetMatches = parseInt(UI.targetResults.value || '50');
+  saveSettings();
 }
 
 // Global initialization
