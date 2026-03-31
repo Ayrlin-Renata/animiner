@@ -80,7 +80,60 @@
 .modal-title-area h2 {
   font-size: 1.8rem;
   line-height: 1.2;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.modal-title-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.modal-title-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.action-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-color);
+  color: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.action-btn.success {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: var(--success-color);
+  color: var(--success-color);
+}
+
+.action-btn i {
+  width: 20px;
+  height: 20px;
 }
 
 .modal-grid {
@@ -360,7 +413,13 @@
 @media (max-width: 768px) {
   .modal-grid { grid-template-columns: 1fr; }
   .modal-header-content { flex-direction: column; align-items: center; text-align: center; margin-top: -60px; }
-  .modal-title-area { margin-top: 10px; }
+  .modal-title-header { 
+    flex-direction: column; 
+    align-items: center; 
+    gap: 0.8rem;
+    margin-bottom: 0.8rem;
+  }
+  .modal-title-area { margin-top: 10px; width: 100%; }
   .modal-poster { width: 140px; }
   .modal-banner { height: 180px; }
   .detail-modal { width: 100%; border-radius: var(--radius-md); }

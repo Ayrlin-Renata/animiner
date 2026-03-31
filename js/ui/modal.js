@@ -126,13 +126,26 @@ export function openModal(item) {
         </div>
     ` : '';
 
+    const anilistUrl = getAnilistUrl(item);
     content = `
       <div class="modal-banner" style="background-image: url('${item.bannerImage || item.coverImage.extraLarge}')"></div>
       <div class="modal-header-content">
         <img src="${item.coverImage.extraLarge}" class="modal-poster">
         <div class="modal-title-area">
-          <h2>${item.title.english || item.title.romaji}</h2>
-          <p class="native-title">${item.title.native}</p>
+          <div class="modal-title-header">
+            <div class="modal-title-main">
+              <h2>${item.title.english || item.title.romaji}</h2>
+              <p class="native-title">${item.title.native}</p>
+            </div>
+            <div class="modal-actions">
+              <button class="action-btn" title="Copy AniList Link" onclick="window.copyToClipboard('${anilistUrl}', this)">
+                <i data-lucide="copy"></i>
+              </button>
+              <a href="${anilistUrl}" target="_blank" class="action-btn" title="Open on AniList">
+                <i data-lucide="external-link"></i>
+              </a>
+            </div>
+          </div>
           <div class="modal-badge-row">${genres}</div>
           ${linksHtml}
         </div>
@@ -217,12 +230,25 @@ export function openModal(item) {
     const title = item.name?.full || item.name;
     const subTitle = item.name?.native || '';
     const image = item.image?.large || item.avatar?.large || (item.media?.nodes?.[0]?.coverImage?.medium) || '';
+    const anilistUrl = getAnilistUrl(item);
     content = `
       <div class="modal-header-content simple">
         <img src="${image}" class="modal-poster">
         <div class="modal-title-area">
-          <h2>${title}</h2>
-          <p class="native-title">${subTitle}</p>
+          <div class="modal-title-header">
+            <div class="modal-title-main">
+              <h2>${title}</h2>
+              <p class="native-title">${subTitle}</p>
+            </div>
+            <div class="modal-actions">
+              <button class="action-btn" title="Copy AniList Link" onclick="window.copyToClipboard('${anilistUrl}', this)">
+                <i data-lucide="copy"></i>
+              </button>
+              <a href="${anilistUrl}" target="_blank" class="action-btn" title="Open on AniList">
+                <i data-lucide="external-link"></i>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
       <div class="modal-grid simple">
@@ -289,4 +315,33 @@ window.unblockItem = (id) => {
     state.blacklist[state.searchMode] = state.blacklist[state.searchMode].filter(item => (typeof item === 'object' ? item.id : item) !== id);
     import('../state.js').then(m => m.saveSettings());
     openBlacklistManager(); // Refresh view
+};
+
+function getAnilistUrl(item) {
+    const base = 'https://anilist.co';
+    if (state.searchMode === 'MEDIA') {
+        const type = item.type?.toLowerCase() || 'anime';
+        return `${base}/${type}/${item.id}`;
+    }
+    const slug = state.searchMode.toLowerCase();
+    // Users are unique (anilist.co/user/NAME)
+    if (slug === 'user') return `${base}/user/${item.name}`;
+    return `${base}/${slug}/${item.id}`;
+}
+
+window.copyToClipboard = (text, btn) => {
+    navigator.clipboard.writeText(text).then(() => {
+        const icon = btn.querySelector('i');
+        if (!icon) return;
+        const original = icon.getAttribute('data-lucide');
+        icon.setAttribute('data-lucide', 'check');
+        btn.classList.add('success');
+        if (window.lucide) window.lucide.createIcons();
+        
+        setTimeout(() => {
+            icon.setAttribute('data-lucide', original);
+            btn.classList.remove('success');
+            if (window.lucide) window.lucide.createIcons();
+        }, 2000);
+    });
 };

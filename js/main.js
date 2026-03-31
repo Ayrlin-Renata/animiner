@@ -1,5 +1,6 @@
 import { state, loadCache, saveSettings, loadSettings } from './state.js';
 import { UI, addRuleUI, addGroupUI, addRelationGroupUI, resetUI, updateProgress, renderResultsList, syncUI, toggleFilters, openBlacklistManager, updateToggleFilterAccent } from './ui.js';
+import { getDragAfterElement, resetDragState } from './ui/builder.js';
 import { executeSearch } from './api.js';
 import { FIELDS, SUB_FIELDS, RELATION_FIELDS } from './filter.js';
 import { compressFilterData, decompressFilterData } from './compression.js';
@@ -132,37 +133,38 @@ async function init() {
     };
   }
 
+  UI.rootGroup.dataset.accepts = 'MEDIA';
+
   UI.rootGroup.ondragover = (e) => {
-    e.preventDefault();
     const draggable = window.draggedElement;
     if (!draggable) return;
-    
-    // Only allow dropping at root if it's a top-level rule or group
+
+    // Validation Check
+    const context = draggable.dataset.context;
+    const accepts = UI.rootGroup.dataset.accepts;
+    const isCompatible = (context === accepts) || (context === 'GROUP' && accepts === 'MEDIA');
+
+    const indicator = document.getElementById('dropIndicator');
+
+    if (!isCompatible) {
+        UI.rootGroup.classList.add('drag-invalid');
+        if (indicator) indicator.classList.add('hidden');
+        return;
+    }
+
+    e.preventDefault();
+    UI.rootGroup.classList.remove('drag-invalid');
+    if (indicator) indicator.classList.remove('hidden');
+
     const container = UI.rootGroup;
-    const afterElement = Array.from(container.querySelectorAll(':scope > .rule-row:not(.is-dragging), :scope > .rule-group-box:not(.is-dragging)'))
-        .reduce((closest, child, idx, arr) => {
-            const box = child.getBoundingClientRect();
-            
-            // Hysteresis: sticky thresholds
-            const isLastChild = draggable && !draggable.nextElementSibling && container.contains(draggable);
-            const isCurrentTarget = draggable && draggable.nextElementSibling === child;
-            
-            let thresholdPercent = 0.85;
-            if (isLastChild && idx === arr.length - 1) thresholdPercent = 0.2;
-            if (isCurrentTarget) thresholdPercent = 0.3;
-            
-            const threshold = box.top + (box.height * thresholdPercent);
-            const offset = e.clientY - threshold;
-            if (offset < 0 && offset > closest.offset) return { offset, element: child };
-            return closest;
-        }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+    const afterElement = getDragAfterElement(container, e.clientY, draggable);
     
-    if (afterElement !== draggable.nextElementSibling) {
-      if (afterElement == null) {
-        container.appendChild(draggable);
-      } else {
-        container.insertBefore(draggable, afterElement);
-      }
+    if (indicator) {
+        if (afterElement == null) {
+            container.appendChild(indicator);
+        } else {
+            container.insertBefore(indicator, afterElement);
+        }
     }
   };
 
@@ -170,11 +172,24 @@ async function init() {
     e.preventDefault();
     UI.rootGroup.classList.add('drag-over');
   };
-  UI.rootGroup.ondragleave = () => {
-    UI.rootGroup.classList.remove('drag-over');
+  UI.rootGroup.ondragleave = (e) => {
+    if (!UI.rootGroup.contains(e.relatedTarget)) {
+        UI.rootGroup.classList.remove('drag-over');
+        UI.rootGroup.classList.remove('drag-invalid');
+    }
   };
-  UI.rootGroup.ondrop = () => {
-    UI.rootGroup.classList.remove('drag-over');
+  UI.rootGroup.ondrop = (e) => {
+    e.preventDefault();
+    const draggable = window.draggedElement;
+    const indicator = document.getElementById('dropIndicator');
+    const container = UI.rootGroup;
+
+    if (draggable && !container.classList.contains('drag-invalid')) {
+        if (indicator && indicator.parentElement === container) {
+            container.insertBefore(draggable, indicator);
+        }
+    }
+    resetDragState();
   };
 
   // Debug tool

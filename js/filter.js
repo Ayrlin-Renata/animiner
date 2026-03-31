@@ -16,9 +16,12 @@ export const FIELD_TYPES = {
 };
 
 export const GROUP_TYPES = {
-    ANY: 'ANY',
-    ALL: 'ALL',
-    NONE: 'NONE'
+    ALL: 'ALL',       // Every item must match ALL rules (AND profile)
+    ANY: 'ANY',       // At least one item must match ALL rules (AND profile)
+    NONE: 'NONE',     // Zero items must match ALL rules (AND profile)
+    NOT_ALL: 'NOT_ALL',   // At least one item must FAIL at least one rule
+    SOME_ANY: 'SOME_ANY', // At least one item matches AT LEAST ONE rule (Fuzzy)
+    NONE_ANY: 'NONE_ANY'  // Zero items match EVEN ONE rule (Strict exclude)
 };
 
 export const RELATION_TYPES = [
@@ -284,7 +287,7 @@ export function evaluateRule(item, rule) {
     }
 
     if (rule.type === 'GROUP' || type === 'GROUP') {
-        const quantifier = rule.quantifier || GROUP_TYPES.ANY;
+        const quantifier = rule.quantifier || 'ANY';
         const subRules = rule.rules || [];
 
         // Special handling for LOGIC/ROOT groups that apply to the current object
@@ -293,38 +296,57 @@ export function evaluateRule(item, rule) {
             const subResults = subRules.map(sr => evaluateRule(item, sr));
             subResults.forEach(r => mergeMatches(r.matches));
 
-            if (quantifier === GROUP_TYPES.ALL) return { success: subResults.every(r => r.success), matches: matches };
-            if (quantifier === GROUP_TYPES.ANY) return { success: subResults.some(r => r.success), matches: matches };
-            if (quantifier === GROUP_TYPES.NONE) return { success: !subResults.some(r => r.success), matches: {} };
-            return { success: true, matches: {} };
+            switch (quantifier) {
+                case 'ALL':
+                case 'EVERY':      return { success: subResults.every(r => r.success), matches };
+                case 'ANY':
+                case 'SOME':       return { success: subResults.some(r => r.success), matches };
+                case 'NONE':        return { success: !subResults.some(r => r.success), matches: {} };
+                case 'NOT_ALL':     return { success: !subResults.every(r => r.success), matches: {} };
+                default:            return { success: true, matches: {} };
+            }
         }
 
         // Standard Collection Groups (Characters, Staff, etc.)
         const collection = getValueByPath(item, path);
-        if (!collection || !Array.isArray(collection)) return { success: false, matches: {} };
+        if (!collection || !Array.isArray(collection)) {
+            // Empty collections succeed on negative checks (NONE, NOT_ALL) but fail on positive ones (ALL, ANY)
+            const negSuccess = (quantifier === 'NONE' || quantifier === 'NONE_ANY');
+            return { success: negSuccess, matches: {} };
+        }
         
         const subResults = collection.map(entry => {
             const entryResults = subRules.map(sr => evaluateRule(entry, sr));
             const entryMatches = {};
             entryResults.forEach(r => {
                 Object.entries(r.matches).forEach(([p, terms]) => {
-                    // Prepend parent path for collection rules to distinguish them
                     const fullPath = `${path}.${p}`;
                     if (!entryMatches[fullPath]) entryMatches[fullPath] = new Set();
                     terms.forEach(t => entryMatches[fullPath].add(t));
                 });
             });
+
+            // Inner profiles are usually ALL (AND logic), unless user chose SOME_ANY or NONE_ANY
+            const isFuzzy = (quantifier === 'SOME_ANY' || quantifier === 'NONE_ANY');
             return { 
-                success: quantifier === GROUP_TYPES.ALL ? entryResults.every(r => r.success) : entryResults.some(r => r.success),
+                innerSuccess: isFuzzy ? entryResults.some(r => r.success) : entryResults.every(r => r.success),
                 matches: entryMatches
             };
         });
 
-        const allPass = quantifier === GROUP_TYPES.ALL ? subResults.every(r => r.success) : 
-                       quantifier === GROUP_TYPES.ANY ? subResults.some(r => r.success) :
-                       !subResults.some(r => r.success);
+        let allPass = false;
+        switch(quantifier) {
+            case 'ALL':
+            case 'EVERY':    allPass = subResults.every(r => r.innerSuccess); break;
+            case 'ANY':
+            case 'SOME':     allPass = subResults.some(r => r.innerSuccess); break;
+            case 'NONE':      allPass = !subResults.some(r => r.innerSuccess); break;
+            case 'NOT_ALL':   allPass = !subResults.every(r => r.innerSuccess); break;
+            case 'SOME_ANY': allPass = subResults.some(r => r.innerSuccess); break;
+            case 'NONE_ANY': allPass = !subResults.some(r => r.innerSuccess); break;
+        }
         
-        subResults.forEach(r => { if (r.success) mergeMatches(r.matches); });
+        subResults.forEach(r => { if (r.innerSuccess) mergeMatches(r.matches); });
         return { success: allPass, matches: matches };
     }
 
@@ -346,17 +368,25 @@ export function evaluateRule(item, rule) {
                     terms.forEach(t => entryMatches[fullPath].add(t));
                 });
             });
+            
+            const isFuzzy = (quantifier === 'SOME_ANY' || quantifier === 'NONE_ANY');
             return {
-                success: entryResults.every(r => r.success),
+                innerSuccess: isFuzzy ? entryResults.some(r => r.success) : entryResults.every(r => r.success),
                 matches: entryMatches
             };
         });
 
-        const allPass = quantifier === 'ALL' ? subResults.every(r => r.success) :
-                       quantifier === 'ANY' ? subResults.some(r => r.success) :
-                       !subResults.some(r => r.success);
+        let allPass = false;
+        switch(quantifier) {
+            case 'ALL':   allPass = subResults.every(r => r.innerSuccess); break;
+            case 'ANY':   allPass = subResults.some(r => r.innerSuccess); break;
+            case 'NONE':  allPass = !subResults.some(r => r.innerSuccess); break;
+            case 'NOT_ALL': allPass = !subResults.every(r => r.innerSuccess); break;
+            case 'SOME_ANY': allPass = subResults.some(r => r.innerSuccess); break;
+            case 'NONE_ANY': allPass = !subResults.some(r => r.innerSuccess); break;
+        }
         
-        subResults.forEach(r => { if (r.success) mergeMatches(r.matches); });
+        subResults.forEach(r => { if (r.innerSuccess) mergeMatches(r.matches); });
         return { success: allPass, matches: matches };
     }
 
