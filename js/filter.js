@@ -90,7 +90,8 @@ export const FIELDS = {
         { label: 'Tag Category', path: 'tags.category', type: FIELD_TYPES.COLLECTION },
         { label: 'Min Tag Rank', path: 'tags.rank', type: FIELD_TYPES.NUMBER },
         { label: 'Synonyms', path: 'synonyms', type: FIELD_TYPES.COLLECTION },
-        { label: 'Hashtag', path: 'hashtag', type: FIELD_TYPES.STRING }
+        { label: 'Hashtag', path: 'hashtag', type: FIELD_TYPES.STRING },
+        { label: 'Description', path: 'description', type: FIELD_TYPES.STRING }
     ],
     [RECURSIVE_CATEGORIES.METRICS]: [
         { label: 'Average Score', path: 'averageScore', type: FIELD_TYPES.NUMBER },
@@ -163,11 +164,13 @@ export const OPERATORS = {
     BETWEEN: 'between',
     CONTAINS: 'contains',
     NOT_CONTAINS: 'not_contains',
-    IS: 'is'
+    IS: 'is',
+    REGEX_MATCH: 'regex_match',
+    REGEX_NOT_MATCH: 'regex_not_match'
 };
 
 export const OPERATORS_BY_TYPE = {
-    [FIELD_TYPES.STRING]: [OPERATORS.CONTAINS, OPERATORS.NOT_CONTAINS, OPERATORS.EQUALS, OPERATORS.NOT_EQUALS],
+    [FIELD_TYPES.STRING]: [OPERATORS.CONTAINS, OPERATORS.NOT_CONTAINS, OPERATORS.EQUALS, OPERATORS.NOT_EQUALS, OPERATORS.REGEX_MATCH, OPERATORS.REGEX_NOT_MATCH],
     [FIELD_TYPES.NUMBER]: [OPERATORS.EQUALS, OPERATORS.NOT_EQUALS, OPERATORS.GREATER, OPERATORS.LESSER, OPERATORS.BETWEEN],
     [FIELD_TYPES.COLLECTION]: [OPERATORS.CONTAINS, OPERATORS.NOT_CONTAINS, OPERATORS.EQUALS, OPERATORS.NOT_EQUALS],
     [FIELD_TYPES.BOOLEAN]: [OPERATORS.IS],
@@ -300,6 +303,20 @@ export function evaluateRule(item, rule) {
             const [min, max] = numbers;
             const valNumber = safeParseNumber(actualValue);
             return valNumber >= min && valNumber <= max;
+
+        case OPERATORS.REGEX_MATCH:
+            try {
+                if (!actualValue) return false;
+                const re = new RegExp(value, 'i');
+                return re.test(actualValue.toString());
+            } catch (e) { return false; }
+
+        case OPERATORS.REGEX_NOT_MATCH:
+            try {
+                if (!actualValue) return true;
+                const re = new RegExp(value, 'i');
+                return !re.test(actualValue.toString());
+            } catch (e) { return true; }
 
         default:
             return true;
