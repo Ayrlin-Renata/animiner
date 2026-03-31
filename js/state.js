@@ -99,7 +99,7 @@ export function loadSettings() {
 
 export async function loadCache() {
   try {
-    const response = await fetch('/initialCache.json');
+    const response = await fetch('initialCache.json');
     if (response.ok) {
         const initial = await response.json();
         Object.keys(initial).forEach(key => {
