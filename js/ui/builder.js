@@ -23,19 +23,25 @@ export function addRuleUI(initialData = null, parentContainer = null, isSubField
         return (mapping[state.searchMode] || []).includes(cat);
     });
 
+    row.draggable = false; // Rows are only draggable via handle
     row.innerHTML = `
-    <div class="rule-top">
-      ${isSubField ? '' : `<select class="cat-select">
-        ${availableCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
-      </select>`}
-      <select class="field-select"></select>
-      <button class="remove-btn" title="Remove Constraint"><i data-lucide="trash-2"></i></button>
-    </div>
-    <div class="rule-bottom">
-      <select class="op-select"></select>
-      <span class="val-container"></span>
-    </div>
-  `;
+        <div class="rule-drag-handle" draggable="true">
+            <i data-lucide="grip-vertical"></i>
+        </div>
+        <div class="rule-content">
+            <div class="rule-top">
+                ${isSubField ? '' : `<select class="cat-select" title="Category">
+                    ${availableCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+                </select>`}
+                <select class="field-select"></select>
+                <button class="remove-btn" title="Remove constraint"><i data-lucide="trash-2"></i></button>
+            </div>
+            <div class="rule-bottom">
+                <select class="op-select"></select>
+                <div class="val-container"></div>
+            </div>
+        </div>
+    `;
 
     const catSelect = row.querySelector('.cat-select');
     const fieldSelect = row.querySelector('.field-select');
@@ -61,6 +67,9 @@ export function addRuleUI(initialData = null, parentContainer = null, isSubField
 
         // CRITICAL: Set attributes for reliable state extraction
         row.dataset.path = field.path;
+        const type = field?.type || 'string';
+        const defaultOp = type === 'collection' ? 'equals' : (OPERATORS_BY_TYPE[type]?.[0] || 'equals');
+        const rule = { path: field.path, label: field.label, type: type, operator: defaultOp, value: '' };
         row.dataset.type = field.type;
         row.dataset.label = field.label;
 
@@ -124,6 +133,20 @@ export function addRuleUI(initialData = null, parentContainer = null, isSubField
     }
 
     updateFields();
+    
+    // Drag and Drop Event listeners for Rule Rows
+    const handle = row.querySelector('.rule-drag-handle');
+    handle.ondragstart = (e) => {
+        e.dataTransfer.setData('text/plain', 'rule');
+        window.draggedElement = row;
+        row.classList.add('is-dragging');
+        e.stopPropagation();
+    };
+    handle.ondragend = () => {
+        row.classList.remove('is-dragging');
+        window.draggedElement = null;
+    };
+
     (parentContainer || UI.rootGroup).appendChild(row);
     if (window.lucide) window.lucide.createIcons();
 }
@@ -136,6 +159,9 @@ export function addGroupUI(initialData = null, parentContainer = null) {
     box.innerHTML = `
         <div class="rule-group-header">
             <div class="group-title">
+                <div class="group-drag-handle" draggable="true">
+                    <i data-lucide="grip-vertical"></i>
+                </div>
                 <i data-lucide="layers" class="collection-icon"></i>
                 <i data-lucide="square-slash" class="logic-icon hidden"></i>
                 <span class="group-name">Collection Group</span>
@@ -181,9 +207,9 @@ export function addGroupUI(initialData = null, parentContainer = null) {
         box.classList.toggle('any-logic', isLogic && isAny);
 
         const quantifierText = {
-            ANY: isLogic ? 'Matches if ANY of these rules pass (OR).' : 'Finds items where ANY match.',
-            ALL: isLogic ? 'Matches if ALL of these rules pass (AND).' : 'Finds items where ALL match.',
-            NONE: isLogic ? 'Matches if NONE of these rules pass (NOT).' : 'Finds items where NONE match.'
+            ANY: isLogic ? 'Matches if ANY of these rules pass (OR logic).' : 'Matches items where at least one entry meets these rules.',
+            ALL: isLogic ? 'Matches if ALL of these rules pass (AND logic).' : 'Matches items where every single entry meets these rules.',
+            NONE: isLogic ? 'Matches only if NONE of these rules pass (NOT logic).' : 'Excludes items where any entry matches these rules.'
         };
         box.querySelector('.group-help-text').textContent = quantifierText[quantifier];
     };
@@ -230,6 +256,48 @@ export function addGroupUI(initialData = null, parentContainer = null) {
     }
     
     updateGroupContext();
+    
+    // Drag and Drop listeners
+    const groupHandle = box.querySelector('.group-drag-handle');
+    groupHandle.ondragstart = (e) => {
+        e.dataTransfer.setData('text/plain', 'group');
+        window.draggedElement = box;
+        box.classList.add('is-dragging');
+        e.stopPropagation();
+    }
+    groupHandle.ondragend = () => {
+        box.classList.remove('is-dragging');
+        window.draggedElement = null;
+    }
+
+    container.ondragover = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const draggable = window.draggedElement;
+        if (!draggable || draggable === box) return;
+
+        const afterElement = getDragAfterElement(container, e.clientY, draggable);
+        if (afterElement !== draggable.nextElementSibling) {
+            if (afterElement == null) {
+                container.appendChild(draggable);
+            } else {
+                container.insertBefore(draggable, afterElement);
+            }
+        }
+    };
+
+    container.ondragenter = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        container.classList.add('drag-over');
+    };
+    container.ondragleave = () => {
+        container.classList.remove('drag-over');
+    };
+    container.ondrop = () => {
+        container.classList.remove('drag-over');
+    };
+
     (parentContainer || UI.rootGroup).appendChild(box);
     if (window.lucide) window.lucide.createIcons();
 }
@@ -246,8 +314,10 @@ export function addRelationGroupUI(initialData = null, parentContainer = null) {
     box.innerHTML = `
         <div class="rule-group-header">
             <div class="group-title">
+                <div class="group-drag-handle" draggable="true">
+                    <i data-lucide="grip-vertical"></i>
+                </div>
                 <i data-lucide="git-branch-plus"></i>
-                <span class="group-name">Relation Filter</span>
             </div>
             <div class="group-controls">
                 <select class="group-rel-type" title="Relation Type">
@@ -258,10 +328,10 @@ export function addRelationGroupUI(initialData = null, parentContainer = null) {
                     <option value="ANY">has ANY</option>
                     <option value="ALL">has ALL</option>
                 </select>
-                <button class="remove-btn" title="Remove Relation Filter"><i data-lucide="trash-2"></i></button>
+                <button class="remove-btn" title="Remove Relation Group"><i data-lucide="trash-2"></i></button>
             </div>
         </div>
-        <div class="group-help-text">No related media of this type passes all sub-constraints.</div>
+        <div class="group-help-text">Filters related media (e.g. prequels, sequels).</div>
         <div class="group-rules-container"></div>
         <div class="group-actions">
             <button class="text-btn add-relation-rule-btn">
@@ -274,15 +344,18 @@ export function addRelationGroupUI(initialData = null, parentContainer = null) {
     const quantSelect    = box.querySelector('.group-quantifier');
     const container      = box.querySelector('.group-rules-container');
 
-    const updateHelp = () => {
+    const updateRelationContext = () => {
         const rt = relTypeSelect.value === 'ANY' ? 'any relation' : relTypeSelect.value.replace(/_/g, ' ').toLowerCase();
         const qt = quantSelect.value;
         const texts = {
-            NONE: `No ${rt} matches all sub-constraints (exclude if found).`,
-            ANY:  `At least one ${rt} matches all sub-constraints.`,
-            ALL:  `Every ${rt} matches all sub-constraints.`,
+            NONE: `Excludes items that have any ${rt} matching these rules.`,
+            ANY:  `Matches if at least one ${rt} matches the rules.`,
+            ALL:  `Matches if every single ${rt} matches the rules.`
         };
         box.querySelector('.group-help-text').textContent = texts[qt];
+        
+        // Also toggle logic connectors class
+        box.classList.toggle('any-logic', qt === 'ANY');
     };
 
     const addSubRule = (data = null) => {
@@ -292,8 +365,8 @@ export function addRelationGroupUI(initialData = null, parentContainer = null) {
 
     box.querySelector('.add-relation-rule-btn').onclick = () => addSubRule();
     box.querySelector('.remove-btn').onclick = () => box.remove();
-    relTypeSelect.onchange = updateHelp;
-    quantSelect.onchange   = updateHelp;
+    relTypeSelect.onchange = updateRelationContext;
+    quantSelect.onchange   = updateRelationContext;
 
     // Load saved state
     if (initialData) {
@@ -304,9 +377,79 @@ export function addRelationGroupUI(initialData = null, parentContainer = null) {
         addSubRule(); // Start with one empty rule
     }
 
-    updateHelp();
+    updateRelationContext();
+
+    // Drag and Drop listeners
+    const groupHandle = box.querySelector('.group-drag-handle');
+    groupHandle.ondragstart = (e) => {
+        e.dataTransfer.setData('text/plain', 'relation');
+        window.draggedElement = box;
+        box.classList.add('is-dragging');
+        e.stopPropagation();
+    }
+    groupHandle.ondragend = () => {
+        box.classList.remove('is-dragging');
+        window.draggedElement = null;
+    }
+
+    container.ondragover = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const draggable = window.draggedElement;
+        if (!draggable || draggable === box) return;
+
+        const afterElement = getDragAfterElement(container, e.clientY, draggable);
+        if (afterElement !== draggable.nextElementSibling) {
+            if (afterElement == null) {
+                container.appendChild(draggable);
+            } else {
+                container.insertBefore(draggable, afterElement);
+            }
+        }
+    };
+
+    container.ondragenter = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        container.classList.add('drag-over');
+    };
+    container.ondragleave = () => {
+        container.classList.remove('drag-over');
+    };
+    container.ondrop = () => {
+        container.classList.remove('drag-over');
+    };
+
     (parentContainer || UI.rootGroup).appendChild(box);
     if (window.lucide) window.lucide.createIcons();
+}
+
+/**
+ * Helper to find the element we should insert before during drag
+ */
+function getDragAfterElement(container, y, draggable) {
+    const draggableElements = [...container.querySelectorAll(':scope > .rule-row:not(.is-dragging), :scope > .rule-group-box:not(.is-dragging)')];
+    
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        
+        // Hysteresis: If we are already the last child, we make it harder to jump 'before' the last element (and vice versa)
+        const isLastChild = draggable && !draggable.nextElementSibling && container.contains(draggable);
+        const isCurrentTarget = draggable && draggable.nextElementSibling === child;
+        
+        let thresholdPercent = 0.85; // Default for downward move
+        if (isLastChild && child === draggableElements[draggableElements.length-1]) thresholdPercent = 0.2; // Sticky at end
+        if (isCurrentTarget) thresholdPercent = 0.3; // Sticky in middle
+        
+        const threshold = box.top + (box.height * thresholdPercent);
+        const offset = y - threshold;
+        
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
 }
 
 export function resetUI(skipDefaultRule = false) {

@@ -1,24 +1,30 @@
 import { state, loadCache, saveSettings, loadSettings } from './state.js';
 import { UI, addRuleUI, addGroupUI, addRelationGroupUI, resetUI, updateProgress, renderResultsList, syncUI, toggleFilters, openBlacklistManager, updateToggleFilterAccent } from './ui.js';
 import { executeSearch } from './api.js';
-import { FIELDS, SUB_FIELDS } from './filter.js';
+import { FIELDS, SUB_FIELDS, RELATION_FIELDS } from './filter.js';
+import { compressFilterData, decompressFilterData } from './compression.js';
 
 async function init() {
   await loadCache();
   loadSettings();
   
-  // URL Overrides
+  // URL Overrides (Compressed)
   const urlParams = new URLSearchParams(window.location.search);
   const filterData = urlParams.get('f');
   if (filterData) {
-    try {
-        const decoded = JSON.parse(decodeURIComponent(atob(filterData)));
-        state.searchMode = decoded.m    || state.searchMode;
-        state.targetMatches = decoded.t || state.targetMatches;
-        state.sort = decoded.s          || state.sort;
-        state.mediaType = decoded.y     || state.mediaType;
-        state.rules = decoded.r         || [];
-    } catch (e) { console.error('Failed to parse URL filters'); }
+    const decompressed = decompressFilterData(filterData);
+    if (decompressed) {
+        state.searchMode = decompressed.searchMode || state.searchMode;
+        state.targetMatches = decompressed.targetMatches || state.targetMatches;
+        state.sort = decompressed.sort || state.sort;
+        state.mediaType = decompressed.mediaType || state.mediaType;
+        state.rules = decompressed.rules || [];
+
+        // Clear the URL to prevent subsequent refreshes from overriding localStorage
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete('f');
+        window.history.replaceState({}, '', newUrl.toString());
+    }
   }
 
   // Initial UI state - do this AFTER state is finalized from URL
@@ -63,10 +69,18 @@ async function init() {
     UI.addRelationBtn.onclick = () => { addRelationGroupUI(); updateToggleFilterAccent(); };
   }
 
-  // Watch rootGroup for rule removals to update accent
+  // Watch rootGroup for rule removals to update accent and auto-save
   if (UI.rootGroup) {
     new MutationObserver(() => updateToggleFilterAccent())
       .observe(UI.rootGroup, { childList: true, subtree: false });
+    
+    // Auto-save on any change within the builder
+    UI.rootGroup.addEventListener('change', () => updateStateFromUI());
+    UI.rootGroup.addEventListener('input', () => {
+        // debounce slightly for performance
+        clearTimeout(window._saveTimer);
+        window._saveTimer = setTimeout(() => updateStateFromUI(), 500);
+    });
   }
 
   UI.searchMode.onchange = (e) => {
@@ -100,18 +114,10 @@ async function init() {
     UI.toggleFiltersBtn.onclick = () => toggleFilters();
   }
 
-  // Share button logic
   if (UI.shareBtn) {
     UI.shareBtn.onclick = () => {
         updateStateFromUI();
-        const data = {
-            m: state.searchMode,
-            t: state.targetMatches,
-            s: state.sort,
-            y: state.mediaType,
-            r: state.rules
-        };
-        const encoded = btoa(encodeURIComponent(JSON.stringify(data)));
+        const encoded = compressFilterData(state);
         const url = new URL(window.location.href);
         url.searchParams.set('f', encoded);
         
@@ -125,6 +131,57 @@ async function init() {
         });
     };
   }
+
+  UI.rootGroup.ondragover = (e) => {
+    e.preventDefault();
+    const draggable = window.draggedElement;
+    if (!draggable) return;
+    
+    // Only allow dropping at root if it's a top-level rule or group
+    const container = UI.rootGroup;
+    const afterElement = Array.from(container.querySelectorAll(':scope > .rule-row:not(.is-dragging), :scope > .rule-group-box:not(.is-dragging)'))
+        .reduce((closest, child, idx, arr) => {
+            const box = child.getBoundingClientRect();
+            
+            // Hysteresis: sticky thresholds
+            const isLastChild = draggable && !draggable.nextElementSibling && container.contains(draggable);
+            const isCurrentTarget = draggable && draggable.nextElementSibling === child;
+            
+            let thresholdPercent = 0.85;
+            if (isLastChild && idx === arr.length - 1) thresholdPercent = 0.2;
+            if (isCurrentTarget) thresholdPercent = 0.3;
+            
+            const threshold = box.top + (box.height * thresholdPercent);
+            const offset = e.clientY - threshold;
+            if (offset < 0 && offset > closest.offset) return { offset, element: child };
+            return closest;
+        }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+    
+    if (afterElement !== draggable.nextElementSibling) {
+      if (afterElement == null) {
+        container.appendChild(draggable);
+      } else {
+        container.insertBefore(draggable, afterElement);
+      }
+    }
+  };
+
+  UI.rootGroup.ondragenter = (e) => {
+    e.preventDefault();
+    UI.rootGroup.classList.add('drag-over');
+  };
+  UI.rootGroup.ondragleave = () => {
+    UI.rootGroup.classList.remove('drag-over');
+  };
+  UI.rootGroup.ondrop = () => {
+    UI.rootGroup.classList.remove('drag-over');
+  };
+
+  // Debug tool
+  window.exportFilters = () => {
+    console.log("Current Filter State (for debugging):");
+    console.log(JSON.stringify(state.rules, null, 2));
+  };
 }
 
 function updateStateFromUI() {

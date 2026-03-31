@@ -250,10 +250,17 @@ export function getValueByPath(obj, path) {
 
 /**
  * Evaluates a single rule against a result item.
+ * Returns { success: boolean, terms: string[] } for highlighting match reasons in the UI.
  */
 export function evaluateRule(item, rule) {
     const { path, operator, value, type } = rule;
     let actualValue = getValueByPath(item, path);
+    const terms = []; // Track matching string terms for highlighting
+
+    // Helper to add matching terms
+    const addMatch = (val) => {
+        if (val && typeof val === 'string') terms.push(val.toLowerCase());
+    };
 
     // Special handling for fuzzy dates (objects { year, month, day })
     if (actualValue && typeof actualValue === 'object' && 'year' in actualValue) {
@@ -269,12 +276,14 @@ export function evaluateRule(item, rule) {
         const list = value.split(',').map(s => s.trim().toLowerCase()).filter(s => s !== '');
         const itemValStr = actualValue?.toString().toLowerCase();
         
+        let success = false;
         if (operator === OPERATORS.EQUALS || operator === OPERATORS.IS) {
-            return list.includes(itemValStr);
+            success = list.includes(itemValStr);
+        } else if (operator === OPERATORS.NOT_EQUALS) {
+            success = !list.includes(itemValStr);
         }
-        if (operator === OPERATORS.NOT_EQUALS) {
-            return !list.includes(itemValStr);
-        }
+        if (success && itemValStr) addMatch(itemValStr);
+        return { success, terms };
     }
 
     if (type === 'GROUP') {
@@ -283,29 +292,39 @@ export function evaluateRule(item, rule) {
 
         // Special handling for LOGIC/ROOT groups that apply to the current object
         if (rule.path === COLLECTION_PATHS.LOGIC) {
-            if (subRules.length === 0) return true;
+            if (subRules.length === 0) return { success: true, terms: [] };
 
-            if (quantifier === GROUP_TYPES.ALL) return subRules.every(subRule => evaluateRule(item, subRule));
-            if (quantifier === GROUP_TYPES.ANY) return subRules.some(subRule => evaluateRule(item, subRule));
-            if (quantifier === GROUP_TYPES.NONE) return !subRules.some(subRule => evaluateRule(item, subRule));
-            return true;
+            const subResults = subRules.map(sr => evaluateRule(item, sr));
+            const allTerms = subResults.flatMap(r => r.terms);
+
+            if (quantifier === GROUP_TYPES.ALL) return { success: subResults.every(r => r.success), terms: allTerms };
+            if (quantifier === GROUP_TYPES.ANY) return { success: subResults.some(r => r.success), terms: allTerms };
+            if (quantifier === GROUP_TYPES.NONE) return { success: !subResults.some(r => r.success), terms: [] };
+            return { success: true, terms: [] };
         }
 
         // Standard Collection Groups (Characters, Staff, etc.)
         const collection = getValueByPath(item, path);
-        if (!collection || !Array.isArray(collection)) return false;
+        if (!collection || !Array.isArray(collection)) return { success: false, terms: [] };
         
         // If no sub-rules, treat as "any item exists"
-        if (subRules.length === 0) return collection.length > 0;
+        if (subRules.length === 0) return { success: collection.length > 0, terms: [] };
 
-        const matchingItems = collection.filter(subItem => 
-            subRules.every(subRule => evaluateRule(subItem, subRule))
-        );
+        const itemMatches = collection.map(subItem => {
+            const subResults = subRules.map(sr => evaluateRule(subItem, sr));
+            return {
+                success: subResults.every(r => r.success),
+                terms: subResults.flatMap(r => r.terms)
+            };
+        });
 
-        if (quantifier === GROUP_TYPES.ANY) return matchingItems.length > 0;
-        if (quantifier === GROUP_TYPES.ALL) return matchingItems.length === collection.length && collection.length > 0;
-        if (quantifier === GROUP_TYPES.NONE) return matchingItems.length === 0;
-        return true;
+        const activeMatches = itemMatches.filter(m => m.success);
+        const matchTerms = activeMatches.flatMap(m => m.terms);
+
+        if (quantifier === GROUP_TYPES.ANY) return { success: activeMatches.length > 0, terms: matchTerms };
+        if (quantifier === GROUP_TYPES.ALL) return { success: activeMatches.length === collection.length && collection.length > 0, terms: matchTerms };
+        if (quantifier === GROUP_TYPES.NONE) return { success: activeMatches.length === 0, terms: [] };
+        return { success: true, terms: [] };
     }
 
     // RELATION groups — filter relation edges by type, evaluate sub-rules on related media node
@@ -318,78 +337,122 @@ export function evaluateRule(item, rule) {
         const targetEdges = relType === 'ANY' ? edges : edges.filter(e => e.relationType === relType);
 
         if (subRules.length === 0) {
-            if (quantifier === GROUP_TYPES.ANY)  return targetEdges.length > 0;
-            if (quantifier === GROUP_TYPES.NONE) return targetEdges.length === 0;
-            return true;
+            if (quantifier === GROUP_TYPES.ANY)  return { success: targetEdges.length > 0, terms: [] };
+            if (quantifier === GROUP_TYPES.NONE) return { success: targetEdges.length === 0, terms: [] };
+            return { success: true, terms: [] };
         }
 
-        const matchingNodes = targetEdges.filter(edge =>
-            subRules.every(subRule => evaluateRule(edge.node, subRule))
-        );
+        const nodeMatches = targetEdges.map(edge => {
+            const subResults = subRules.map(sr => evaluateRule(edge.node, sr));
+            return {
+                success: subResults.every(r => r.success),
+                terms: subResults.flatMap(r => r.terms)
+            };
+        });
 
-        if (quantifier === GROUP_TYPES.ANY)  return matchingNodes.length > 0;
-        if (quantifier === GROUP_TYPES.ALL)  return matchingNodes.length === targetEdges.length && targetEdges.length > 0;
-        if (quantifier === GROUP_TYPES.NONE) return matchingNodes.length === 0;
-        return true;
+        const activeMatches = nodeMatches.filter(m => m.success);
+        const matchTerms = activeMatches.flatMap(m => m.terms);
+
+        if (quantifier === GROUP_TYPES.ANY)  return { success: activeMatches.length > 0, terms: matchTerms };
+        if (quantifier === GROUP_TYPES.ALL)  return { success: activeMatches.length === targetEdges.length && targetEdges.length > 0, terms: matchTerms };
+        if (quantifier === GROUP_TYPES.NONE) return { success: activeMatches.length === 0, terms: [] };
+        return { success: true, terms: [] };
     }
 
+    let success = true;
     switch (operator) {
         case OPERATORS.CONTAINS:
             if (Array.isArray(actualValue)) {
-                return actualValue.some(v => v?.toString().toLowerCase().includes(target));
+                // For collections (Tags/Genres), use EXACT item matching even with "contains"
+                const matchesItem = actualValue.some(v => v?.toString().toLowerCase() === target);
+                success = matchesItem;
+                if (success) addMatch(target);
+            } else {
+                success = actualValue?.toString().toLowerCase().includes(target);
+                if (success) addMatch(actualValue);
             }
-            return actualValue?.toString().toLowerCase().includes(target);
+            break;
 
         case OPERATORS.NOT_CONTAINS:
             if (Array.isArray(actualValue)) {
-                return !actualValue.some(v => v?.toString().toLowerCase().includes(target));
+                // For collections (Tags/Genres), use EXACT item exclusion
+                const violator = actualValue.find(v => v?.toString().toLowerCase() === target);
+                success = !violator;
+            } else {
+                success = !actualValue?.toString().toLowerCase().includes(target);
             }
-            return !actualValue?.toString().toLowerCase().includes(target);
+            break;
 
         case OPERATORS.EQUALS:
         case OPERATORS.IS:
             if (Array.isArray(actualValue)) {
-                return actualValue.some(v => v?.toString().toLowerCase() === target);
+                const foundItems = actualValue.filter(v => v?.toString().toLowerCase() === target);
+                success = foundItems.length > 0;
+                if (success) foundItems.forEach(fi => addMatch(fi));
+            } else {
+                // Handle boolean
+                if (target === 'true' || target === 'false') {
+                    success = String(actualValue) === target;
+                } else {
+                    success = actualValue?.toString().toLowerCase() === target;
+                    if (success) addMatch(actualValue);
+                }
             }
-            // Handle boolean
-            if (target === 'true' || target === 'false') return String(actualValue) === target;
-            return actualValue?.toString().toLowerCase() === target;
+            break;
 
         case OPERATORS.NOT_EQUALS:
             if (Array.isArray(actualValue)) {
-                return !actualValue.some(v => v?.toString().toLowerCase() === target);
+                success = !actualValue.some(v => v?.toString().toLowerCase() === target);
+            } else {
+                success = actualValue?.toString().toLowerCase() !== target;
             }
-            return actualValue?.toString().toLowerCase() !== target;
+            break;
 
         case OPERATORS.GREATER:
-            return safeParseNumber(actualValue) > safeParseNumber(value);
+            success = safeParseNumber(actualValue) > safeParseNumber(value);
+            break;
 
         case OPERATORS.LESSER:
-            return safeParseNumber(actualValue) < safeParseNumber(value);
+            success = safeParseNumber(actualValue) < safeParseNumber(value);
+            break;
 
         case OPERATORS.BETWEEN:
             const numbers = value.split(/[- ]+/).map(safeParseNumber);
             const [min, max] = numbers;
             const valNumber = safeParseNumber(actualValue);
-            return valNumber >= min && valNumber <= max;
+            success = valNumber >= min && valNumber <= max;
+            break;
 
         case OPERATORS.REGEX_MATCH:
             try {
-                if (!actualValue) return false;
-                const re = new RegExp(value, 'i');
-                return re.test(actualValue.toString());
-            } catch (e) { return false; }
+                if (!actualValue) {
+                    success = false;
+                } else {
+                    const re = new RegExp(value, 'i');
+                    success = re.test(actualValue.toString());
+                    // For regex, the matching chunk might be hard to isolate perfectly, 
+                    // but we can add the whole string as a highlight hint.
+                    if (success) addMatch(actualValue);
+                }
+            } catch (e) { success = false; }
+            break;
 
         case OPERATORS.REGEX_NOT_MATCH:
             try {
-                if (!actualValue) return true;
-                const re = new RegExp(value, 'i');
-                return !re.test(actualValue.toString());
-            } catch (e) { return true; }
+                if (!actualValue) {
+                    success = true;
+                } else {
+                    const re = new RegExp(value, 'i');
+                    success = !re.test(actualValue.toString());
+                }
+            } catch (e) { success = true; }
+            break;
 
         default:
-            return true;
+            success = true;
     }
+
+    return { success, terms };
 }
 
 /**
@@ -397,5 +460,20 @@ export function evaluateRule(item, rule) {
  */
 export function filterResults(results, rules) {
     if (!rules || rules.length === 0) return results;
-    return results.filter(item => rules.every(rule => evaluateRule(item, rule)));
+    
+    return results.filter(item => {
+        const ruleResults = rules.map(rule => ({
+            rule,
+            result: evaluateRule(item, rule)
+        }));
+        const allPass = ruleResults.every(r => r.result.success);
+        
+        if (allPass) {
+            // Attach unique matching terms to the item for highlighting in UI
+            const allTerms = ruleResults.flatMap(r => r.result.terms);
+            item._matchTerms = [...new Set(allTerms)].filter(t => t.length > 2);
+        }
+        
+        return allPass;
+    });
 }

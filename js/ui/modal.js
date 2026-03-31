@@ -6,9 +6,23 @@
 import { UI } from './base.js';
 import { state } from '../state.js';
 
-export function formatDescription(html) {
+export function highlightText(text, terms) {
+  if (!text || !terms || terms.length === 0) return text;
+  
+  // Sort terms by length descending to match longest patterns first
+  const sortedTerms = [...terms].sort((a, b) => b.length - a.length);
+  
+  // Create a regex that matches any of the terms, escaping them for safety
+  const escapedTerms = sortedTerms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const regex = new RegExp(`(${escapedTerms.join('|')})`, 'gi');
+  
+  return text.replace(regex, '<mark class="match-highlight">$1</mark>');
+}
+
+export function formatDescription(html, terms) {
   if (!html) return 'No description available.';
-  return html.replace(/<br\s*\/?>/gi, '\n').replace(/<\/?[^>]+(>|$)/g, "");
+  const clean = html.replace(/<br\s*\/?>/gi, '\n').replace(/<\/?[^>]+(>|$)/g, "");
+  return highlightText(clean, terms);
 }
 
 export function openModal(item) {
@@ -16,7 +30,11 @@ export function openModal(item) {
   let content = '';
   
   if (state.searchMode === 'MEDIA') {
-    const genres = item.genres?.map(g => `<span class="tag">${g}</span>`).join(' ') || '';
+    const matchTerms = item._matchTerms || [];
+    const genres = item.genres?.map(g => {
+        const isMatch = matchTerms.some(t => g.toLowerCase().includes(t));
+        return `<span class="tag ${isMatch ? 'match-highlight-tag' : ''}">${highlightText(g, matchTerms)}</span>`;
+    }).join(' ') || '';
     const studios = item.studios?.edges?.filter(e => e.isMain).map(e => e.node.name).join(', ') || 'Unknown';
     const sourceFormatted = item.source?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) || '?';
     
@@ -138,16 +156,16 @@ export function openModal(item) {
             <div class="section-title small">Tags</div>
             <div class="tag-list">
               ${visibleTags.map(t => `
-                <div class="tag-list-item">
-                  <span class="tag-name">${t.name}</span>
+                <div class="tag-list-item ${matchTerms.some(mt => t.name.toLowerCase().includes(mt)) ? 'match-highlight-tag' : ''}">
+                  <span class="tag-name">${highlightText(t.name, matchTerms)}</span>
                   <span class="tag-rank">${t.rank}%</span>
                 </div>
               `).join('')}
               ${spoilerTags.length ? `<button class="text-btn spoiler-toggle" onclick="this.nextElementSibling.classList.toggle('hidden')">Show Spoiler Tags (+${spoilerTags.length})</button>
               <div class="tag-list hidden">
                 ${spoilerTags.map(t => `
-                  <div class="tag-list-item spoiler">
-                    <span class="tag-name">${t.name}</span>
+                  <div class="tag-list-item spoiler ${matchTerms.some(mt => t.name.toLowerCase().includes(mt)) ? 'match-highlight-tag' : ''}">
+                    <span class="tag-name">${highlightText(t.name, matchTerms)}</span>
                     <span class="tag-rank">${t.rank}%</span>
                   </div>
                 `).join('')}
@@ -157,7 +175,7 @@ export function openModal(item) {
         </div>
         <div class="modal-main">
           <div class="section-title">Description</div>
-          <div class="modal-description">${formatDescription(item.description)}</div>
+          <div class="modal-description">${formatDescription(item.description, matchTerms)}</div>
           
           ${trailerHtml}
           ${relationsHtml}

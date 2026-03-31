@@ -16,7 +16,8 @@
 
 .rule-row {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: flex-start;
   gap: 0.8rem;
   padding: 1.2rem;
   background: rgba(255, 255, 255, 0.03);
@@ -27,29 +28,89 @@
   position: relative;
 }
 
-.rule-row select, .rule-row input {
-  background: rgba(0, 0, 0, 0.2);
-  min-width: 0; /* Allow flex children to shrink */
+.rule-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  min-width: 0;
 }
 
-.rule-top, .rule-bottom {
+.rule-row select,
+.rule-row input {
+  background: rgba(0, 0, 0, 0.2);
+  min-width: 0;
+  /* Allow flex children to shrink */
+}
+
+.rule-top,
+.rule-bottom {
   display: flex;
+  flex-direction: row;
   gap: 0.8rem;
   width: 100%;
   align-items: center;
   flex-wrap: wrap;
 }
 
-.rule-top .cat-select  { flex: 1; min-width: 100px; }
-.rule-top .field-select { flex: 2; min-width: 120px; }
-.rule-top .remove-btn  { flex-shrink: 0; }
-.rule-bottom .op-select { flex: 1; min-width: 100px; }
-.rule-bottom .val-container { flex: 3; min-width: 120px; }
+.rule-top .cat-select {
+  flex: 1;
+  min-width: 80px;
+}
+
+.rule-top .field-select {
+  flex: 2;
+  min-width: 100px;
+}
+
+.rule-top .remove-btn {
+  flex-shrink: 0;
+}
+
+.rule-bottom .op-select {
+  flex: 1;
+  min-width: 80px;
+}
+
+.rule-bottom .val-container {
+  flex: 3;
+  min-width: 100px;
+}
+
+.rule-drag-handle,
+.group-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  cursor: grab;
+  color: var(--text-secondary);
+  opacity: 0.3;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+  margin-right: -2px; /* Pull handle closer to icon */
+}
+
+.rule-drag-handle:hover,
+.group-drag-handle:hover {
+  opacity: 1;
+}
+
+.rule-drag-handle:active,
+.group-drag-handle:active {
+  cursor: grabbing;
+}
+
+.is-dragging {
+  opacity: 0.4;
+  border: 2px dashed var(--accent-color) !important;
+}
 
 /* Logic indicators (AND/OR) */
-#rootGroup > .rule-row:not(:last-child)::after,
-#rootGroup > .rule-group-box:not(:last-child)::after,
-.group-rules-container > .rule-row:not(:last-child)::after {
+#rootGroup>.rule-row:not(:last-child)::after,
+#rootGroup>.rule-group-box:not(:last-child)::after,
+.group-rules-container>.rule-row:not(:last-child)::after,
+.group-rules-container>.rule-group-box:not(:last-child)::after {
   content: 'AND';
   position: absolute;
   bottom: -15px;
@@ -57,7 +118,7 @@
   transform: translateX(-50%);
   display: block;
   text-align: center;
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-weight: 800;
   color: var(--accent-hover);
   background: rgba(26, 38, 54, 0.98);
@@ -69,16 +130,17 @@
   z-index: 10;
 }
 
-/* OR Logic for ANY Logic Groups */
-.logic-group.any-logic > .group-rules-container > .rule-row:not(:last-child)::after {
+/* OR Logic for ANY Logic Groups and ANY Relation Groups */
+.any-logic>.group-rules-container>.rule-row:not(:last-child)::after,
+.any-logic>.group-rules-container>.rule-group-box:not(:last-child)::after {
   content: 'OR';
-  color: var(--warning-color);
-  border-color: rgba(247, 121, 164, 0.3);
+  color: #fbbf24;
+  border-color: rgba(245, 166, 35, 0.4);
 }
 
-#rootGroup > .rule-row:not(:last-child),
-#rootGroup > .rule-group-box:not(:last-child),
-.group-rules-container > .rule-row:not(:last-child) {
+#rootGroup>.rule-row:not(:last-child),
+#rootGroup>.rule-group-box:not(:last-child),
+.group-rules-container>.rule-row:not(:last-child) {
   margin-bottom: 2.5rem;
 }
 
@@ -111,6 +173,9 @@
 
 .relation-group .group-title {
   color: #f5a623;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
 
 .group-rel-type {
@@ -127,6 +192,7 @@
   color: #f5a623;
   border-color: rgba(245, 166, 35, 0.3);
 }
+
 .text-btn.relation-btn:hover {
   border-color: #f5a623;
   background: rgba(245, 166, 35, 0.08);
@@ -150,7 +216,8 @@
   font-weight: 700;
   color: var(--text-primary);
   font-size: 0.9rem;
-  flex-shrink: 0;
+  flex: 1; /* Allow title to grow but keep controls on right */
+  min-width: 0;
 }
 
 .logic-group .group-title {
@@ -176,18 +243,43 @@
 }
 
 .group-help-text {
-  font-size: 0.75rem;
-  padding: 0.5rem 1.2rem;
+  font-size: 0.8rem;
+  padding: 0.8rem 1.2rem;
   color: var(--text-secondary);
-  font-style: italic;
-  opacity: 0.8;
-  background: rgba(0, 0, 0, 0.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  font-style: normal;
+  line-height: 1.4;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+}
+
+.logic-group .group-help-text {
+  border-bottom-color: rgba(146, 86, 243, 0.3);
+}
+
+.relation-group .group-help-text {
+  border-bottom-color: rgba(245, 166, 35, 0.3);
+}
+
+.rule-group-box:not(.logic-group):not(.relation-group) .group-help-text {
+  border-bottom-color: rgba(74, 222, 128, 0.3);
 }
 
 .group-rules-container {
   padding: 1.2rem;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.8rem; /* Enough room to hit the end drop zone */
+  min-height: 2.5rem; /* Ensure empty groups are drop targets */
+}
+
+.group-rules-container.drag-over {
+  background: rgba(146, 86, 243, 0.08) !important;
+  outline: 2px dashed var(--accent-color);
+  outline-offset: -2px;
+}
+
+#rootGroup.drag-over {
+  background: rgba(255, 255, 255, 0.02);
+  outline: 2px dashed var(--accent-hover);
+  outline-offset: 4px;
 }
 
 .group-rules-container .rule-row {
@@ -205,7 +297,9 @@
 
 /* ── Responsive Breakpoints ─────────────────────────────── */
 @media (max-width: 480px) {
-  .rule-top, .rule-bottom {
+
+  .rule-top,
+  .rule-bottom {
     flex-direction: column;
     align-items: stretch;
   }
@@ -279,7 +373,7 @@
     gap: 1rem;
     justify-content: space-between;
   }
-  
+
   .filter-summary-stats .stat-value {
     font-size: 1.1rem;
   }

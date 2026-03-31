@@ -259,24 +259,48 @@ function getApiVariables() {
      vars.sort = [document.getElementById('mediaSort')?.value || 'POPULARITY_DESC'];
   }
 
-  // Helper to parse list
+  // Helper to parse lists
   const parseList = (str) => str.split(',').map(s => s.trim()).filter(s => s !== '');
   const parseIntList = (str) => parseList(str).map(val => parseInt(val)).filter(val => !isNaN(val));
 
-  state.rules.forEach(rule => {
-    if (rule.type === 'GROUP') return;
-    
+  /**
+   * Recursively extract API-compatible filters from a rule list and its nested groups.
+   */
+  const extractApiFilters = (rules, groupType = 'ALL', groupPath = 'ROOT') => {
+    rules.forEach(rule => {
+      if (rule.type === 'GROUP') {
+        if (rule.quantifier === 'ALL' || groupType === 'ALL') {
+          extractApiFilters(rule.rules || [], rule.quantifier, rule.path);
+        } else if (rule.quantifier === 'ANY' || rule.quantifier === 'NONE') {
+          const childRules = (rule.rules || []).filter(r => r.type !== 'GROUP');
+          if (childRules.length > 0) {
+            const firstPath = childRules[0].path;
+            const allSamePath = childRules.every(r => r.path === firstPath);
+            if (allSamePath && (firstPath === 'genres' || firstPath.startsWith('tags.'))) {
+              const allValues = childRules.map(r => r.value).join(',');
+              const mockRule = { 
+                path: firstPath, 
+                operator: rule.quantifier === 'ANY' ? 'equals' : 'not_equals', 
+                value: allValues 
+              };
+              applyRuleToVars(mockRule, rule.quantifier);
+            }
+          }
+        }
+        return;
+      }
+
+      applyRuleToVars(rule, groupType);
+    });
+  };
+
+  const applyRuleToVars = (rule, groupType) => {
     const val = rule.value || '';
     const path = rule.path;
     const op = rule.operator;
-
-    // Helper to parse list
-    const parseList = (str) => str.split(',').map(s => s.trim()).filter(s => s !== '');
-    const parseIntList = (str) => parseList(str).map(val => parseInt(val)).filter(val => !isNaN(val));
-
-    // Intelligence: Map path + operator to API argument
-    let apiArg = path;
     const isList = val.includes(',');
+
+    let apiArg = path;
 
     if (path === 'id' || path === 'idMal') {
         if (op === 'not_equals') apiArg = isList ? `${path}_not_in` : `${path}_not`;
@@ -293,26 +317,46 @@ function getApiVariables() {
         if (op === 'not_equals') apiArg = isList ? `${path}_not_in` : `${path}_not`;
         else if (op === 'equals' && isList) apiArg = `${path}_in`;
     } else if (path === 'genres') {
-        if (op === 'contains' && !isList) apiArg = 'genre';
-        else if (op === 'equals' && isList) apiArg = 'genre_in';
-        else if (op === 'not_equals' && isList) apiArg = 'genre_not_in';
+        const targetVal = val.toLowerCase().trim();
+        const matchesExact = (state.seenValues.genres || []).some(g => g.toLowerCase().trim() === targetVal);
+        if (op === 'equals' || (op === 'contains' && matchesExact)) apiArg = 'genre_in';
+        else if (op === 'not_equals' || (op === 'not_contains' && matchesExact)) apiArg = 'genre_not_in';
+        else apiArg = null;
     } else if (path === 'tags.name') {
-        if (op === 'contains' && !isList) apiArg = 'tag';
-        else if (op === 'equals' && isList) apiArg = 'tag_in';
-        else if (op === 'not_equals' && isList) apiArg = 'tag_not_in';
+        const targetVal = val.toLowerCase().trim();
+        const matchesExact = (state.seenValues.tags || []).some(t => t.toLowerCase().trim() === targetVal);
+        if (op === 'equals' || (op === 'contains' && matchesExact)) apiArg = 'tag_in';
+        else if (op === 'not_equals' || (op === 'not_contains' && matchesExact)) apiArg = 'tag_not_in';
+        else apiArg = null;
     } else if (path === 'tags.category') {
-        if (op === 'equals' && isList) apiArg = 'tagCategory_in';
-        else if (op === 'not_equals' && isList) apiArg = 'tagCategory_not_in';
+        if (op === 'equals') apiArg = 'tagCategory_in';
+        else if (op === 'not_equals') apiArg = 'tagCategory_not_in';
+        else apiArg = null;
     } else if (path === 'tags.rank') {
         apiArg = 'minimumTagRank';
+    } else if (path === 'seasonYear') {
+        apiArg = 'seasonYear';
     }
 
     if (apiArg) {
-        if (apiArg.endsWith('_in') || apiArg.endsWith('_not_in') || apiArg === 'genre_in' || apiArg === 'genre_not_in' || 
-            apiArg === 'tag_in' || apiArg === 'tag_not_in' || apiArg === 'tagCategory_in' || apiArg === 'tagCategory_not_in') {
+        const isNotInArg = apiArg.endsWith('_not_in') || apiArg === 'genre_not_in' || apiArg === 'tag_not_in' || apiArg === 'tagCategory_not_in';
+        const isInArg = (apiArg.endsWith('_in') && !isNotInArg) || apiArg === 'genre_in' || apiArg === 'tag_in' || apiArg === 'tagCategory_in';
+
+        if (isInArg || isNotInArg) {
             const intList = parseIntList(val);
             const strList = parseList(val);
-            vars[apiArg] = intList.length === strList.length && intList.length > 0 ? intList : strList;
+            const finalVal = intList.length === strList.length && intList.length > 0 ? intList : strList;
+            
+            if (isInArg && groupType === 'ALL') {
+               if (!vars[apiArg]) vars[apiArg] = finalVal;
+               return; 
+            }
+
+            if (vars[apiArg]) {
+               vars[apiArg] = [...new Set([...vars[apiArg], ...finalVal])];
+            } else {
+               vars[apiArg] = finalVal;
+            }
         } else if (path === 'isAdult' || path === 'isLicensed' || path === 'isLocked' || path === 'isFavourite') {
             vars[apiArg] = (val === 'true');
         } else if (apiArg === 'minimumTagRank' || apiArg.includes('Score') || path === 'popularity' || path === 'trending' || 
@@ -320,10 +364,16 @@ function getApiVariables() {
                    path === 'id' || path === 'idMal' || path === 'seasonYear') {
             vars[apiArg] = parseInt(val);
         } else {
+            if (groupType === 'ALL' && vars[apiArg]) return;
             vars[apiArg] = val;
         }
     }
-  });
+  };
+
+  extractApiFilters(state.rules);
+
+  // Debug: Log the variables being sent
+  console.log('API Variables:', vars);
 
   return vars;
 }
