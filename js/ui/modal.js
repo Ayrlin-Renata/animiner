@@ -54,34 +54,52 @@ export function openModal(item) {
            </div>` : '';
 
     const relationsHtml = item.relations?.edges?.length ? `
-        <div class="section-title">Relations</div>
-        <div class="mini-grid">
-            ${item.relations.edges.map(e => `
-                <a href="https://anilist.co/${e.node.type.toLowerCase()}/${e.node.id}" target="_blank" class="mini-card glass-dark no-style">
-                    <img src="${e.node.coverImage.large}" class="mini-poster">
-                    <div class="mini-info">
-                        <div class="mini-rel">${e.relationType.replace(/_/g, ' ')}</div>
-                        <div class="mini-title">${e.node.title.english || e.node.title.romaji}</div>
-                        <div class="mini-meta">${e.node.format} · ${e.node.status}</div>
-                    </div>
-                </a>
-            `).join('')}
+        <div class="expandable-section ${item.relations.edges.length > 5 ? 'has-more' : ''}">
+            <div class="section-title">Relations</div>
+            <div class="expandable-grid mini-grid">
+                ${item.relations.edges.map(e => `
+                    <a href="https://anilist.co/${e.node.type.toLowerCase()}/${e.node.id}" target="_blank" class="mini-card glass-dark vertical no-style" style="background-image: url('${e.node.coverImage.large}')">
+                        <div class="mini-card-overlay"></div>
+                        <div class="mini-info">
+                            <div class="mini-rel">${e.relationType.replace(/_/g, ' ')}</div>
+                            <div class="mini-title">${e.node.title.english || e.node.title.romaji}</div>
+                            <div class="mini-meta">${e.node.format?.replace(/_/g, ' ') || ''} · ${e.node.status?.replace(/_/g, ' ') || ''}</div>
+                        </div>
+                    </a>
+                `).join('')}
+            </div>
+            ${item.relations.edges.length > 5 ? `
+              <button class="expand-btn glass-light" onclick="window.toggleSection(this)">
+                <span>Show More</span>
+                <i data-lucide="chevron-down"></i>
+              </button>
+            ` : ''}
         </div>
     ` : '';
 
     const recommendationsHtml = item.recommendations?.nodes?.length ? `
-        <div class="section-title">Recommendations</div>
-        <div class="mini-grid horizontal">
-            ${item.recommendations.nodes.map(n => {
-                const rec = n.mediaRecommendation;
-                if (!rec) return '';
-                return `
-                    <a href="https://anilist.co/${rec.type.toLowerCase()}/${rec.id}" target="_blank" class="mini-card glass-dark vertical no-style">
-                        <img src="${rec.coverImage.large}" class="mini-poster">
-                        <div class="mini-title">${rec.title.english || rec.title.romaji}</div>
-                    </a>
-                `;
-            }).join('')}
+        <div class="expandable-section ${item.recommendations.nodes.length > 5 ? 'has-more' : ''}">
+            <div class="section-title">Recommendations</div>
+            <div class="expandable-grid mini-grid">
+                ${item.recommendations.nodes.map(n => {
+                    const rec = n.mediaRecommendation;
+                    if (!rec) return '';
+                    return `
+                        <a href="https://anilist.co/${rec.type.toLowerCase()}/${rec.id}" target="_blank" class="mini-card glass-dark vertical no-style" style="background-image: url('${rec.coverImage.large}')">
+                            <div class="mini-card-overlay"></div>
+                            <div class="mini-info">
+                                <div class="mini-title">${rec.title.english || rec.title.romaji}</div>
+                            </div>
+                        </a>
+                    `;
+                }).join('')}
+            </div>
+            ${item.recommendations.nodes.length > 5 ? `
+              <button class="expand-btn glass-light" onclick="window.toggleSection(this)">
+                <span>Show More</span>
+                <i data-lucide="chevron-down"></i>
+              </button>
+            ` : ''}
         </div>
     ` : '';
 
@@ -171,7 +189,7 @@ export function openModal(item) {
             <div class="sidebar-item"><h4>Studios</h4><p>${studios}</p></div>
             <div class="sidebar-item"><h4>Source</h4><p>${sourceFormatted}</p></div>
             ${item.hashtag ? `<div class="sidebar-item"><h4>Hashtag</h4><p>${item.hashtag}</p></div>` : ''}
-            ${item.synonyms?.length ? `<div class="sidebar-item"><h4>Synonyms</h4><p>${item.synonyms.join(', ')}</p></div>` : ''}
+            ${item.synonyms?.length ? `<div class="sidebar-item"><h4>Synonyms</h4><div class="synonym-list">${item.synonyms.map(s => `<p class="synonym-item">${s}</p>`).join('')}</div></div>` : ''}
             <div class="sidebar-item"><h4>Romaji</h4><p>${item.title.romaji}</p></div>
             ${item.title.english ? `<div class="sidebar-item"><h4>English</h4><p>${item.title.english}</p></div>` : ''}
             <div class="sidebar-item"><h4>Native</h4><p>${item.title.native}</p></div>
@@ -213,28 +231,66 @@ export function openModal(item) {
           ${trailerHtml}
           ${relationsHtml}
           ${item.characters?.edges?.length ? `
-            <div class="section-title">Featured Characters</div>
-            <div class="char-grid">
-              ${item.characters.edges.slice(0, 12).map(e => `
-                <a href="https://anilist.co/character/${e.node.id}" target="_blank" class="char-card no-style">
-                  <img src="${e.node.image?.large}" class="char-img">
-                  <div class="char-info">
-                    <p class="char-name">${e.node.name?.full}</p>
-                    <p class="char-role">${e.role}</p>
-                    <div class="char-traits">
-                      ${e.node.gender ? `<span class="trait-badge">${e.node.gender}</span>` : ''}
-                      ${e.node.age ? `<span class="trait-badge">${e.node.age}</span>` : ''}
+            <div class="expandable-section ${item.characters.edges.length > 8 ? 'has-more' : ''}">
+              <div class="section-title">Characters</div>
+              <div class="expandable-grid char-grid">
+                ${item.characters.edges.map(e => {
+                  const nativeVA = e.voiceActors?.find(va => va.languageV2 === 'Japanese');
+                  const vaLabel = nativeVA ? `${nativeVA.name.full} (Japanese)` : 'No VA info';
+
+                  return `
+                  <div class="char-card glass-dark" style="background-image: url('${e.node.image?.large}')">
+                    <div class="char-card-overlay"></div>
+                    <div class="char-link">
+                      <div class="char-info">
+                        <p class="char-name">${e.node.name?.full}</p>
+                        <p class="char-role">${e.role}</p>
+                        <div class="char-traits">
+                          ${e.node.gender ? `<span class="trait-badge">${e.node.gender}</span>` : ''}
+                          ${e.node.age ? `<span class="trait-badge">${e.node.age}</span>` : ''}
+                        </div>
+                      </div>
                     </div>
+                    
+                    ${e.voiceActors?.length ? `
+                      <div class="va-expander">
+                        <button class="va-toggle-btn" onclick="window.toggleVAs(this)">
+                          <span class="va-summary">${vaLabel}</span>
+                          <i data-lucide="chevron-down"></i>
+                        </button>
+                        <div class="va-list hidden">
+                          ${e.voiceActors.map(va => `
+                            <a href="https://anilist.co/staff/${va.id}" target="_blank" class="va-item no-style">
+                              <img src="${va.image?.large}" class="va-img">
+                              <div class="va-info">
+                                <p class="va-name">${va.name.full}</p>
+                                <p class="va-lang">${va.languageV2}</p>
+                                <div class="char-traits">
+                                  ${va.gender ? `<span class="trait-badge">${va.gender}</span>` : ''}
+                                  ${va.age ? `<span class="trait-badge">${va.age}</span>` : ''}
+                                </div>
+                              </div>
+                            </a>
+                          `).join('')}
+                        </div>
+                      </div>
+                    ` : ''}
                   </div>
-                </a>
-              `).join('')}
+                `}).join('')}
+              </div>
+              ${item.characters.edges.length > 8 ? `
+                <button class="expand-btn glass-light" onclick="window.toggleSection(this)">
+                  <span>Show More</span>
+                  <i data-lucide="chevron-down"></i>
+                </button>
+              ` : ''}
             </div>
           ` : ''}
           ${item.studios?.edges?.length ? `
             <div class="section-title">Studios</div>
             <div class="mini-grid">
               ${item.studios.edges.map(e => `
-                <a href="https://anilist.co/studio/${e.node.id}" target="_blank" class="mini-card glass-dark no-style">
+                <a href="https://anilist.co/studio/${e.node.id}" target="_blank" class="mini-card glass-dark no-bg no-style">
                   <div class="mini-info">
                     <div class="mini-rel">${e.isMain ? 'Main Studio' : 'Producer'}</div>
                     <div class="mini-title">${e.node.name}</div>
@@ -245,21 +301,31 @@ export function openModal(item) {
           ` : ''}
 
           ${item.staff?.edges?.length ? `
-            <div class="section-title">Featured Staff</div>
-            <div class="char-grid">
-              ${item.staff.edges.slice(0, 8).map(e => `
-                <a href="https://anilist.co/staff/${e.node.id}" target="_blank" class="char-card no-style">
-                  <img src="${e.node.image?.large}" class="char-img">
-                  <div class="char-info">
-                    <p class="char-name">${e.node.name?.full}</p>
-                    <p class="char-role">${e.role}</p>
-                    <div class="char-traits">
-                      ${e.node.gender ? `<span class="trait-badge">${e.node.gender}</span>` : ''}
-                      ${e.node.age ? `<span class="trait-badge">${e.node.age}</span>` : ''}
+            <div class="expandable-section ${item.staff.edges.length > 8 ? 'has-more' : ''}">
+              <div class="section-title">Staff</div>
+              <div class="expandable-grid char-grid">
+                ${item.staff.edges.map(e => `
+                  <a href="https://anilist.co/staff/${e.node.id}" target="_blank" class="char-card no-style" style="background-image: url('${e.node.image?.large}')">
+                    <div class="char-card-overlay"></div>
+                    <div class="char-link">
+                      <div class="char-info">
+                        <p class="char-name">${e.node.name?.full}</p>
+                        <p class="char-role">${e.role}</p>
+                        <div class="char-traits">
+                          ${e.node.gender ? `<span class="trait-badge">${e.node.gender}</span>` : ''}
+                          ${e.node.age ? `<span class="trait-badge">${e.node.age}</span>` : ''}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </a>
-              `).join('')}
+                  </a>
+                `).join('')}
+              </div>
+              ${item.staff.edges.length > 8 ? `
+                <button class="expand-btn glass-light" onclick="window.toggleSection(this)">
+                  <span>Show More</span>
+                  <i data-lucide="chevron-down"></i>
+                </button>
+              ` : ''}
             </div>
           ` : ''}
 
@@ -301,12 +367,15 @@ export function openModal(item) {
   }
   UI.modalContent.innerHTML = content;
   UI.modalOverlay.classList.remove('hidden');
+  const scrollContainer = UI.modalOverlay.querySelector('.detail-modal');
+  if (scrollContainer) scrollContainer.scrollTop = 0;
+  
   document.body.style.overflow = 'hidden';
   if (window.lucide) window.lucide.createIcons();
 }
 
 export function openBlacklistManager() {
-    const list = state.blacklist[state.searchMode] || [];
+    const list = [...(state.blacklist[state.searchMode] || [])].reverse();
     let content = `
         <div class="blacklist-manager">
             <h2>Blacklist Manager (${state.searchMode})</h2>
@@ -323,7 +392,7 @@ export function openBlacklistManager() {
                                 <span class="item-title">${title}</span>
                             </div>
                              <button class="remove-btn" title="Unblock" onclick="window.unblockItem(${id})">
-                                <i data-lucide="trash-2"></i>
+                                <i data-lucide="minus-circle"></i>
                              </button>
                         </div>
                     `;
@@ -333,6 +402,9 @@ export function openBlacklistManager() {
     `;
     UI.modalContent.innerHTML = content;
     UI.modalOverlay.classList.remove('hidden');
+    const scrollContainer = UI.modalOverlay.querySelector('.detail-modal');
+    if (scrollContainer) scrollContainer.scrollTop = 0;
+    
     document.body.style.overflow = 'hidden';
     if (window.lucide) window.lucide.createIcons();
 }
@@ -416,7 +488,7 @@ window.toggleWatched = (id, title, image, btn) => {
 };
 
 export function openWatchedManager() {
-    const list = state.watched[state.searchMode] || [];
+    const list = [...(state.watched[state.searchMode] || [])].reverse();
     let content = `
         <div class="blacklist-manager watched-manager">
             <h2>Watched List (${state.searchMode})</h2>
@@ -433,7 +505,7 @@ export function openWatchedManager() {
                                 <span class="item-title">${title}</span>
                             </div>
                              <button class="remove-btn" title="Remove" onclick="window.toggleWatched(${id}, '', '', null); window.openWatchedManager();">
-                                <i data-lucide="trash-2"></i>
+                                <i data-lucide="minus-circle"></i>
                              </button>
                         </div>
                     `;
@@ -443,6 +515,9 @@ export function openWatchedManager() {
     `;
     UI.modalContent.innerHTML = content;
     UI.modalOverlay.classList.remove('hidden');
+    const scrollContainer = UI.modalOverlay.querySelector('.detail-modal');
+    if (scrollContainer) scrollContainer.scrollTop = 0;
+    
     document.body.style.overflow = 'hidden';
     if (window.lucide) window.lucide.createIcons();
 }
@@ -474,5 +549,34 @@ window.copyToClipboard = (text, btn) => {
             if (window.lucide) window.lucide.createIcons();
         }, 2000);
     });
-};window.openBlacklistManager = openBlacklistManager;
+};window.toggleSection = function(btn) {
+  const container = btn.closest('.expandable-section').querySelector('.expandable-grid');
+  const isExpanded = container.classList.toggle('expanded');
+  
+  const span = btn.querySelector('span');
+  span.textContent = isExpanded ? 'Show Less' : 'Show More';
+  
+  const icon = btn.querySelector('i');
+  if (isExpanded) {
+    icon.setAttribute('data-lucide', 'chevron-up');
+  } else {
+    icon.setAttribute('data-lucide', 'chevron-down');
+  }
+  lucide.createIcons();
+};
+
+window.toggleVAs = (btn) => {
+    const list = btn.nextElementSibling;
+    const icon = btn.querySelector('i');
+    const isHidden = list.classList.toggle('hidden');
+    
+    if (icon) {
+        icon.setAttribute('data-lucide', isHidden ? 'chevron-down' : 'chevron-up');
+        if (window.lucide) window.lucide.createIcons();
+    }
+    
+    // Smooth height transition logic could be added here if css isn't enough
+};
+
+window.openBlacklistManager = openBlacklistManager;
 window.openWatchedManager = openWatchedManager;

@@ -66,9 +66,17 @@ export const QUERIES = {
                 gender 
                 age 
               } 
+              voiceActors(sort: [RELEVANCE, ID]) {
+                id
+                name { full }
+                image { large }
+                languageV2
+                gender
+                age
+              }
             } 
           }
-          staff(perPage: 8) { 
+          staff(perPage: 50) { 
             edges { 
               role 
               node { 
