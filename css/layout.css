@@ -32,6 +32,7 @@ header h1 {
 
 header h1 span {
   background: linear-gradient(90deg, var(--accent-color), #bc7aff);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -217,10 +218,30 @@ header h1 span {
     justify-content: center;
     margin-bottom: 1rem;
     padding-top: 0.5rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .share-btn-pill {
+    min-width: 120px;
+    flex: 1 1 auto;
   }
 
   .search-panel {
     padding-top: 1rem;
+  }
+
+  .global-filters-row {
+    justify-content: flex-start;
+    padding: 0.8rem 0;
+  }
+
+  .filter-toggles-container {
+    justify-content: flex-start;
+    padding: 0.8rem 1.5rem;
+    gap: 1.2rem;
+    width: 100%;
+    border-radius: var(--radius-md);
   }
 }
 
@@ -239,13 +260,24 @@ header h1 span {
     justify-content: center;
   }
 
-  .share-btn-pill {
-    flex: 1;
-    min-width: unset;
-  }
-
   .search-header-actions {
     width: 100%;
     gap: 0.5rem;
+    flex-wrap: wrap;
+    /* Allow buttons to wrap */
+    padding-top: 2rem;
+  }
+
+  .share-btn-pill {
+    flex: 1 1 calc(50% - 0.5rem);
+    /* Two buttons per row on small phones */
+    min-width: unset !important;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  .filter-toggles-container {
+    padding: 0.8rem 1rem;
+    gap: 1rem;
   }
 }
