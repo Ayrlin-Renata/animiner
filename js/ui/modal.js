@@ -163,7 +163,7 @@ export function openModal(item) {
             </div>
             <div class="modal-actions">
               <button class="action-btn watched-btn ${isWatched ? 'active' : ''}" title="${isWatched ? 'Watched! (Click to Unmark)' : 'Mark as Watched'}" onclick="window.toggleWatched(${item.id}, '${(item.title.english || item.title.romaji || '').replace(/'/g, "\\'")}', '${item.coverImage.large}', this)">
-                <i data-lucide="${isWatched ? 'check-circle' : 'eye'}"></i>
+                <i data-lucide="${isWatched ? 'check-circle' : 'check'}"></i>
               </button>
               <button class="action-btn block-btn" title="Block Reference" onclick="window.blockItem(${item.id}, '${(item.title.english || item.title.romaji || '').replace(/'/g, "\\'")}', '${item.coverImage.large}', true)">
                 <i data-lucide="shield-off"></i>
