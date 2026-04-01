@@ -6,6 +6,7 @@
 import { UI, updateDatalist } from './base.js';
 import { state } from '../state.js';
 import { openModal } from './modal.js';
+import { filterResults } from '../filter.js';
 
 /**
  * Updates the progress banner with current search status.
@@ -54,12 +55,15 @@ export function updateProgress(data) {
 /**
  * Renders a list of items to the results grid.
  */
-export function renderResultsList(items) {
+export function renderResultsList(rawItems) {
   if (!UI.resultsGrid) return;
 
-  if (items.length === 0 && !state.isScanning) {
+  // Apply centralized filtering (Logic/Rules + Global Exclusions)
+  const items = filterResults(rawItems, state.rules);
+
+  if (items.length === 0) {
     UI.resultsGrid.innerHTML = '';
-    UI.noResults.classList.remove('hidden');
+    if (!state.isScanning) UI.noResults.classList.remove('hidden');
     return;
   }
   UI.noResults.classList.add('hidden');

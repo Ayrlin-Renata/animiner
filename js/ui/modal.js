@@ -30,6 +30,10 @@ export function formatDescription(html, item) {
 
 export function openModal(item) {
   if (!UI.modalContent) return;
+  
+  // AUTOMATIC SEEN TRACKING (Session-aware)
+  window.markAsSeen(item);
+
   let content = '';
   
   if (state.searchMode === 'MEDIA') {
@@ -580,3 +584,91 @@ window.toggleVAs = (btn) => {
 
 window.openBlacklistManager = openBlacklistManager;
 window.openWatchedManager = openWatchedManager;
+
+export function openSeenManager() {
+    const list = [...(state.seen[state.searchMode] || [])].reverse();
+    const content = `
+        <div class="blacklist-manager seen-manager">
+            <div class="mgr-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                <h2>Seen History (${state.searchMode})</h2>
+                ${list.length > 0 ? `
+                  <button class="text-btn clear-history-btn" style="margin-top: 0; padding: 0.5rem 1.2rem; height: auto;" onclick="window.clearSeenHistory()">
+                    <i data-lucide="trash-2"></i> Mark All Unseen
+                  </button>
+                ` : ''}
+            </div>
+            <p class="section-desc">Items you've opened. They are hidden from subsequent searches unless you enable "Show Seen".</p>
+            <div class="blacklist-items">
+                ${list.length === 0 ? '<div class="empty-state"><p class="empty-msg">No history yet. Start exploring!</p></div>' : list.map(item => {
+                    const id = typeof item === 'object' ? item.id : item;
+                    const title = item.title || `Item ID: ${id}`;
+                    const image = item.image || '';
+                    return `
+                        <div class="blacklist-item">
+                            <div class="blacklist-item-info">
+                                ${image ? `<img src="${image}" class="blacklist-thumb">` : '<div class="blacklist-thumb-placeholder">?</div>'}
+                                <span class="item-title">${title}</span>
+                            </div>
+                             <button class="remove-btn" title="Remove from History" onclick="window.toggleSeen(${id}, '', '', false); window.openSeenManager();">
+                                <i data-lucide="x-circle"></i>
+                             </button>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+    UI.modalContent.innerHTML = content;
+    UI.modalOverlay.classList.remove('hidden');
+    const scrollContainer = UI.modalOverlay.querySelector('.detail-modal');
+    if (scrollContainer) scrollContainer.scrollTop = 0;
+    
+    document.body.style.overflow = 'hidden';
+    if (window.lucide) window.lucide.createIcons();
+}
+
+window.openSeenManager = openSeenManager;
+
+/**
+ * Marks an item as seen. Sets a session flag to prevent immediate hiding.
+ */
+window.markAsSeen = (item) => {
+    if (!item) return;
+    const id = item.id;
+    const title = item.title.english || item.title.romaji;
+    const image = item.coverImage.large;
+
+    if (!state.seen[state.searchMode]) state.seen[state.searchMode] = [];
+    const list = state.seen[state.searchMode];
+    const exists = list.some(i => (typeof i === 'object' ? i.id : i) === id);
+    
+    // Always set session flag for current results view stability
+    item._sessionSeen = true;
+
+    if (!exists) {
+        list.push({ id, title, image });
+        import('../state.js').then(m => m.saveSettings());
+    }
+};
+
+window.toggleSeen = (id, title, image, isAdding = true) => {
+    if (!state.seen[state.searchMode]) state.seen[state.searchMode] = [];
+    const list = state.seen[state.searchMode];
+    const index = list.findIndex(item => (typeof item === 'object' ? item.id : item) === id);
+    
+    if (isAdding && index === -1) {
+        list.push({ id, title, image });
+    } else if (!isAdding && index !== -1) {
+        list.splice(index, 1);
+    }
+    
+    import('../state.js').then(m => m.saveSettings());
+};
+
+window.clearSeenHistory = () => {
+    if (confirm(`Are you sure you want to clear your entire ${state.searchMode} history?`)) {
+        state.seen[state.searchMode] = [];
+        import('../state.js').then(m => m.saveSettings());
+        window.openSeenManager();
+    }
+};

@@ -231,16 +231,10 @@ export async function executeSearch(onProgress, onComplete) {
                       state.searchMode === 'STAFF' ? 'staff' :
                       state.searchMode === 'STUDIO' ? 'studios' : 'users';
 
-      const items = (data?.Page?.[listKey] || []).filter(item => {
-        const id = item.id;
-        const isBlacklisted = state.blacklist[state.searchMode].some(b => (typeof b === 'object' ? b.id : b) === id);
-        if (isBlacklisted) return false;
-        
-        if (!state.showWatched) {
-            const isWatched = state.watched[state.searchMode].some(w => (typeof w === 'object' ? w.id : w) === id);
-            if (isWatched) return false;
-        }
-        return true;
+      const items = (data?.Page?.[listKey] || []).map(item => {
+        // We no longer filter here to allow for "Instant Toggle" functionality.
+        // Visibility is now handled entirely in the rendering/filter layer.
+        return item;
       });
       state.hasNextPage = data?.Page?.pageInfo?.hasNextPage || false;
       

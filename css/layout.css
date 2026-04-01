@@ -101,6 +101,25 @@ header h1 span {
   font-size: 1.1rem;
 }
 
+.global-filters-row {
+  margin-top: -1.5rem;
+  padding: 0.8rem 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.filter-toggles-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem 2rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 50px;
+  border: 1px solid var(--glass-border);
+}
+
 .input-icon {
   position: absolute;
   left: 1rem;
@@ -179,9 +198,19 @@ header h1 span {
 }
 
 @media (max-width: 768px) {
-  #app { padding: 1rem; }
-  .results-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
-  .main-bar { gap: 0.8rem; }
+  #app {
+    padding: 1rem;
+  }
+
+  .results-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+
+  .main-bar {
+    gap: 0.8rem;
+  }
+
   .search-header-actions {
     position: static;
     transform: none;
@@ -189,6 +218,7 @@ header h1 span {
     margin-bottom: 1rem;
     padding-top: 0.5rem;
   }
+
   .search-panel {
     padding-top: 1rem;
   }
@@ -198,18 +228,22 @@ header h1 span {
   .main-bar .control-group {
     flex: 1 1 calc(50% - 0.5rem);
   }
+
   .main-bar .search-input-wrapper {
     flex: 1 1 100%;
   }
+
   .main-bar #searchBtn,
   .main-bar #cancelBtn {
     flex: 1 1 100%;
     justify-content: center;
   }
+
   .share-btn-pill {
     flex: 1;
     min-width: unset;
   }
+
   .search-header-actions {
     width: 100%;
     gap: 0.5rem;

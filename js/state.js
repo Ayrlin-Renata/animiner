@@ -31,7 +31,16 @@ export const state = {
     STUDIO: [],
     USER: []
   },
+  seen: {
+    MEDIA: [],
+    CHARACTER: [],
+    STAFF: [],
+    STUDIO: [],
+    USER: []
+  },
   showWatched: false,
+  showSeen: false,
+  showBlacklisted: false,
   seenValues: {
     genres: [],
     tags: [],
@@ -90,13 +99,16 @@ export function saveSettings() {
     rules: state.rules,
     blacklist: state.blacklist,
     watched: state.watched,
-    showWatched: state.showWatched
+    seen: state.seen,
+    showWatched: state.showWatched,
+    showSeen: state.showSeen,
+    showBlacklisted: state.showBlacklisted
   };
-  localStorage.setItem('al_search_settings_v3', JSON.stringify(settings));
+  localStorage.setItem('al_search_settings_v4', JSON.stringify(settings));
 }
 
 export function loadSettings() {
-  const local = localStorage.getItem('al_search_settings_v3');
+  const local = localStorage.getItem('al_search_settings_v4');
   if (local) {
     try {
       const parsed = JSON.parse(local);
@@ -107,7 +119,10 @@ export function loadSettings() {
       state.rules = parsed.rules || state.rules;
       state.blacklist = parsed.blacklist || state.blacklist;
       state.watched = parsed.watched || state.watched;
+      state.seen = parsed.seen || state.seen;
       state.showWatched = parsed.showWatched ?? state.showWatched;
+      state.showSeen = parsed.showSeen ?? state.showSeen;
+      state.showBlacklisted = parsed.showBlacklisted ?? state.showBlacklisted;
       return true;
     } catch (e) { console.error('Failed to parse settings'); }
   }

@@ -17,6 +17,7 @@ export const UI = {
   addGroupBtn: document.getElementById('addGroupBtn'),
   blacklistBtn: document.getElementById('blacklistBtn'),
   watchedBtn: document.getElementById('watchedBtn'),
+  seenBtn: document.getElementById('seenBtn'),
   shareBtn: document.getElementById('shareBtn'),
   toggleFiltersBtn: document.getElementById('toggleFiltersBtn'),
   filterContent: document.getElementById('filterContent'),
@@ -35,6 +36,9 @@ export const UI = {
   rateLimitNotice: document.getElementById('rateLimitNotice'),
   filterSearchBtn: document.getElementById('filterSearchBtn'),
   addRelationBtn:  document.getElementById('addRelationBtn'),
+  showWatchedToggle: document.getElementById('showWatchedToggle'),
+  showSeenToggle: document.getElementById('showSeenToggle'),
+  showBlacklistedToggle: document.getElementById('showBlacklistedToggle'),
 };
 
 /**

@@ -490,6 +490,31 @@ export function filterResults(results, rules) {
 
     let debugTriggered = false;
     return results.filter(item => {
+        // GLOBAL EXCLUSION CHECK (Instant Visibility Logic)
+        const id = item.id;
+        const mode = state.searchMode;
+        
+        // 1. Blacklist Check
+        if (!state.showBlacklisted) {
+          const isBlacklisted = (state.blacklist[mode] || []).some(b => (typeof b === 'object' ? b.id : b) === id);
+          if (isBlacklisted) return false;
+        }
+        
+        // 2. Watched Check
+        if (!state.showWatched) {
+          const isWatched = (state.watched[mode] || []).some(w => (typeof w === 'object' ? w.id : w) === id);
+          if (isWatched) return false;
+        }
+
+        // 3. Seen History Check (with session stability)
+        if (!state.showSeen && !item._sessionSeen) { // Escape if seen in this specific session
+          const isSeen = (state.seen[mode] || []).some(s => (typeof s === 'object' ? s.id : s) === id);
+          if (isSeen) return false;
+        }
+
+        // Apply rules if any are present
+        if (!rules || rules.length === 0) return true;
+
         const ruleResults = rules.map(rule => ({
             rule,
             result: evaluateRule(item, rule)

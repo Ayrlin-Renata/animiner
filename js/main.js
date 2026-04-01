@@ -2,7 +2,7 @@ import { state, loadCache, saveSettings, loadSettings } from './state.js';
 import { UI, addRuleUI, addGroupUI, addRelationGroupUI, resetUI, updateProgress, renderResultsList, syncUI, toggleFilters, updateToggleFilterAccent } from './ui.js';
 import { getDragAfterElement, resetDragState } from './ui/builder.js';
 import { executeSearch } from './api.js';
-import { openBlacklistManager, openWatchedManager } from './ui/modal.js';
+import { openBlacklistManager, openWatchedManager, openSeenManager } from './ui/modal.js';
 import { FIELDS, SUB_FIELDS, RELATION_FIELDS } from './filter.js';
 import { compressFilterData, decompressFilterData } from './compression.js';
 
@@ -113,12 +113,42 @@ async function init() {
   }
   UI.watchedBtn?.addEventListener('click', openWatchedManager);
   
+  if (UI.seenBtn) {
+    UI.seenBtn.addEventListener('click', () => {
+        import('./ui/modal.js').then(m => m.openSeenManager());
+    });
+  }
+  
   const showWatchedToggle = document.getElementById('showWatchedToggle');
   if (showWatchedToggle) {
     showWatchedToggle.checked = state.showWatched;
     showWatchedToggle.addEventListener('change', (e) => {
       state.showWatched = e.target.checked;
       saveSettings();
+      // Immediate refresh of the current results view
+      renderResultsList(state.results);
+    });
+  }
+
+  const showSeenToggle = document.getElementById('showSeenToggle');
+  if (showSeenToggle) {
+    showSeenToggle.checked = state.showSeen;
+    showSeenToggle.addEventListener('change', (e) => {
+      state.showSeen = e.target.checked;
+      saveSettings();
+      // Seen items are NOT removed immediately from current results,
+      // but we still refresh to show/hide based on the toggle.
+      renderResultsList(state.results);
+    });
+  }
+
+  const showBlacklistedToggle = document.getElementById('showBlacklistedToggle');
+  if (showBlacklistedToggle) {
+    showBlacklistedToggle.checked = state.showBlacklisted;
+    showBlacklistedToggle.addEventListener('change', (e) => {
+      state.showBlacklisted = e.target.checked;
+      saveSettings();
+      renderResultsList(state.results);
     });
   }
 

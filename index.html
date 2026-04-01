@@ -44,6 +44,9 @@
                     <button id="watchedBtn" class="share-btn-pill secondary watched-list-btn" title="Manage Watched List">
                         <i data-lucide="check-circle"></i> Watched
                     </button>
+                    <button id="seenBtn" class="share-btn-pill secondary" title="Manage Seen List">
+                        <i data-lucide="eye"></i> Seen
+                    </button>
                     <button id="blacklistBtn" class="share-btn-pill secondary" title="Manage Blacklist">
                         <i data-lucide="shield-off"></i> Blacklist
                     </button>
@@ -93,15 +96,6 @@
                         </select>
                     </div>
 
-                    <div class="control-group switch-group">
-                        <label class="spacer-label">&nbsp;</label>
-                        <label class="switch-container" title="Show watched items in results">
-                            <input type="checkbox" id="showWatchedToggle">
-                            <span class="switch-slider"></span>
-                            <span class="switch-text">Show Watched</span>
-                        </label>
-                    </div>
-
                     <button id="searchBtn" class="primary-btn">
                         <span>Search</span>
                         <i data-lucide="send"></i>
@@ -110,6 +104,27 @@
                         <i data-lucide="square"></i>
                         <span>Stop Scan</span>
                     </button>
+                </div>
+
+                <!-- Global Toggle Row -->
+                <div class="global-filters-row">
+                    <div class="filter-toggles-container">
+                        <label class="switch-container" title="Show watched items in results">
+                            <input type="checkbox" id="showWatchedToggle">
+                            <span class="switch-slider"></span>
+                            <span class="switch-text">Show Watched</span>
+                        </label>
+                        <label class="switch-container" title="Show previously seen items in results">
+                            <input type="checkbox" id="showSeenToggle">
+                            <span class="switch-slider"></span>
+                            <span class="switch-text">Show Seen</span>
+                        </label>
+                        <label class="switch-container" title="Show blacklisted items in results">
+                            <input type="checkbox" id="showBlacklistedToggle">
+                            <span class="switch-slider"></span>
+                            <span class="switch-text">Show Blacklisted</span>
+                        </label>
+                    </div>
                 </div>
 
                 <!-- Progress Dashboard (Hidden by default) -->
