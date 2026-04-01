@@ -39,6 +39,9 @@ export const UI = {
   showWatchedToggle: document.getElementById('showWatchedToggle'),
   showSeenToggle: document.getElementById('showSeenToggle'),
   showBlacklistedToggle: document.getElementById('showBlacklistedToggle'),
+  storageConsent: document.getElementById('storageConsent'),
+  acceptStorage: document.getElementById('acceptStorage'),
+  declineStorage: document.getElementById('declineStorage'),
 };
 
 /**

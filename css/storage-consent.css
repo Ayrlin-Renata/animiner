@@ -1,0 +1,95 @@
+.storage-consent-banner {
+  position: fixed;
+  bottom: -400px; /* Hidden below viewport */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 600px;
+  padding: 1.5rem;
+  background: rgba(15, 18, 25, 0.95);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: bottom 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.storage-consent-banner.show {
+  bottom: 2rem;
+  pointer-events: all;
+}
+
+.consent-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: var(--accent-color);
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.consent-header i {
+  width: 20px;
+  height: 20px;
+}
+
+.consent-body {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.consent-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.consent-actions button {
+  flex: 1;
+  padding: 0.8rem;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.accept-storage {
+  background: var(--accent-color);
+  color: white;
+}
+
+.accept-storage:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(146, 86, 243, 0.3);
+}
+
+.decline-storage {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border) !important;
+}
+
+.decline-storage:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 480px) {
+  .storage-consent-banner {
+    bottom: 1rem;
+    width: 95%;
+    padding: 1.2rem;
+  }
+  
+  .consent-actions {
+    flex-direction: column;
+  }
+}

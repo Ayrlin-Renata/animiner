@@ -41,6 +41,7 @@ export const state = {
   showWatched: false,
   showSeen: false,
   showBlacklisted: false,
+  storageConsent: null, // null = not asked, true = accepted, false = declined
   seenValues: {
     genres: [],
     tags: [],
@@ -81,7 +82,9 @@ export function updateSeenValues(items, mode) {
     items.forEach(s => addSeen('studios', s.name));
   }
   
-  localStorage.setItem('al_search_workspace_cache', JSON.stringify(state.seenValues));
+  if (state.storageConsent) {
+    localStorage.setItem('al_search_workspace_cache', JSON.stringify(state.seenValues));
+  }
 }
 
 function addSeen(key, val) {
@@ -102,9 +105,12 @@ export function saveSettings() {
     seen: state.seen,
     showWatched: state.showWatched,
     showSeen: state.showSeen,
-    showBlacklisted: state.showBlacklisted
+    showBlacklisted: state.showBlacklisted,
+    storageConsent: state.storageConsent
   };
-  localStorage.setItem('al_search_settings_v4', JSON.stringify(settings));
+  if (state.storageConsent) {
+    localStorage.setItem('al_search_settings_v4', JSON.stringify(settings));
+  }
 }
 
 export function loadSettings() {
@@ -123,6 +129,7 @@ export function loadSettings() {
       state.showWatched = parsed.showWatched ?? state.showWatched;
       state.showSeen = parsed.showSeen ?? state.showSeen;
       state.showBlacklisted = parsed.showBlacklisted ?? state.showBlacklisted;
+      state.storageConsent = parsed.storageConsent ?? state.storageConsent;
       return true;
     } catch (e) { console.error('Failed to parse settings'); }
   }

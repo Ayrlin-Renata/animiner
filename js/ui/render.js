@@ -71,8 +71,32 @@ export function renderResultsList(rawItems) {
   const fragment = document.createDocumentFragment();
 
   items.forEach(item => {
+    const id = item.id;
+    const mode = state.searchMode;
+    
+    // STATUS BADGE CALCULATIONS (High priority wins)
+    let badgeType = null;
+    let badgeIcon = '';
+    
+    const isBlacklisted = (state.blacklist[mode] || []).some(b => (typeof b === 'object' ? b.id : b) === id);
+    const isWatched = (state.watched[mode] || []).some(w => (typeof w === 'object' ? w.id : w) === id);
+    const isSeen = (state.seen[mode] || []).some(s => (typeof s === 'object' ? s.id : s) === id);
+
+    if (isBlacklisted) {
+        badgeType = 'badge-blacklisted';
+        badgeIcon = 'shield-off';
+    } else if (isWatched) {
+        badgeType = 'badge-watched';
+        badgeIcon = 'check-circle';
+    } else if (isSeen) {
+        badgeType = 'badge-seen';
+        badgeIcon = 'eye';
+    }
+
     const card = document.createElement('div');
     card.className = 'media-card glass';
+
+    let badgeHtml = badgeType ? `<div class="badge-corner ${badgeType}"><i data-lucide="${badgeIcon}"></i></div>` : '';
 
     let title = '';
     let image = '';
@@ -111,15 +135,14 @@ export function renderResultsList(rawItems) {
       reasonHtml += keywords.slice(0, 5).map(kw => `<span class="keyword-badge">${kw}</span>`).join('');
     }
 
-    const isWatched = state.watched[state.searchMode]?.some(w => (typeof w === 'object' ? w.id : w) === item.id);
-    
     card.innerHTML = `
+      ${badgeHtml}
       <img src="${image || 'https://via.placeholder.com/200x300?text=No+Image'}" alt="${title}" loading="lazy">
       <div class="card-actions-top">
         <button class="action-card-btn watched-btn ${isWatched ? 'active' : ''}" title="${isWatched ? 'Unmark Watched' : 'Mark as Watched'}" onclick="event.stopPropagation(); window.toggleWatched(${item.id}, '${(title || '').replace(/'/g, "\\'")}', '${image || ''}')">
-          <i data-lucide="${isWatched ? 'check-circle' : 'eye'}"></i>
+          <i data-lucide="check-circle"></i>
         </button>
-        <button class="action-card-btn block-btn" title="Block this result" onclick="event.stopPropagation(); window.blockItem(${item.id}, '${(title || '').replace(/'/g, "\\'")}', '${image || ''}')">
+        <button class="action-card-btn block-btn ${isBlacklisted ? 'active' : ''}" title="${isBlacklisted ? 'Remove Block' : 'Block this result'}" onclick="event.stopPropagation(); window.blockItem(${item.id}, '${(title || '').replace(/'/g, "\\'")}', '${image || ''}')">
           <i data-lucide="shield-off"></i>
         </button>
       </div>

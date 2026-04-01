@@ -19,6 +19,7 @@
     <!-- Split CSS -->
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/storage-consent.css">
     <link rel="stylesheet" href="css/modal.css">
     <link rel="stylesheet" href="css/builder.css">
     <link rel="stylesheet" href="css/cards.css">
@@ -209,6 +210,21 @@
     </div>
 
     <div id="datalistContainer"></div>
+
+    <!-- Storage Consent Banner -->
+    <div id="storageConsent" class="storage-consent-banner glass">
+        <div class="consent-header">
+            <i data-lucide="database"></i>
+            Search Memory & Discovery
+        </div>
+        <div class="consent-body">
+            AniMiner uses local storage to remember your filters, blacklist, and "Seen" history across sessions. This data is only stored locally on your device.
+        </div>
+        <div class="consent-actions">
+            <button class="accept-storage" id="acceptStorage">Enable Persistence</button>
+            <button class="decline-storage" id="declineStorage">Session Only</button>
+        </div>
+    </div>
 
     <script type="module" src="js/main.js"></script>
 </body>

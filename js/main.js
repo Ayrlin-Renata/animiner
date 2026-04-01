@@ -10,6 +10,25 @@ async function init() {
   await loadCache();
   loadSettings();
   
+  // Storage Consent Logic
+  if (state.storageConsent === null) {
+    setTimeout(() => {
+        UI.storageConsent?.classList.add('show');
+    }, 1000);
+  }
+
+  UI.acceptStorage.onclick = () => {
+    state.storageConsent = true;
+    UI.storageConsent?.classList.remove('show');
+    saveSettings();
+  };
+
+  UI.declineStorage.onclick = () => {
+    state.storageConsent = false;
+    UI.storageConsent?.classList.remove('show');
+    // No saveSettings here ensures we remain in "Session Only" mode
+  };
+  
   // URL Overrides (Compressed)
   const urlParams = new URLSearchParams(window.location.search);
   const filterData = urlParams.get('f');
