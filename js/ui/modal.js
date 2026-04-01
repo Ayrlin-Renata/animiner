@@ -641,15 +641,20 @@ window.markAsSeen = (item) => {
     const image = item.coverImage.large;
 
     if (!state.seen[state.searchMode]) state.seen[state.searchMode] = [];
-    const list = state.seen[state.searchMode];
-    const exists = list.some(i => (typeof i === 'object' ? i.id : i) === id);
-    
-    // Always set session flag for current results view stability
-    item._sessionSeen = true;
-
-    if (!exists) {
-        list.push({ id, title, image });
+    const mode = state.searchMode;
+    if (!state.seen[mode].some(s => (typeof s === 'object' ? s.id : s) === id)) {
+        state.seen[mode].push({ id, title, image, _sessionSeen: true });
         import('../state.js').then(m => m.saveSettings());
+
+        // UI SYNC: Update the result card instantly if it exists in the results grid
+        const card = document.querySelector(`.media-card[data-id="${id}"]`);
+        if (card && !card.querySelector('.badge-corner')) {
+            const badge = document.createElement('div');
+            badge.className = 'badge-corner badge-seen';
+            badge.innerHTML = '<i data-lucide="eye"></i>';
+            card.prepend(badge);
+            if (window.lucide) window.lucide.createIcons();
+        }
     }
 };
 

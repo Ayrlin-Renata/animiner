@@ -95,6 +95,8 @@ export function renderResultsList(rawItems) {
 
     const card = document.createElement('div');
     card.className = 'media-card glass';
+    card.dataset.id = id;
+    card.dataset.type = 'media-card';
 
     let badgeHtml = badgeType ? `<div class="badge-corner ${badgeType}"><i data-lucide="${badgeIcon}"></i></div>` : '';
 
