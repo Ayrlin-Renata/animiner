@@ -215,14 +215,16 @@
     <div id="storageConsent" class="storage-consent-banner glass">
         <div class="consent-header">
             <i data-lucide="database"></i>
-            Search Memory & Discovery
+            Search Memory & Privacy
         </div>
         <div class="consent-body">
-            AniMiner uses local storage to remember your filters, blacklist, and "Seen" history across sessions. This data is only stored locally on your device.
+            AniMiner uses local storage to remember your filters, blacklist, and "Seen" history. 
+            <p style="margin-top: 0.5rem; color: var(--accent-light);"><strong>Accept:</strong> Persist your discovery data across sessions.</p>
+            <p style="color: var(--text-secondary);"><strong>Decline:</strong> All history and lists will be cleared when you close the tab.</p>
         </div>
         <div class="consent-actions">
-            <button class="accept-storage" id="acceptStorage">Enable Persistence</button>
-            <button class="decline-storage" id="declineStorage">Session Only</button>
+            <button class="accept-storage" id="acceptStorage">Accept</button>
+            <button class="decline-storage" id="declineStorage">Decline</button>
         </div>
     </div>
 
