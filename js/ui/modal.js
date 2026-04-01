@@ -558,15 +558,17 @@ window.copyToClipboard = (text, btn) => {
   const isExpanded = container.classList.toggle('expanded');
   
   const span = btn.querySelector('span');
-  span.textContent = isExpanded ? 'Show Less' : 'Show More';
+  if (span) span.textContent = isExpanded ? 'Show Less' : 'Show More';
   
   const icon = btn.querySelector('i');
-  if (isExpanded) {
-    icon.setAttribute('data-lucide', 'chevron-up');
-  } else {
-    icon.setAttribute('data-lucide', 'chevron-down');
+  if (icon) {
+    if (isExpanded) {
+      icon.setAttribute('data-lucide', 'chevron-up');
+    } else {
+      icon.setAttribute('data-lucide', 'chevron-down');
+    }
   }
-  lucide.createIcons();
+  if (window.lucide) window.lucide.createIcons();
 };
 
 window.toggleVAs = (btn) => {
