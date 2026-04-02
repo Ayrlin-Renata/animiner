@@ -11,7 +11,18 @@ export const auth = {
    * Initiates the AniList login redirect.
    */
   login() {
-    const authUrl = `https://anilist.co/api/v2/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token`;
+    if (!CLIENT_ID || CLIENT_ID === 'undefined') {
+      alert("Error: AniList Client ID is missing. Please check your environment variables/GitHub Secrets.");
+      return;
+    }
+
+    // Construct search params to ensure clean formatting
+    const params = new URLSearchParams({
+      client_id: CLIENT_ID,
+      response_type: 'token'
+    });
+
+    const authUrl = `https://anilist.co/api/v2/oauth/authorize?${params.toString()}`;
     window.location.href = authUrl;
   },
 
@@ -25,7 +36,7 @@ export const auth = {
 
     const params = new URLSearchParams(hash.substring(1));
     const token = params.get('access_token');
-    
+
     if (token) {
       sessionStorage.setItem('al_access_token', token);
       // Clean URL hash without reloading
