@@ -1,4 +1,5 @@
 import { state, loadCache, saveSettings, loadSettings } from './state.js';
+import { auth } from './api/auth.js';
 import { UI, addRuleUI, addGroupUI, addRelationGroupUI, resetUI, updateProgress, renderResultsList, syncUI, toggleFilters, updateToggleFilterAccent } from './ui.js';
 import { getDragAfterElement, resetDragState } from './ui/builder.js';
 import { executeSearch } from './api.js';
@@ -28,6 +29,21 @@ async function init() {
     UI.storageConsent?.classList.remove('show');
     // No saveSettings here ensures we remain in "Session Only" mode
   };
+  
+  // AniList OAuth Callback
+  const alToken = auth.handleCallback();
+  if (alToken) {
+      setTimeout(() => {
+          if (window.openImportModal) window.openImportModal();
+      }, 500);
+  }
+
+  // Import Button
+  if (UI.importBtn) {
+    UI.importBtn.onclick = () => {
+        if (window.openImportModal) window.openImportModal();
+    };
+  }
   
   // URL Overrides (Compressed)
   const urlParams = new URLSearchParams(window.location.search);
@@ -326,6 +342,13 @@ function parseGroupbox(box) {
     rules: collectRulesRecursive(container)
   };
 }
+
+// Trigger search (externally callable)
+export function runSearch() {
+  document.getElementById('runSearchBtn')?.click();
+}
+
+window.runSearch = runSearch;
 
 // Global initialization
 window.addEventListener('DOMContentLoaded', init);

@@ -42,6 +42,7 @@ export const UI = {
   storageConsent: document.getElementById('storageConsent'),
   acceptStorage: document.getElementById('acceptStorage'),
   declineStorage: document.getElementById('declineStorage'),
+  importBtn: document.getElementById('importBtn'),
 };
 
 /**

@@ -380,14 +380,22 @@ export function openModal(item) {
 
 export function openBlacklistManager() {
     const list = [...(state.blacklist[state.searchMode] || [])].reverse();
-    let content = `
+    const content = `
         <div class="blacklist-manager">
-            <h2>Blacklist Manager (${state.searchMode})</h2>
-            <p class="section-desc">These items will be permanently hidden from your ${state.searchMode.toLowerCase()} searches.</p>
+            <div class="mgr-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                <h2 style="color: #ef4444">Blacklisted Items (${list.length})</h2>
+                ${list.length > 0 ? `
+                  <button class="text-btn clear-history-btn" style="margin-top: 0; padding: 0.5rem 1.2rem; height: auto;" onclick="window.clearDiscoveryList('blacklist')">
+                    <i data-lucide="trash-2"></i> Clear Blacklist
+                  </button>
+                ` : ''}
+            </div>
+            <p class="section-desc">These items are completely hidden from your search results.</p>
             <div class="blacklist-items">
                 ${list.length === 0 ? '<div class="empty-state"><p class="empty-msg">Your blacklist is empty.</p></div>' : list.map(item => {
                     const id = typeof item === 'object' ? item.id : item;
-                    const title = item.title || `Item ID: ${id}`;
+                    const rawTitle = typeof item === 'object' ? item.title : '';
+                    const title = (typeof rawTitle === 'object' ? (rawTitle.english || rawTitle.romaji || rawTitle.native) : (rawTitle || item.name)) || `Item ID: ${id}`;
                     const image = item.image || '';
                     return `
                         <div class="blacklist-item">
@@ -395,8 +403,8 @@ export function openBlacklistManager() {
                                 ${image ? `<img src="${image}" class="blacklist-thumb">` : '<div class="blacklist-thumb-placeholder">?</div>'}
                                 <span class="item-title">${title}</span>
                             </div>
-                             <button class="remove-btn" title="Unblock" onclick="window.unblockItem(${id})">
-                                <i data-lucide="minus-circle"></i>
+                             <button class="remove-btn" title="Remove from Blacklist" onclick="window.toggleBlacklist(${id}, '', '', false); window.openBlacklistManager();">
+                                <i data-lucide="x-circle"></i>
                              </button>
                         </div>
                     `;
@@ -406,10 +414,6 @@ export function openBlacklistManager() {
     `;
     UI.modalContent.innerHTML = content;
     UI.modalOverlay.classList.remove('hidden');
-    const scrollContainer = UI.modalOverlay.querySelector('.detail-modal');
-    if (scrollContainer) scrollContainer.scrollTop = 0;
-    
-    document.body.style.overflow = 'hidden';
     if (window.lucide) window.lucide.createIcons();
 }
 
@@ -493,14 +497,22 @@ window.toggleWatched = (id, title, image, btn) => {
 
 export function openWatchedManager() {
     const list = [...(state.watched[state.searchMode] || [])].reverse();
-    let content = `
+    const content = `
         <div class="blacklist-manager watched-manager">
-            <h2>Watched List (${state.searchMode})</h2>
-            <p class="section-desc">These items are hidden from searches unless you enable "Include Watched".</p>
+            <div class="mgr-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                <h2 style="color: #10b981">Watched List (${list.length})</h2>
+                ${list.length > 0 ? `
+                  <button class="text-btn clear-history-btn" style="margin-top: 0; padding: 0.5rem 1.2rem; height: auto;" onclick="window.clearDiscoveryList('watched')">
+                    <i data-lucide="trash-2"></i> Clear Watched
+                  </button>
+                ` : ''}
+            </div>
+            <p class="section-desc">Items you've marked as watched or imported from your completed list.</p>
             <div class="blacklist-items">
                 ${list.length === 0 ? '<div class="empty-state"><p class="empty-msg">No watched items yet.</p></div>' : list.map(item => {
                     const id = typeof item === 'object' ? item.id : item;
-                    const title = item.title || `Item ID: ${id}`;
+                    const rawTitle = typeof item === 'object' ? item.title : '';
+                    const title = (typeof rawTitle === 'object' ? (rawTitle.english || rawTitle.romaji || rawTitle.native) : (rawTitle || item.name)) || `Item ID: ${id}`;
                     const image = item.image || '';
                     return `
                         <div class="blacklist-item">
@@ -508,8 +520,8 @@ export function openWatchedManager() {
                                 ${image ? `<img src="${image}" class="blacklist-thumb">` : '<div class="blacklist-thumb-placeholder">?</div>'}
                                 <span class="item-title">${title}</span>
                             </div>
-                             <button class="remove-btn" title="Remove" onclick="window.toggleWatched(${id}, '', '', null); window.openWatchedManager();">
-                                <i data-lucide="minus-circle"></i>
+                             <button class="remove-btn" title="Unmark Watched" onclick="window.toggleWatched(${id}, '', '', false); window.openWatchedManager();">
+                                <i data-lucide="x-circle"></i>
                              </button>
                         </div>
                     `;
@@ -592,18 +604,19 @@ export function openSeenManager() {
     const content = `
         <div class="blacklist-manager seen-manager">
             <div class="mgr-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
-                <h2>Seen History (${state.searchMode})</h2>
+                <h2>Seen History (${list.length})</h2>
                 ${list.length > 0 ? `
-                  <button class="text-btn clear-history-btn" style="margin-top: 0; padding: 0.5rem 1.2rem; height: auto;" onclick="window.clearSeenHistory()">
-                    <i data-lucide="trash-2"></i> Mark All Unseen
+                  <button class="text-btn clear-history-btn" style="margin-top: 0; padding: 0.5rem 1.2rem; height: auto;" onclick="window.clearDiscoveryList('seen')">
+                    <i data-lucide="trash-2"></i> Clear History
                   </button>
                 ` : ''}
             </div>
-            <p class="section-desc">Items you've opened. They are hidden from subsequent searches unless you enable "Show Seen".</p>
+            <p class="section-desc">Items you've explored. They are hidden from subsequent searches unless you enable "Show Seen".</p>
             <div class="blacklist-items">
                 ${list.length === 0 ? '<div class="empty-state"><p class="empty-msg">No history yet. Start exploring!</p></div>' : list.map(item => {
                     const id = typeof item === 'object' ? item.id : item;
-                    const title = item.title || `Item ID: ${id}`;
+                    const rawTitle = typeof item === 'object' ? item.title : '';
+                    const title = (typeof rawTitle === 'object' ? (rawTitle.english || rawTitle.romaji || rawTitle.native) : (rawTitle || item.name)) || `Item ID: ${id}`;
                     const image = item.image || '';
                     return `
                         <div class="blacklist-item">
@@ -672,10 +685,118 @@ window.toggleSeen = (id, title, image, isAdding = true) => {
     import('../state.js').then(m => m.saveSettings());
 };
 
-window.clearSeenHistory = () => {
-    if (confirm(`Are you sure you want to clear your entire ${state.searchMode} history?`)) {
-        state.seen[state.searchMode] = [];
+window.clearDiscoveryList = (listKey) => {
+    const labels = { 'seen': 'Seen History', 'watched': 'Watched List', 'blacklist': 'Blacklist' };
+    const label = labels[listKey] || 'list';
+    
+    // In a future update, this could be a custom modal, but a confirmed browser prompt is the standard starting point.
+    if (confirm(`⚠️ DANGER: Are you sure you want to clear your entire ${state.searchMode} ${label}? This cannot be undone.`)) {
+        state[listKey][state.searchMode] = [];
         import('../state.js').then(m => m.saveSettings());
-        window.openSeenManager();
+        
+        // Refresh whichever manager was open
+        if (listKey === 'seen') openSeenManager();
+        else if (listKey === 'watched') openWatchedManager();
+        else if (listKey === 'blacklist') openBlacklistManager();
+    }
+};
+
+/**
+ * Opens the AniList Data Import modal.
+ */
+export function openImportModal() {
+    const isLoggedIn = sessionStorage.getItem('al_access_token');
+    
+    const content = `
+        <div class="import-modal">
+            <div class="modal-header">
+                <h2>Import from AniList</h2>
+                <p>One-time import of your lists to Seen, Watched, and Blacklist.</p>
+            </div>
+            
+            <div class="import-options">
+                <!-- Private Import (OAuth) -->
+                <div class="import-section glass-dark">
+                    <h3><i data-lucide="lock"></i> Private Profile</h3>
+                    <p>Import from your own account (even if private).</p>
+                    ${isLoggedIn ? `
+                        <div class="auth-status success">
+                            <i data-lucide="check-circle"></i> Connected to AniList
+                        </div>
+                        <button class="primary-btn full-width" onclick="window.executeImport(true)">
+                            <i data-lucide="download"></i> Start Private Import
+                        </button>
+                    ` : `
+                        <button class="primary-btn full-width" onclick="window.anilistLogin()">
+                            <i data-lucide="log-in"></i> Connect AniList
+                        </button>
+                    `}
+                </div>
+
+                <div class="import-divider"><span>OR</span></div>
+
+                <!-- Public Import (Username) -->
+                <div class="import-section glass-dark">
+                    <h3><i data-lucide="user"></i> Public Profile</h3>
+                    <p>Import from any public AniList username.</p>
+                    <div class="search-input-wrapper">
+                        <i data-lucide="user" class="input-icon"></i>
+                        <input type="text" id="importUsername" placeholder="AniList Username...">
+                    </div>
+                    <button class="secondary-btn full-width" onclick="window.executeImport(false)">
+                        <i data-lucide="download"></i> Import Public List
+                    </button>
+                </div>
+            </div>
+
+            <div id="importStatus" class="import-status hidden">
+                <div class="loader"></div>
+                <span>Fetching your lists...</span>
+            </div>
+        </div>
+    `;
+
+    UI.modalContent.innerHTML = content;
+    UI.modalOverlay.classList.remove('hidden');
+    if (window.lucide) window.lucide.createIcons();
+}
+
+window.openImportModal = openImportModal;
+
+window.anilistLogin = async () => {
+    const { auth } = await import('../api/auth.js');
+    auth.login();
+};
+
+window.executeImport = async (isPrivate) => {
+    const statusEl = document.getElementById('importStatus');
+    const username = document.getElementById('importUsername')?.value;
+    
+    if (!isPrivate && !username) {
+        alert('Please enter a username.');
+        return;
+    }
+
+    statusEl.classList.remove('hidden');
+    statusEl.innerHTML = '<div class="spinner"></div> Importing your lists...';
+
+    try {
+        const { importer } = await import('../api/import.js');
+        const collection = await importer.fetchUserLists(isPrivate ? null : username);
+        const result = importer.mergeImportedData(collection);
+        
+        statusEl.innerHTML = `
+            <div class="success-message">
+                <i data-lucide="check-circle"></i>
+                Import Complete! Added <strong>${result.added}</strong> new items.
+            </div>
+        `;
+        if (window.lucide) window.lucide.createIcons();
+        
+        // Refresh display if results are visible
+        if (window.runSearch) window.runSearch();
+        
+    } catch (err) {
+        statusEl.innerHTML = `<div class="error-message">${err.message}</div>`;
     }
 };

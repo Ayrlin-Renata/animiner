@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AniList Workspace - Advanced Search</title>
+    <title>AniMiner - AniList Deep Search</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,6 +20,8 @@
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/storage-consent.css">
+    <link rel="stylesheet" href="css/import-ui.css">
+    <link rel="stylesheet" href="css/footer.css">
     <link rel="stylesheet" href="css/modal.css">
     <link rel="stylesheet" href="css/builder.css">
     <link rel="stylesheet" href="css/cards.css">
@@ -42,7 +44,8 @@
             <!-- Search Controls -->
             <section class="search-panel glass">
                 <div class="search-header-actions">
-                    <button id="watchedBtn" class="share-btn-pill secondary watched-list-btn" title="Manage Watched List">
+                    <button id="watchedBtn" class="share-btn-pill secondary watched-list-btn"
+                        title="Manage Watched List">
                         <i data-lucide="check-circle"></i> Watched
                     </button>
                     <button id="seenBtn" class="share-btn-pill secondary" title="Manage Seen List">
@@ -51,7 +54,10 @@
                     <button id="blacklistBtn" class="share-btn-pill secondary" title="Manage Blacklist">
                         <i data-lucide="shield-off"></i> Blacklist
                     </button>
-                    
+
+                    <button id="importBtn" class="share-btn-pill secondary" title="Import from AniList">
+                        <i data-lucide="download"></i> Import
+                    </button>
                     <button id="shareBtn" class="share-btn-pill">
                         <i data-lucide="share-2"></i> Share Filters
                     </button>
@@ -199,6 +205,22 @@
                 <!-- Cards will be injected here -->
             </section>
         </main>
+
+        <footer class="app-footer">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <p>&copy; Ayrlin Renata 2026</p>
+                    <p class="anilist-notice">AniMiner depends on the services of <a href="https://anilist.co"
+                            target="_blank">AniList</a>. Thank you AniList! AniMiner is not affiliated or endorsed by
+                        AniList.</p>
+                </div>
+                <div class="footer-right">
+                    <a href="https://ko-fi.com/ayrlin" target="_blank" class="kofi-link" title="Support my work">
+                        <i data-lucide="coffee"></i> Support AniMiner
+                    </a>
+                </div>
+            </div>
+        </footer>
     </div>
 
     <!-- Details Modal -->
@@ -218,9 +240,11 @@
             Search Memory & Privacy
         </div>
         <div class="consent-body">
-            AniMiner uses local storage to remember your filters, blacklist, and "Seen" history. 
-            <p style="margin-top: 0.5rem; color: var(--accent-light);"><strong>Accept:</strong> Persist your discovery data across sessions.</p>
-            <p style="color: var(--text-secondary);"><strong>Decline:</strong> All history and lists will be cleared when you close the tab.</p>
+            AniMiner uses local storage to remember your filters, blacklist, and "Seen" history.
+            <p style="margin-top: 0.5rem; color: var(--accent-light);"><strong>Accept:</strong> Persist your discovery
+                data across sessions.</p>
+            <p style="color: var(--text-secondary);"><strong>Decline:</strong> All history and lists will be cleared
+                when you close the tab.</p>
         </div>
         <div class="consent-actions">
             <button class="accept-storage" id="acceptStorage">Accept</button>
