@@ -8,6 +8,15 @@ import { state, saveSettings } from '../state.js';
 
 const ANILIST_URL = 'https://graphql.anilist.co';
 
+const VIEWER_QUERY = `
+query {
+  Viewer {
+    id
+    name
+  }
+}
+`;
+
 const IMPORT_QUERY = `
 query ($userName: String, $userId: Int) {
   MediaListCollection(userName: $userName, userId: $userId, type: ANIME) {
@@ -45,9 +54,22 @@ async function fetchUserLists(userName = null) {
   }
 
   const variables = {};
-  if (userName) {
+  
+  // If no username is provided, we try to fetch the current authenticated user's ID
+  if (!userName && token) {
+    const viewerResponse = await fetch(ANILIST_URL, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ query: VIEWER_QUERY })
+    });
+    const viewerJson = await viewerResponse.json();
+    if (viewerJson.errors) throw new Error(viewerJson.errors[0].message);
+    if (!viewerJson.data.Viewer) throw new Error("Could not find authenticated user.");
+    
+    variables.userId = viewerJson.data.Viewer.id;
+  } else if (userName) {
     variables.userName = userName;
-  } else if (!token) {
+  } else {
     throw new Error('Username or Login required for import.');
   }
 
@@ -60,6 +82,10 @@ async function fetchUserLists(userName = null) {
   const json = await response.json();
   if (json.errors) throw new Error(json.errors[0].message);
   
+  if (!json.data.MediaListCollection) {
+    throw new Error("No data found for this user.");
+  }
+
   return json.data.MediaListCollection;
 }
 
