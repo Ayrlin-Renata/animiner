@@ -40,12 +40,12 @@ export function updateProgress(data) {
 
   // Clear previous results on new scan start (Page 1)
   if (state.isScanning && state.page === 1 && (!data.filteredItems || data.filteredItems.length === 0)) {
-    if (UI.resultsGrid) UI.resultsGrid.innerHTML = '';
+    renderResultsList([], true); // Force clear
     UI.noResults?.classList.add('hidden');
   }
 
   if (data.filteredItems && data.filteredItems.length > 0) {
-    renderResultsList(data.filteredItems);
+    renderResultsList(data.filteredItems, false); // Incremental
   }
 
   // Refresh datalist as new values come in
@@ -55,25 +55,40 @@ export function updateProgress(data) {
 /**
  * Renders a list of items to the results grid.
  */
-export function renderResultsList(rawItems) {
+export function renderResultsList(rawItems, forceClear = false) {
   if (!UI.resultsGrid) return;
 
-  // Apply centralized filtering (Logic/Rules + Global Exclusions)
+  // 1. Handle Full Clear (New search or toggle change)
+  if (forceClear) {
+    UI.resultsGrid.innerHTML = '';
+    state.renderedIds.clear();
+  }
+
+  // 2. Filter raw items
   const items = filterResults(rawItems, state.rules);
 
-  if (items.length === 0) {
-    UI.resultsGrid.innerHTML = '';
+  if (items.length === 0 && forceClear) {
     if (!state.isScanning) UI.noResults.classList.remove('hidden');
     return;
   }
-  UI.noResults.classList.add('hidden');
+  
+  if (items.length > 0) {
+    UI.noResults.classList.add('hidden');
+  }
+
+  // 3. Identify ONLY new items to append
+  const newItems = items.filter(item => !state.renderedIds.has(item.id));
+  if (newItems.length === 0) return;
 
   const fragment = document.createDocumentFragment();
 
-  items.forEach(item => {
+  newItems.forEach(item => {
     const id = item.id;
     const mode = state.searchMode;
     
+    // Track ID
+    state.renderedIds.add(id);
+
     // STATUS BADGE CALCULATIONS (High priority wins)
     let badgeType = null;
     let badgeIcon = '';
@@ -159,7 +174,12 @@ export function renderResultsList(rawItems) {
     fragment.appendChild(card);
   });
 
-  UI.resultsGrid.innerHTML = '';
   UI.resultsGrid.appendChild(fragment);
-  if (window.lucide) window.lucide.createIcons();
+
+  // Scoped icon creation is much faster than scanning the whole page
+  if (window.lucide) {
+      window.lucide.createIcons({ 
+          root: UI.resultsGrid // Target just the results grid or the fragment (using the grid here as it's the parent)
+      });
+  }
 }

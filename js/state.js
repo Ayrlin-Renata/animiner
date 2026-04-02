@@ -50,7 +50,8 @@ export const state = {
     staffNames: [],
     genders: ['Male', 'Female', 'Non-binary'],
     formats: ['TV', 'TV_SHORT', 'MOVIE', 'SPECIAL', 'OVA', 'ONA', 'MUSIC', 'MANGA', 'NOVEL', 'ONE_SHOT']
-  }
+  },
+  renderedIds: new Set()
 };
 
 export function updateSeenValues(items, mode) {
@@ -91,6 +92,10 @@ function addSeen(key, val) {
   if (val && !state.seenValues[key].includes(val)) {
     state.seenValues[key].push(val);
   }
+}
+
+export function clearRenderedIds() {
+  state.renderedIds.clear();
 }
 
 export function saveSettings() {

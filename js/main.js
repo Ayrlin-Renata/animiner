@@ -85,8 +85,12 @@ async function init() {
   const runSearch = () => {
     updateStateFromUI();
     toggleFilters(true); // Auto-collapse on search
+    
+    // Clear results grid and tracking before new search
+    renderResultsList([], true); 
+
     executeSearch(updateProgress, (results) => {
-      renderResultsList(results);
+      renderResultsList(results, false); // Results are already built up incrementally in onProgress
     });
   };
 
@@ -160,8 +164,8 @@ async function init() {
     showWatchedToggle.addEventListener('change', (e) => {
       state.showWatched = e.target.checked;
       saveSettings();
-      // Immediate refresh of the current results view
-      renderResultsList(state.results);
+      // Immediate refresh of the current results view (Full re-render for toggle changes)
+      renderResultsList(state.results, true);
     });
   }
 
@@ -172,8 +176,8 @@ async function init() {
       state.showSeen = e.target.checked;
       saveSettings();
       // Seen items are NOT removed immediately from current results,
-      // but we still refresh to show/hide based on the toggle.
-      renderResultsList(state.results);
+      // but we still refresh to show/hide based on the toggle. (Full re-render)
+      renderResultsList(state.results, true);
     });
   }
 
@@ -183,7 +187,8 @@ async function init() {
     showBlacklistedToggle.addEventListener('change', (e) => {
       state.showBlacklisted = e.target.checked;
       saveSettings();
-      renderResultsList(state.results);
+      // Full re-render for visibility toggle
+      renderResultsList(state.results, true);
     });
   }
 
