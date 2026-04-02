@@ -11,7 +11,7 @@ export const auth = {
    * Initiates the AniList login redirect.
    */
   login() {
-    const authUrl = `https://anilist.co/api/v2/oauth/authorize?client_id=${CLIENT_ID}&response_type=token`;
+    const authUrl = `https://anilist.co/api/v2/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token`;
     window.location.href = authUrl;
   },
 
