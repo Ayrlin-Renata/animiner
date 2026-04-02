@@ -115,7 +115,7 @@ export function mergeImportedData(collection) {
 
       if (status === 'COMPLETED') {
           if (addToStateList('watched', mode, item)) addedCount++;
-      } else if (status === 'PLANNING') {
+      } else if (status === 'PLANNING' || status === 'CURRENT' || status === 'PAUSED') {
           if (addToStateList('seen', mode, item)) addedCount++;
       } else if (status === 'DROPPED') {
           if (addToStateList('blacklist', mode, item)) addedCount++;
