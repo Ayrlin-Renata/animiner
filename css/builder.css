@@ -251,6 +251,44 @@
   flex-shrink: 0;
 }
 
+/* Tablet & Mobile Breakpoint for Filter Groups */
+@media (max-width: 900px) {
+  .rule-group-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    padding: 1.2rem;
+  }
+
+  .group-title {
+    grid-column: 1 / -1;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 0.5rem;
+  }
+
+  .group-controls {
+    grid-column: 1 / 2;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+  }
+
+  .group-path,
+  .group-quantifier,
+  .group-rel-type {
+    flex: 1 1 auto;
+    min-width: 140px;
+  }
+
+  /* The remove button stays tiny and circular on the right */
+  .rule-group-header > .remove-btn {
+    grid-column: 2 / 3;
+    align-self: end;
+    margin-bottom: 0.2rem;
+  }
+}
+
 .group-help-text {
   font-size: 0.8rem;
   padding: 0.8rem 1.2rem;
@@ -397,58 +435,27 @@
 
   .rule-top .remove-btn {
     align-self: flex-end;
-    width: 100%;
-    justify-content: center;
+    flex-shrink: 0;
   }
 
-  /* Allow group header to stack on mobile */
+  /* Keep group header clean on mobile */
   .rule-group-header {
+    display: flex;
     flex-direction: column;
-    align-items: stretch;
-    padding: 0.8rem;
-    gap: 0.6rem;
-  }
-
-  .group-title {
-    width: 100%;
-    margin-bottom: 0.4rem;
-    justify-content: space-between;
+    padding: 1rem;
+    gap: 1rem;
   }
 
   .group-controls {
+    display: flex;
     flex-direction: column;
-    align-items: stretch;
     width: 100%;
-    gap: 0.5rem;
   }
 
-  /* Force all dropdowns to full width on mobile */
-  .group-path,
-  .group-quantifier,
-  .group-rel-type,
-  .cat-select,
-  .field-select,
-  .op-select {
-    width: 100% !important;
-    min-width: unset !important;
-    flex: unset !important;
-  }
-
-  /* Keep the delete button in its own row/position */
   .group-controls .remove-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .group-actions {
-    flex-direction: column;
-    padding: 0.6rem;
-    gap: 0.5rem;
-  }
-
-  .group-actions .text-btn {
-    width: 100%;
-    justify-content: center;
+    width: 44px; /* Maintain circle */
+    height: 44px;
+    align-self: flex-end;
   }
 }
 

@@ -25,6 +25,16 @@
   pointer-events: all;
 }
 
+@media (max-width: 300px) {
+  .storage-consent-banner {
+    width: 100%;
+    bottom: 0 !important;
+    border-radius: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+}
+
 .consent-header {
   display: flex;
   align-items: center;
@@ -84,11 +94,19 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .storage-consent-banner {
-    bottom: 1rem;
-    width: 95%;
-    padding: 1.2rem;
+    width: 100%;
+    left: 0;
+    transform: none;
+    bottom: -600px;
+    border-radius: 0;
+    padding: 1.5rem 1rem;
+    border-top: 2px solid var(--accent-color);
+  }
+
+  .storage-consent-banner.show {
+    bottom: 0;
   }
   
   .consent-actions {
