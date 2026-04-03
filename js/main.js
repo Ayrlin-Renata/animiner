@@ -154,7 +154,7 @@ async function init() {
   
   if (UI.seenBtn) {
     UI.seenBtn.addEventListener('click', () => {
-        import('./ui/modal.js').then(m => m.openSeenManager());
+        import('./ui/modal/index.js').then(m => m.openSeenManager());
     });
   }
   
