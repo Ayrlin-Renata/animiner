@@ -91,3 +91,20 @@ window.copyToClipboard = (text, btn) => {
         }, 2000);
     });
 };
+
+window.openLightbox = (src) => {
+    if (!src) return;
+    const overlay = document.createElement('div');
+    overlay.className = 'lightbox-overlay';
+    overlay.innerHTML = `<img src="${src}" class="lightbox-img">`;
+    document.body.appendChild(overlay);
+    
+    const close = () => {
+        overlay.classList.add('fade-out');
+        setTimeout(() => overlay.remove(), 300);
+    };
+    
+    overlay.onclick = close;
+    // Prevent image click from closing if we ever add zoom or other features (optional)
+    // but for now, clicking anywhere on the overlay closes it.
+};

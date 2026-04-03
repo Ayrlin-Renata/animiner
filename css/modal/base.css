@@ -16,6 +16,16 @@
   transition: opacity var(--transition-smooth);
 }
 
+.modal-poster.clickable {
+  cursor: zoom-in;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-poster.clickable:hover {
+  transform: scale(1.02);
+}
+
+
 .modal-overlay.hidden {
   display: none !important;
   opacity: 0;

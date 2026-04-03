@@ -123,7 +123,7 @@ export function renderMediaContent(item) {
     return `
       <div class="modal-banner" style="background-image: url('${item.bannerImage || item.coverImage.extraLarge}')"></div>
       <div class="modal-header-content">
-        <img src="${item.coverImage.extraLarge}" class="modal-poster">
+        <img src="${item.coverImage.extraLarge}" class="modal-poster clickable" onclick="window.openLightbox('${item.coverImage.extraLarge}')" title="View Full Image">
         <div class="modal-title-area">
           <div class="modal-title-header">
             <div class="modal-title-main">
@@ -298,7 +298,7 @@ export function renderStaffContent(item) {
     const anilistUrl = getAnilistUrl(item);
     return `
       <div class="modal-header-content simple">
-        <img src="${image}" class="modal-poster">
+        <img src="${image}" class="modal-poster clickable" onclick="window.openLightbox('${image}')" title="View Full Image">
         <div class="modal-title-area">
           <div class="modal-title-header">
             <div class="modal-title-main">
