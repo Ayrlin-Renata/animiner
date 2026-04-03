@@ -66,6 +66,18 @@
   padding: 1.2rem;
 }
 
+.mini-card {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+}
+
+.mini-info {
+  margin-top: auto !important;
+  position: relative;
+  z-index: 2;
+}
+
 .char-link {
   position: relative;
   z-index: 2;
@@ -725,6 +737,109 @@
   margin-bottom: 0;
   overflow: hidden;
   /* Only truncate when hidden */
+}
+
+/* Custom Confirmation Dialog */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  padding: 2rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.confirm-overlay.fade-out {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.confirm-dialog {
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  background: var(--bg-color-alt);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  animation: modalSpring 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modalSpring {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.confirm-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.confirm-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.danger-icon {
+  color: var(--danger-color);
+  width: 28px;
+  height: 28px;
+}
+
+.confirm-body p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.confirm-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.confirm-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  width: auto !important; /* Override square action-btn defaults */
+  height: auto !important;
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+.cancel-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+}
+
+.cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.action-btn.danger-confirm {
+  background: var(--danger-color) !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+.action-btn.danger-confirm:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(232, 93, 117, 0.3);
 }
 
 .close-modal-btn {

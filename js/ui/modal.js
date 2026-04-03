@@ -723,20 +723,69 @@ window.toggleSeen = (id, title, image, isAdding = true) => {
     import('../state.js').then(m => m.saveSettings());
 };
 
+window.showConfirmDialog = (config) => {
+    const { title, message, confirmText, onConfirm } = config;
+    
+    // Remove any existing dialog first
+    const existing = document.querySelector('.confirm-overlay');
+    if (existing) existing.remove();
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-overlay';
+    overlay.innerHTML = `
+        <div class="confirm-dialog glass">
+            <div class="confirm-header">
+                <i data-lucide="alert-triangle" class="danger-icon"></i>
+                <h3>${title}</h3>
+            </div>
+            <div class="confirm-body">
+                <p>${message}</p>
+            </div>
+            <div class="confirm-footer">
+                <button class="confirm-btn cancel-btn">Cancel</button>
+                <button class="confirm-btn action-btn danger-confirm">${confirmText || 'Yes, Clear'}</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    if (window.lucide) window.lucide.createIcons();
+    
+    // Handlers
+    const close = () => {
+        overlay.classList.add('fade-out');
+        setTimeout(() => overlay.remove(), 300);
+    };
+    
+    overlay.querySelector('.cancel-btn').onclick = close;
+    overlay.onclick = (e) => { if (e.target === overlay) close(); };
+    overlay.querySelector('.action-btn').onclick = () => {
+        onConfirm();
+        close();
+    };
+    
+    // Focus on cancel by default for safety
+    overlay.querySelector('.cancel-btn').focus();
+};
+
 window.clearDiscoveryList = (listKey) => {
     const labels = { 'seen': 'Seen History', 'watched': 'Watched List', 'blacklist': 'Blacklist' };
     const label = labels[listKey] || 'list';
     
-    // In a future update, this could be a custom modal, but a confirmed browser prompt is the standard starting point.
-    if (confirm(`⚠️ DANGER: Are you sure you want to clear your entire ${state.searchMode} ${label}? This cannot be undone.`)) {
-        state[listKey][state.searchMode] = [];
-        import('../state.js').then(m => m.saveSettings());
-        
-        // Refresh whichever manager was open
-        if (listKey === 'seen') openSeenManager();
-        else if (listKey === 'watched') openWatchedManager();
-        else if (listKey === 'blacklist') openBlacklistManager();
-    }
+    window.showConfirmDialog({
+        title: `Clear ${label}?`,
+        message: `⚠️ DANGER: Are you sure you want to clear your entire ${state.searchMode} ${label}? This cannot be undone.`,
+        confirmText: 'Yes, Clear All',
+        onConfirm: () => {
+            state[listKey][state.searchMode] = [];
+            import('../state.js').then(m => m.saveSettings());
+            
+            // Refresh whichever manager was open
+            if (listKey === 'seen') openSeenManager();
+            else if (listKey === 'watched') openWatchedManager();
+            else if (listKey === 'blacklist') openBlacklistManager();
+        }
+    });
 };
 
 /**
