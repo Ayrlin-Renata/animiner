@@ -48,6 +48,25 @@ function parseEpisodeCount(info) {
   return matches ? matches.length : 0;
 }
 
+/**
+ * Helper to render status badges (seen, watched, blacklisted) for media items.
+ */
+export function renderStatusBadge(id, mediaType = 'ANIME') {
+    if (!id) return '';
+    // AniList uses ANIME/MANGA, which map to MEDIA/MANGA search modes
+    const mode = mediaType.toUpperCase() === 'MANGA' ? 'MANGA' : 'MEDIA';
+    
+    const isBlacklisted = (state.blacklist[mode] || []).some(b => (typeof b === 'object' ? b.id : b) === id);
+    const isWatched = (state.watched[mode] || []).some(w => (typeof w === 'object' ? w.id : w) === id);
+    const isSeen = (state.seen[mode] || []).some(s => (typeof s === 'object' ? s.id : s) === id);
+
+    if (isBlacklisted) return '<div class="badge-corner badge-blacklisted"><i data-lucide="shield-off"></i></div>';
+    if (isWatched) return '<div class="badge-corner badge-watched"><i data-lucide="check-circle"></i></div>';
+    if (isSeen) return '<div class="badge-corner badge-seen"><i data-lucide="eye"></i></div>';
+    
+    return '';
+}
+
 window.getStaffPriority = function(role) {
   const fullRole = (role || '').trim();
   if (!fullRole) return 0;

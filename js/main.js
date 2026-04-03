@@ -3,7 +3,7 @@ import { auth } from './api/auth.js';
 import { UI, addRuleUI, addGroupUI, addRelationGroupUI, resetUI, updateProgress, renderResultsList, syncUI, toggleFilters, updateToggleFilterAccent } from './ui.js';
 import { getDragAfterElement, resetDragState } from './ui/builder.js';
 import { executeSearch } from './api.js';
-import { openBlacklistManager, openWatchedManager, openSeenManager } from './ui/modal/index.js';
+import { openBlacklistManager, openWatchedManager, openSeenManager, openImportModal } from './ui/modal/index.js';
 import { FIELDS, SUB_FIELDS, RELATION_FIELDS } from './filter.js';
 import { compressFilterData, decompressFilterData } from './compression.js';
 

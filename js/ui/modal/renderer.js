@@ -4,7 +4,7 @@
  */
 
 import { state } from '../../state.js';
-import { highlightText, formatDescription, getAnilistUrl } from './logic.js';
+import { highlightText, formatDescription, getAnilistUrl, renderStatusBadge } from './logic.js';
 
 export function renderMediaContent(item) {
     const details = item._matchDetails || {};
@@ -32,6 +32,7 @@ export function renderMediaContent(item) {
             <div class="expandable-grid mini-grid ${item.relations.edges.length > 5 ? 'is-collapsed' : ''}">
                 ${item.relations.edges.map(e => `
                     <a href="https://anilist.co/${e.node.type.toLowerCase()}/${e.node.id}" target="_blank" class="mini-card glass-dark vertical no-style" style="background-image: url('${e.node.coverImage.large}')">
+                        ${renderStatusBadge(e.node.id, e.node.type)}
                         <div class="mini-card-overlay"></div>
                         <div class="mini-info">
                             <div class="mini-rel">${e.relationType.replace(/_/g, ' ')}</div>
@@ -59,6 +60,7 @@ export function renderMediaContent(item) {
                     if (!rec) return '';
                     return `
                         <a href="https://anilist.co/${rec.type.toLowerCase()}/${rec.id}" target="_blank" class="mini-card glass-dark vertical no-style" style="background-image: url('${rec.coverImage.large}')">
+                            ${renderStatusBadge(rec.id, rec.type)}
                             <div class="mini-card-overlay"></div>
                             <div class="mini-info">
                                 <div class="mini-title">${rec.title.english || rec.title.romaji}</div>

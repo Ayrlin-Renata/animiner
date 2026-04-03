@@ -12,6 +12,7 @@ export * from './logic.js';
 export * from './renderer.js';
 export * from './discovery.js';
 export * from './interactions.js';
+export * from './import.js';
 
 export function openModal(item) {
   if (!UI.modalContent) return;
