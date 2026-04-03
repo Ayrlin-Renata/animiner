@@ -60,7 +60,7 @@ export function openModal(item) {
     const relationsHtml = item.relations?.edges?.length ? `
         <div class="expandable-section ${item.relations.edges.length > 5 ? 'has-more' : ''}">
             <div class="section-title">Relations</div>
-            <div class="expandable-grid mini-grid">
+            <div class="expandable-grid mini-grid ${item.relations.edges.length > 5 ? 'is-collapsed' : ''}">
                 ${item.relations.edges.map(e => `
                     <a href="https://anilist.co/${e.node.type.toLowerCase()}/${e.node.id}" target="_blank" class="mini-card glass-dark vertical no-style" style="background-image: url('${e.node.coverImage.large}')">
                         <div class="mini-card-overlay"></div>
@@ -82,9 +82,9 @@ export function openModal(item) {
     ` : '';
 
     const recommendationsHtml = item.recommendations?.nodes?.length ? `
-        <div class="expandable-section ${item.recommendations.nodes.length > 5 ? 'has-more' : ''}">
+        <div class="expandable-section has-more">
             <div class="section-title">Recommendations</div>
-            <div class="expandable-grid mini-grid">
+            <div class="expandable-grid mini-grid is-collapsed">
                 ${item.recommendations.nodes.map(n => {
                     const rec = n.mediaRecommendation;
                     if (!rec) return '';
@@ -98,12 +98,10 @@ export function openModal(item) {
                     `;
                 }).join('')}
             </div>
-            ${item.recommendations.nodes.length > 5 ? `
-              <button class="expand-btn glass-light" onclick="window.toggleSection(this)">
+            <button class="expand-btn glass-light hidden" onclick="window.toggleSection(this)">
                 <span>Show More</span>
                 <i data-lucide="chevron-down"></i>
-              </button>
-            ` : ''}
+            </button>
         </div>
     ` : '';
 
@@ -235,9 +233,9 @@ export function openModal(item) {
           ${trailerHtml}
           ${relationsHtml}
           ${item.characters?.edges?.length ? `
-            <div class="expandable-section ${item.characters.edges.length > 8 ? 'has-more' : ''}">
+            <div class="expandable-section has-more">
               <div class="section-title">Characters</div>
-              <div class="expandable-grid char-grid">
+              <div class="expandable-grid char-grid is-collapsed">
                 ${item.characters.edges.map(e => {
                   const nativeVA = e.voiceActors?.find(va => va.languageV2 === 'Japanese');
                   const vaLabel = nativeVA ? `${nativeVA.name.full} (Japanese)` : 'No VA info';
@@ -282,12 +280,10 @@ export function openModal(item) {
                   </div>
                 `}).join('')}
               </div>
-              ${item.characters.edges.length > 8 ? `
-                <button class="expand-btn glass-light" onclick="window.toggleSection(this)">
-                  <span>Show More</span>
-                  <i data-lucide="chevron-down"></i>
-                </button>
-              ` : ''}
+              <button class="expand-btn glass-light hidden" onclick="window.toggleSection(this)">
+                <span>Show More</span>
+                <i data-lucide="chevron-down"></i>
+              </button>
             </div>
           ` : ''}
           ${item.studios?.edges?.length ? `
@@ -305,9 +301,9 @@ export function openModal(item) {
           ` : ''}
 
           ${item.staff?.edges?.length ? `
-            <div class="expandable-section ${item.staff.edges.length > 8 ? 'has-more' : ''}">
+            <div class="expandable-section has-more">
               <div class="section-title">Staff</div>
-              <div class="expandable-grid char-grid">
+              <div class="expandable-grid char-grid is-collapsed">
                 ${item.staff.edges.map(e => `
                   <a href="https://anilist.co/staff/${e.node.id}" target="_blank" class="char-card no-style" style="background-image: url('${e.node.image?.large}')">
                     <div class="char-card-overlay"></div>
@@ -324,12 +320,10 @@ export function openModal(item) {
                   </a>
                 `).join('')}
               </div>
-              ${item.staff.edges.length > 8 ? `
-                <button class="expand-btn glass-light" onclick="window.toggleSection(this)">
-                  <span>Show More</span>
-                  <i data-lucide="chevron-down"></i>
-                </button>
-              ` : ''}
+              <button class="expand-btn glass-light hidden" onclick="window.toggleSection(this)">
+                <span>Show More</span>
+                <i data-lucide="chevron-down"></i>
+              </button>
             </div>
           ` : ''}
 
@@ -376,6 +370,15 @@ export function openModal(item) {
   
   document.body.style.overflow = 'hidden';
   if (window.lucide) window.lucide.createIcons();
+  
+  // Dynamic Grid Sync
+  const grids = UI.modalContent.querySelectorAll('.expandable-grid');
+  const observer = new ResizeObserver(entries => {
+    for (let entry of entries) {
+      if (window.syncGridVisibility) window.syncGridVisibility(entry.target);
+    }
+  });
+  grids.forEach(g => observer.observe(g));
 }
 
 export function openBlacklistManager() {
@@ -567,33 +570,68 @@ window.copyToClipboard = (text, btn) => {
     });
 };window.toggleSection = function(btn) {
   const container = btn.closest('.expandable-section').querySelector('.expandable-grid');
-  const isExpanded = container.classList.toggle('expanded');
-  
+  const isCollapsed = container.classList.toggle('is-collapsed');
+  const isExpanded = !isCollapsed; // Track it as expanded for the toggle button UI.
+
+  // Toggle class for CSS-based icon rotation
+  btn.classList.toggle('is-expanded', isExpanded);
+
+  // Re-sync visibility based on the new collapsed state
+  if (window.syncGridVisibility) window.syncGridVisibility(container);
+
   const span = btn.querySelector('span');
   if (span) span.textContent = isExpanded ? 'Show Less' : 'Show More';
+};
+
+window.syncGridVisibility = function(grid) {
+  if (!grid) return;
+  const columns = getComputedStyle(grid).gridTemplateColumns.trim().split(/\s+/).length;
+  grid.style.setProperty('--items-per-row', columns);
   
-  const icon = btn.querySelector('i');
-  if (icon) {
-    if (isExpanded) {
-      icon.setAttribute('data-lucide', 'chevron-up');
+  const section = grid.closest('.expandable-section');
+  const expandBtn = section?.querySelector('.expand-btn');
+  const isCollapsed = grid.classList.contains('is-collapsed');
+  
+  const totalItems = grid.children.length;
+  const itemsInTwoRows = columns * 2;
+  
+  // Show/Hide children based on row limit if collapsed
+  Array.from(grid.children).forEach((child, idx) => {
+    if (isCollapsed && idx >= itemsInTwoRows) {
+      child.style.display = 'none';
     } else {
-      icon.setAttribute('data-lucide', 'chevron-down');
+      child.style.display = ''; // Restore default display
     }
+  });
+  
+  // Update "Show More" button visibility
+  if (expandBtn) {
+    expandBtn.classList.toggle('hidden', totalItems <= itemsInTwoRows);
   }
-  if (window.lucide) window.lucide.createIcons();
 };
 
 window.toggleVAs = (btn) => {
+    const card = btn.closest('.char-card');
+    const expander = btn.closest('.va-expander');
+    const grid = btn.closest('.expandable-grid');
     const list = btn.nextElementSibling;
     const icon = btn.querySelector('i');
     const isHidden = list.classList.toggle('hidden');
+    
+    // Toggle class on the expander AND its parent card for stacking management
+    if (card) card.classList.toggle('va-list-open', !isHidden);
+    expander.classList.toggle('va-list-open', !isHidden);
+    
+    // Toggle class on the grid to allow overflow (prevent clipping)
+    if (grid) {
+        const anyOpen = grid.querySelectorAll('.va-list-open').length > 0;
+        grid.classList.toggle('has-open-va', anyOpen);
+    }
     
     if (icon) {
         icon.setAttribute('data-lucide', isHidden ? 'chevron-down' : 'chevron-up');
         if (window.lucide) window.lucide.createIcons();
     }
-    
-    // Smooth height transition logic could be added here if css isn't enough
 };
 
 window.openBlacklistManager = openBlacklistManager;

@@ -255,7 +255,7 @@
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.char-card:hover .trait-badge {
+.char-card:hover:not(.va-list-open) .trait-badge {
   background: rgba(var(--primary-rgb), 0.2);
   color: var(--primary-light);
   border-color: rgba(var(--primary-rgb), 0.3);

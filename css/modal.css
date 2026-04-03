@@ -46,15 +46,16 @@
   background-clip: padding-box;
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
-  overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Removed overflow: hidden to allow VA dropdown to float */
 }
 
-.char-card:hover {
+.char-card:hover,
+.char-card.va-list-open {
   transform: translateY(-10px);
   border-color: var(--accent-light);
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
-  z-index: 10;
+  z-index: 2000 !important;
 }
 
 .char-card.no-bg, .mini-card.no-bg {
@@ -97,20 +98,43 @@
 }
 
 .expandable-grid {
-  max-height: 700px;
-  overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 1.5rem;
+  padding: 1.5rem 0;
   position: relative;
-  transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 18px 0; /* Increased headroom for translateY lift */
+  overflow: visible; /* Always visible to allow dropdowns to float */
+  transition: opacity 0.3s ease;
 }
 
-.expandable-section.has-more .expandable-grid:not(.expanded) {
-  mask-image: linear-gradient(to bottom, black 92%, transparent 100%);
+/* Visibility-based truncation (Prevents clipping dropdowns) */
+/* Truncation is handled dynamically via JS (syncGridVisibility) to support exactly 2 rows on all screen widths */
+.expandable-grid.is-collapsed {
+  /* Ensure children can be hidden by JS display styles */
 }
 
-.expandable-grid.expanded {
-  max-height: 10000px;
-  overflow: visible; /* Allow lift when expanded */
+/* Restore Gradient Fade (using overlay to prevent clipping child dropdowns) */
+.expandable-grid.is-collapsed::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(to bottom, transparent, var(--bg-color-alt));
+  pointer-events: none;
+  z-index: 5; /* Above cards, below dropdowns (500+) */
+}
+
+.expandable-section {
+  position: relative;
+  z-index: 1;
+  padding: 0 1rem; /* Buffer for hover scaling */
+}
+
+/* Elevate the entire section if it contains an open VA list */
+.expandable-section:has(.va-list-open) {
+  z-index: 1500;
 }
 
 .expand-btn {
@@ -135,11 +159,20 @@
   transform: scale(1.05);
 }
 
+.expand-btn i, .expand-btn svg {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.expand-btn.is-expanded i, .expand-btn.is-expanded svg {
+  transform: rotate(180deg);
+}
+
 .char-card-overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(to top, rgba(11, 22, 34, 1) 0%, rgba(11, 22, 34, 0.6) 40%, transparent 100%);
   z-index: 1;
+  border-radius: var(--radius-md); /* Match card radius since overflow is visible */
 }
 
 .char-link {
@@ -178,12 +211,18 @@
 
 .va-expander {
   position: relative;
-  z-index: 3;
+  z-index: 5; /* Above character info */
   margin-top: 0;
   padding: 0.8rem 1rem;
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(12px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+/* Elevate card when dropdown is open - using 500+ to beat any other grid transorms */
+.va-expander.va-list-open {
+  z-index: 500;
 }
 
 .va-toggle-btn {
@@ -217,11 +256,26 @@
 }
 
 .va-list {
-  margin-top: 0.8rem;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  animation: slideDown 0.3s ease-out;
+  max-height: none; /* User requested no scroll bar, full visibility */
+  overflow: visible;
+  
+  background: rgba(11, 22, 34, 0.98);
+  backdrop-filter: blur(25px);
+  border: 1px solid var(--accent-light);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+  
+  z-index: 501;
+  animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes slideDown {
