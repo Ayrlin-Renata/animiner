@@ -140,6 +140,35 @@
 }
 
 /* Feature Specifics */
+.modal-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.5rem; /* Increased space above genres */
+  margin-bottom: 0.5rem;
+}
+
+.modal-badge-row .tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.9rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: default;
+}
+
+.modal-badge-row .tag:hover {
+  background: rgba(var(--accent-rgb), 0.1);
+  border-color: var(--accent-color);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
 .tag-list {
   display: flex;
   flex-direction: column;
