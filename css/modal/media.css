@@ -1,0 +1,76 @@
+/**
+ * css/modal/media.css
+ * Responsiveness and viewport overrides for the Details Modal.
+ */
+
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 1rem;
+  }
+  
+  .modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-header-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-top: -60px;
+  }
+
+  .modal-title-header {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .modal-title-area {
+    margin-top: 10px;
+    width: 100%;
+  }
+
+  .modal-poster {
+    width: 140px;
+  }
+
+  .modal-banner {
+    height: 180px;
+  }
+
+  .detail-modal {
+    width: 100%;
+    border-radius: var(--radius-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-overlay {
+    padding: 0.5rem;
+  }
+
+  .modal-grid {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .modal-title-area h2 {
+    font-size: 1.4rem;
+  }
+
+  .blacklist-manager {
+    padding: 0.5rem;
+  }
+
+  .blacklist-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+
+  .blacklist-item .remove-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

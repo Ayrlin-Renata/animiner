@@ -1,0 +1,102 @@
+/**
+ * css/modal/discovery.css
+ * Styles for Discovery Managers (Seen, Watched, Blacklist).
+ */
+
+.blacklist-manager {
+  padding: 2rem;
+  background: var(--bg-color-alt);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  margin-bottom: 2rem;
+}
+
+.mgr-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.mgr-header-row h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.blacklist-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.blacklist-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.blacklist-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--accent-light);
+  transform: translateX(5px);
+}
+
+.blacklist-item-info {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  flex: 1;
+}
+
+.blacklist-thumb {
+  width: 50px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.blacklist-thumb-placeholder {
+  width: 50px;
+  height: 70px;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: var(--text-secondary);
+}
+
+.item-title {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.remove-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 0.5rem;
+  opacity: 0.7;
+  transition: all 0.2s;
+}
+
+.remove-btn:hover {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+.clear-history-btn {
+  margin-top: 0;
+  padding: 0.5rem 1.2rem;
+  height: auto;
+  border: 1px solid var(--danger-color);
+  color: var(--danger-color);
+}

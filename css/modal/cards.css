@@ -1,0 +1,254 @@
+/**
+ * css/modal/cards.css
+ * Staff, Character, and Voice Actor Cards.
+ */
+
+.char-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  aspect-ratio: 2 / 3;
+  background-size: cover;
+  background-position: top center;
+  background-repeat: no-repeat;
+  background-clip: padding-box;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.char-card:hover,
+.char-card.va-list-open {
+  transform: translateY(-10px);
+  border-color: var(--accent-light);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+  z-index: 2000 !important;
+}
+
+.char-card.no-bg,
+.mini-card.no-bg {
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  background-image: none !important;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1.2rem;
+}
+
+.mini-card {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+}
+
+.mini-info {
+  margin-top: auto !important;
+  position: relative;
+  z-index: 2;
+}
+
+.char-link {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  width: 100%;
+  height: 100%;
+}
+
+.char-info {
+  margin-top: auto;
+  width: 100%;
+}
+
+.char-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  margin-bottom: 0.2rem;
+}
+
+.char-role {
+  font-size: 0.8rem;
+  color: var(--accent-light);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.char-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(11, 22, 34, 1) 0%, rgba(11, 22, 34, 0.6) 40%, transparent 100%);
+  z-index: 1;
+  border-radius: var(--radius-md);
+}
+
+.expandable-grid,
+.mini-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 1.5rem;
+  padding: 1.5rem 0;
+  position: relative;
+  overflow: visible;
+  transition: opacity 0.3s ease;
+}
+
+.expandable-grid.is-collapsed::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(to bottom, transparent, var(--bg-color-alt));
+  pointer-events: none;
+  z-index: 5;
+}
+
+.expandable-section {
+  position: relative;
+  z-index: 1;
+}
+
+.expandable-section:has(.va-list-open) {
+  z-index: 1500;
+}
+
+/* Voice Actor UI */
+.va-expander {
+  position: relative;
+  z-index: 5;
+  margin-top: 0;
+  padding: 0.8rem 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.va-expander.va-list-open {
+  z-index: 500;
+}
+
+.va-toggle-btn {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.va-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-light);
+}
+
+.va-summary {
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+  text-align: left;
+}
+
+.va-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  overflow: visible;
+  background: rgba(11, 22, 34, 0.98);
+  backdrop-filter: blur(25px);
+  border: 1px solid var(--accent-light);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+  z-index: 501;
+  animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.va-item {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.6rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.va-item:hover {
+  background: rgba(2, 169, 255, 0.15);
+  border-color: var(--accent-light);
+}
+
+.va-img {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.va-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.va-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.va-lang {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Match Highlights */
+.match-highlight {
+  background: rgba(245, 166, 35, 0.25);
+  color: #f5a623;
+  padding: 0 2px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.match-highlight-tag {
+  border: 1px solid rgba(245, 166, 35, 0.5) !important;
+  background: rgba(245, 166, 35, 0.15) !important;
+  box-shadow: 0 0 10px rgba(245, 166, 35, 0.2);
+}

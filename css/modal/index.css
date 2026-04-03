@@ -1,0 +1,11 @@
+/**
+ * css/modal/index.css
+ * Main manifest for the Details Modal Styles.
+ */
+
+@import './animations.css';
+@import './base.css';
+@import './cards.css';
+@import './discovery.css';
+@import './interactions.css';
+@import './media.css';

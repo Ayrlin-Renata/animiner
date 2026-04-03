@@ -5,7 +5,7 @@
 
 import { UI, updateDatalist } from './base.js';
 import { state } from '../state.js';
-import { openModal } from './modal.js';
+import { openModal } from './modal/index.js';
 import { filterResults } from '../filter.js';
 
 /**

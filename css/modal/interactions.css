@@ -1,0 +1,221 @@
+/**
+ * css/modal/interactions.css
+ * Action buttons, Video Containers, and Confirmation Dialogs.
+ */
+
+.modal-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.action-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-color);
+  color: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.action-btn.success {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: var(--success-color);
+  color: var(--success-color);
+}
+
+.action-btn.block-btn:hover {
+  background: rgba(232, 93, 117, 0.15);
+  border-color: var(--danger-color);
+  color: var(--danger-color);
+  box-shadow: 0 4px 12px rgba(232, 93, 117, 0.2);
+}
+
+.action-btn i {
+  width: 20px;
+  height: 20px;
+}
+
+.expand-btn {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.8rem 2.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50px;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.expand-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-hover);
+  box-shadow: 0 0 17px rgba(var(--accent-rgb), 0.4);
+  transform: scale(1.05);
+}
+
+.expand-btn i {
+  transition: transform 0.3s ease;
+}
+
+.expand-btn.is-expanded i {
+  transform: rotate(180deg);
+}
+
+.video-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  margin-bottom: 2rem;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #000;
+  box-shadow: var(--glass-shadow);
+}
+
+.video-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.spoiler-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  cursor: pointer;
+  color: var(--accent-color);
+  font-size: 0.85rem;
+  font-weight: 600;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.spoiler-toggle:hover {
+  opacity: 1;
+}
+
+/* Collapsible Filter Panel */
+#filterContent {
+  overflow: visible;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+#filterContent.hidden-height {
+  max-height: 0 !important;
+  opacity: 0;
+  padding-bottom: 0;
+  margin-bottom: 0;
+  overflow: hidden;
+}
+
+/* Custom Confirmation Dialog */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  padding: 2rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.confirm-dialog {
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  background: var(--bg-color-alt);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  animation: modalSpring 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.confirm-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.danger-icon {
+  color: var(--danger-color);
+  width: 28px;
+  height: 28px;
+}
+
+.confirm-body {
+  margin-top: 1rem;
+}
+
+.confirm-body p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.confirm-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.confirm-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  width: auto !important; /* Override square action-btn defaults */
+  height: auto !important;
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+.cancel-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+}
+
+.cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.action-btn.danger-confirm {
+  background: var(--danger-color) !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+.action-btn.danger-confirm:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(232, 93, 117, 0.3);
+}
