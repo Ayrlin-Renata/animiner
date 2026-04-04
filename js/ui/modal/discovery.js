@@ -5,6 +5,8 @@
 
 import { UI } from '../base.js';
 import { state } from '../../state.js';
+import { evaluateRule } from '../../filter.js';
+import { fetchBulkMedia } from '../../api.js';
 
 export function markAsSeen(item) {
     if (!item) return;
@@ -18,26 +20,53 @@ export function markAsSeen(item) {
         state.seen[mode].push({ id, title, image, _sessionSeen: true });
         import('../../state.js').then(m => m.saveSettings());
 
-        const card = document.querySelector(`.media-card[data-id="${id}"]`);
-        if (card && !card.querySelector('.badge-corner')) {
-            const badge = document.createElement('div');
-            badge.className = 'badge-corner badge-seen';
-            badge.innerHTML = '<i data-lucide="eye"></i>';
-            card.prepend(badge);
-            if (window.lucide) window.lucide.createIcons();
-        }
+        // Update ALL cards (mini and main) across the entire session
+        document.querySelectorAll(`[data-id="${id}"]`).forEach(card => {
+            if (!card.querySelector('.badge-corner')) {
+                const badge = document.createElement('div');
+                badge.className = 'badge-corner badge-seen';
+                badge.innerHTML = '<i data-lucide="eye"></i>';
+                card.prepend(badge);
+            }
+        });
+
+        if (window.lucide) window.lucide.createIcons();
     }
 }
 
 window.markAsSeen = markAsSeen;
 
-window.toggleSeen = (id, title, image, isAdding = true) => {
+window.toggleSeen = (id, title, image, forceState) => {
     if (!state.seen[state.searchMode]) state.seen[state.searchMode] = [];
     const list = state.seen[state.searchMode];
     const index = list.findIndex(item => (typeof item === 'object' ? item.id : item) === id);
+    
+    // Toggle logic: if forceState is provided, use it. Otherwise, flip the current state.
+    const isAdding = forceState !== undefined ? forceState : (index === -1);
+    
     if (isAdding && index === -1) list.push({ id, title, image });
     else if (!isAdding && index !== -1) list.splice(index, 1);
     import('../../state.js').then(m => m.saveSettings());
+
+    // Update ALL cards (mini and main) across the entire session
+    document.querySelectorAll(`[data-id="${id}"]`).forEach(card => {
+        const badge = card.querySelector('.badge-corner');
+        if (isAdding) {
+            if (!badge) {
+                const newBadge = document.createElement('div');
+                newBadge.className = 'badge-corner badge-seen';
+                newBadge.innerHTML = '<i data-lucide="eye"></i>';
+                card.prepend(newBadge);
+            } else {
+                badge.className = 'badge-corner badge-seen';
+                badge.innerHTML = '<i data-lucide="eye"></i>';
+            }
+        } else if (badge && badge.classList.contains('badge-seen')) {
+            badge.remove();
+        }
+    });
+
+    if (window.lucide) window.lucide.createIcons();
 };
 
 window.toggleWatched = (id, title, image, btn) => {
@@ -58,24 +87,34 @@ window.toggleWatched = (id, title, image, btn) => {
         btn.classList.toggle('active', isWatched);
         btn.setAttribute('title', isWatched ? 'Watched! (Click to Unmark)' : 'Mark as Watched');
     }
+    if (window.lucide) window.lucide.createIcons();
 
-    document.querySelectorAll('.media-card').forEach(card => {
-        const watchedBtn = card.querySelector(`.watched-btn[onclick*="toggleWatched(${id},"]`);
-        if (watchedBtn) {
-            const icon = watchedBtn.querySelector('i');
-            if (icon) {
-                icon.setAttribute('data-lucide', isWatched ? 'check-circle' : 'eye');
-                if (window.lucide) window.lucide.createIcons();
+    // Update ALL cards (mini and main) across the entire session
+    document.querySelectorAll(`[data-id="${id}"]`).forEach(card => {
+        const badge = card.querySelector('.badge-corner');
+        if (isWatched) {
+            if (!badge) {
+                const newBadge = document.createElement('div');
+                newBadge.className = 'badge-corner badge-watched';
+                newBadge.innerHTML = '<i data-lucide="check-circle"></i>';
+                card.prepend(newBadge);
+            } else {
+                badge.className = 'badge-corner badge-watched';
+                badge.innerHTML = '<i data-lucide="check-circle"></i>';
             }
-            watchedBtn.classList.toggle('active', isWatched);
-            watchedBtn.setAttribute('title', isWatched ? 'Unmark Watched' : 'Mark as Watched');
-            if (isWatched && !state.showWatched) {
-                card.style.opacity = '0';
-                card.style.transform = 'scale(0.8)';
-                setTimeout(() => card.remove(), 300);
-            }
+        } else if (badge && badge.classList.contains('badge-watched')) {
+            badge.remove();
+        }
+        
+        // Handle scanner-style removal if hidden
+        if (isWatched && !state.showWatched && card.classList.contains('media-card')) {
+             card.style.opacity = '0';
+             card.style.transform = 'scale(0.8)';
+             setTimeout(() => card.remove(), 300);
         }
     });
+
+    if (window.lucide) window.lucide.createIcons();
 };
 
 window.blockItem = (id, title, image, hideModal = false) => {
@@ -83,13 +122,27 @@ window.blockItem = (id, title, image, hideModal = false) => {
     if (!list.some(item => (typeof item === 'object' ? item.id : item) === id)) {
         list.push({ id, title, image });
         import('../../state.js').then(m => m.saveSettings());
-        document.querySelectorAll('.media-card').forEach(card => {
-            if (card.querySelector(`button[onclick*="blockItem(${id},"]`)) {
+        
+        document.querySelectorAll(`[data-id="${id}"]`).forEach(card => {
+            const badge = card.querySelector('.badge-corner');
+            if (!badge) {
+                const newBadge = document.createElement('div');
+                newBadge.className = 'badge-corner badge-blacklisted';
+                newBadge.innerHTML = '<i data-lucide="shield-off"></i>';
+                card.prepend(newBadge);
+            } else {
+                badge.className = 'badge-corner badge-blacklisted';
+                badge.innerHTML = '<i data-lucide="shield-off"></i>';
+            }
+
+            // Handle scanner-style removal if it's the main grid
+            if (card.classList.contains('media-card')) {
                 card.style.opacity = '0';
                 card.style.transform = 'scale(0.8)';
                 setTimeout(() => card.remove(), 300);
             }
         });
+        if (window.lucide) window.lucide.createIcons();
     }
     if (hideModal) {
         UI.modalOverlay.classList.add('hidden');
@@ -97,11 +150,27 @@ window.blockItem = (id, title, image, hideModal = false) => {
     }
 };
 
-window.toggleBlacklist = (id, title, image, isAdding = true) => {
-    if (isAdding) window.blockItem(id, title, image);
-    else {
+window.toggleBlacklist = (id, title, image, forceState) => {
+    if (!state.blacklist[state.searchMode]) state.blacklist[state.searchMode] = [];
+    const list = state.blacklist[state.searchMode];
+    const index = list.findIndex(item => (typeof item === 'object' ? item.id : item) === id);
+    
+    const isAdding = forceState !== undefined ? forceState : (index === -1);
+    
+    if (isAdding) {
+        window.blockItem(id, title, image);
+    } else {
         state.blacklist[state.searchMode] = state.blacklist[state.searchMode].filter(item => (typeof item === 'object' ? item.id : item) !== id);
         import('../../state.js').then(m => m.saveSettings());
+        
+        // Remove indicators
+        document.querySelectorAll(`[data-id="${id}"]`).forEach(card => {
+            const badge = card.querySelector('.badge-corner');
+            if (badge && badge.classList.contains('badge-blacklisted')) {
+                badge.remove();
+            }
+        });
+        if (window.lucide) window.lucide.createIcons();
     }
 };
 
@@ -195,4 +264,58 @@ window.clearDiscoveryList = (listKey) => {
             else if (listKey === 'blacklist') openBlacklistManager();
         }
     });
+};
+
+/**
+ * Automatically checks all relations and recommendations for filter matches.
+ */
+window.checkAllFilterStatus = async (mediaItem) => {
+    if (!state.rules || state.rules.length === 0) return;
+
+    const ids = new Set();
+    mediaItem.relations?.edges?.forEach(e => ids.add(e.node.id));
+    mediaItem.recommendations?.nodes?.forEach(n => n.mediaRecommendation && ids.add(n.mediaRecommendation.id));
+
+    const idList = [...ids];
+    if (idList.length === 0) return;
+
+    // UI Feedback: Mark as checking
+    idList.forEach(id => {
+        const cards = document.querySelectorAll(`.mini-card[data-id="${id}"]`);
+        cards.forEach(c => c.classList.add('checking-match'));
+    });
+
+    // Rate Limit Safety: If a massive scan is ongoing, we wait or yield
+    if (state.isScanning) {
+        console.log('[Bulk Match] Global scan active - yielding to scanner...');
+        // We'll proceed but carefully. AniList gives us 90/min.
+    }
+
+    try {
+        const results = await fetchBulkMedia(idList);
+        results.forEach(item => {
+            const matchResult = state.rules.every(rule => evaluateRule(item, rule).success);
+            
+            const cards = document.querySelectorAll(`.mini-card[data-id="${item.id}"]`);
+            cards.forEach(card => {
+                card.classList.remove('checking-match');
+                
+                if (!matchResult) {
+                    card.classList.add('match-fail');
+                    // Add no-match indicator icon
+                    const indicator = document.createElement('div');
+                    indicator.className = 'match-indicator fail';
+                    indicator.innerHTML = '<i data-lucide="filter-x"></i>';
+                    card.appendChild(indicator);
+                }
+            });
+        });
+
+        if (window.lucide) window.lucide.createIcons();
+    } catch (e) {
+        console.error('[Bulk Match] Failed to check status:', e);
+        idList.forEach(id => {
+            document.querySelectorAll(`.mini-card[data-id="${id}"]`).forEach(c => c.classList.remove('checking-match'));
+        });
+    }
 };

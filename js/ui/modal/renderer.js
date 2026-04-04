@@ -31,14 +31,33 @@ export function renderMediaContent(item) {
             <div class="section-title">Relations</div>
             <div class="expandable-grid mini-grid ${item.relations.edges.length > 5 ? 'is-collapsed' : ''}">
                 ${item.relations.edges.map(e => `
-                    <a href="https://anilist.co/${e.node.type.toLowerCase()}/${e.node.id}" target="_blank" class="mini-card glass-dark vertical no-style" style="background-image: url('${e.node.coverImage.large}')">
+                    <a href="https://anilist.co/${e.node.type.toLowerCase()}/${e.node.id}" 
+                       target="_blank" 
+                       class="mini-card glass-dark vertical no-style" 
+                       data-id="${e.node.id}" 
+                       data-type="${e.node.type}">
                         ${renderStatusBadge(e.node.id, e.node.type)}
-                        <div class="mini-card-overlay"></div>
+                        <div class="mini-card-body" style="background-image: url('${e.node.coverImage.large}')">
+                            <div class="mini-card-overlay"></div>
+                        </div>
                         <div class="mini-info">
                             <div class="mini-rel">${e.relationType.replace(/_/g, ' ')}</div>
                             <div class="mini-title">${e.node.title.english || e.node.title.romaji}</div>
                             <div class="mini-meta">${e.node.format?.replace(/_/g, ' ') || ''} · ${e.node.status?.replace(/_/g, ' ') || ''}</div>
                         </div>
+                        ${e.node.type === 'ANIME' ? `
+                            <div class="mini-card-actions">
+                                <button class="mini-action-btn seen" onclick="event.preventDefault(); window.toggleSeen(${e.node.id}, '${(e.node.title.english || e.node.title.romaji).replace(/'/g, "\\'")}', '${e.node.coverImage.large}')" title="Toggle Seen">
+                                    <i data-lucide="eye"></i>
+                                </button>
+                                <button class="mini-action-btn watched" onclick="event.preventDefault(); window.toggleWatched(${e.node.id}, '${(e.node.title.english || e.node.title.romaji).replace(/'/g, "\\'")}', '${e.node.coverImage.large}', this)" title="Toggle Watched">
+                                    <i data-lucide="check"></i>
+                                </button>
+                                <button class="mini-action-btn blacklist" onclick="event.preventDefault(); window.toggleBlacklist(${e.node.id}, '${(e.node.title.english || e.node.title.romaji).replace(/'/g, "\\'")}', '${e.node.coverImage.large}')" title="Toggle Blacklist">
+                                    <i data-lucide="shield-off"></i>
+                                </button>
+                            </div>
+                        ` : ''}
                     </a>
                 `).join('')}
             </div>
@@ -59,13 +78,33 @@ export function renderMediaContent(item) {
                     const rec = n.mediaRecommendation;
                     if (!rec) return '';
                     return `
-                        <a href="https://anilist.co/${rec.type.toLowerCase()}/${rec.id}" target="_blank" class="mini-card glass-dark vertical no-style" style="background-image: url('${rec.coverImage.large}')">
+                        <a href="https://anilist.co/${rec.type.toLowerCase()}/${rec.id}" 
+                           target="_blank" 
+                           class="mini-card glass-dark vertical no-style" 
+                           data-id="${rec.id}" 
+                           data-type="${rec.type}">
                             ${renderStatusBadge(rec.id, rec.type)}
-                            <div class="mini-card-overlay"></div>
+                            <div class="mini-card-body" style="background-image: url('${rec.coverImage.large}')">
+                                <div class="mini-card-overlay"></div>
+                            </div>
                             <div class="mini-info">
                                 <div class="mini-title">${rec.title.english || rec.title.romaji}</div>
+                                <div class="mini-meta">${rec.type}</div>
                             </div>
-                        </a>
+                        ${rec.type === 'ANIME' ? `
+                            <div class="mini-card-actions">
+                                <button class="mini-action-btn seen" onclick="event.preventDefault(); window.toggleSeen(${rec.id}, '${(rec.title.english || rec.title.romaji).replace(/'/g, "\\'")}', '${rec.coverImage.large}')" title="Toggle Seen">
+                                    <i data-lucide="eye"></i>
+                                </button>
+                                <button class="mini-action-btn watched" onclick="event.preventDefault(); window.toggleWatched(${rec.id}, '${(rec.title.english || rec.title.romaji).replace(/'/g, "\\'")}', '${rec.coverImage.large}', this)" title="Toggle Watched">
+                                    <i data-lucide="check"></i>
+                                </button>
+                                <button class="mini-action-btn blacklist" onclick="event.preventDefault(); window.toggleBlacklist(${rec.id}, '${(rec.title.english || rec.title.romaji).replace(/'/g, "\\'")}', '${rec.coverImage.large}')" title="Toggle Blacklist">
+                                    <i data-lucide="shield-off"></i>
+                                </button>
+                            </div>
+                        ` : ''}
+                    </a>
                     `;
                 }).join('')}
             </div>
@@ -120,7 +159,18 @@ export function renderMediaContent(item) {
     const anilistUrl = getAnilistUrl(item);
     const isWatched = state.watched[state.searchMode]?.some(w => (typeof w === 'object' ? w.id : w) === item.id);
     
+    // Wrap in a setTimeout to ensure the DOM is updated before we start targeting elements
+    setTimeout(() => {
+        if (window.checkAllFilterStatus) {
+            window.checkAllFilterStatus(item);
+        }
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+    }, 10);
+
     return `
+      <div class="media-details-container">
       <div class="modal-banner" style="background-image: url('${item.bannerImage || item.coverImage.extraLarge}')"></div>
       <div class="modal-header-content">
         <img src="${item.coverImage.extraLarge}" class="modal-poster clickable" onclick="window.openLightbox('${item.coverImage.extraLarge}')" title="View Full Image">

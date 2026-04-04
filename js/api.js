@@ -423,6 +423,34 @@ function getApiVariables() {
 
   // Debug: Log the variables being sent
   console.log('API Variables:', vars);
-
   return vars;
+}
+
+/**
+ * Fetches full details for a bulk list of media IDs.
+ */
+export async function fetchBulkMedia(ids) {
+  if (!ids || ids.length === 0) return [];
+  
+  const body = {
+    query: QUERIES.MEDIA,
+    variables: { id_in: ids }
+  };
+
+  try {
+    const res = await fetch(ANILIST_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(body)
+    });
+
+    const { data } = await res.json();
+    return data?.Page?.media || [];
+  } catch (e) {
+    console.error('Bulk fetch failed:', e);
+    return [];
+  }
 }
