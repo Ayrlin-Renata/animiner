@@ -174,8 +174,9 @@ export const QUERIES = {
 export async function executeSearch(onProgress, onComplete) {
   state.isScanning = true;
   state.isCancelled = false;
-  state.page = 1;
+  state.page = state.startPage || 1;
   state.results = [];
+  let pagesSearched = 0;
 
   try {
     let foundMatchesCount = 0;
@@ -254,13 +255,23 @@ export async function executeSearch(onProgress, onComplete) {
 
       if (!state.hasNextPage || foundMatchesCount >= state.targetMatches) break;
       state.page++;
+      pagesSearched++;
     }
   } catch (e) {
     console.error('Search failed:', e);
     onProgress({ status: 'Error occurred during search' });
   } finally {
     state.isScanning = false;
-    const finalStatus = state.isCancelled ? 'Search Cancelled' : 'Search Complete';
+    const startPage = state.startPage || 1;
+    const endPage = state.page;
+    const actualPages = state.results.length > 0 ? (endPage - startPage + 1) : 0;
+    
+    let stats = `(${actualPages} pages searched)`;
+    if (actualPages > 0) {
+        stats = `(Page ${startPage} to ${endPage}, ${actualPages} pages searched)`;
+    }
+
+    const finalStatus = (state.isCancelled ? 'Search Cancelled' : 'Search Complete') + ` ${stats}`;
     const filtered = filterResults(state.results, state.rules);
     onProgress({ status: finalStatus, scanned: state.results.length, found: filtered.length, filteredItems: filtered });
     onComplete(filtered);

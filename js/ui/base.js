@@ -43,6 +43,7 @@ export const UI = {
   acceptStorage: document.getElementById('acceptStorage'),
   declineStorage: document.getElementById('declineStorage'),
   importBtn: document.getElementById('importBtn'),
+  startPage: document.getElementById('startPage'),
 };
 
 /**
@@ -86,6 +87,7 @@ export function updateDatalist() {
 export function syncUI() {
     if (UI.searchMode) UI.searchMode.value = state.searchMode;
     if (UI.targetResults) UI.targetResults.value = state.targetMatches;
+    if (UI.startPage) UI.startPage.value = state.startPage;
     
     const isMedia = state.searchMode === 'MEDIA';
     const sortCtrl = document.getElementById('mediaSortControl');

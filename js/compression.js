@@ -8,6 +8,7 @@ const KEY_MAP = {
     targetMatches: 't',
     sort: 's',
     mediaType: 'y',
+    startPage: 'sp',
     rules: 'r',
     path: 'p',
     operator: 'o',
@@ -111,6 +112,7 @@ export function compressFilterData(state) {
         [KEY_MAP.targetMatches]: state.targetMatches,
         [KEY_MAP.sort]: state.sort,
         [KEY_MAP.mediaType]: state.mediaType,
+        [KEY_MAP.startPage]: state.startPage,
         [KEY_MAP.rules]: state.rules.map(compressRule)
     };
     
@@ -126,6 +128,7 @@ export function decompressFilterData(encoded) {
         if (compact[KEY_MAP.targetMatches]) state.targetMatches = compact[KEY_MAP.targetMatches];
         if (compact[KEY_MAP.sort])          state.sort = compact[KEY_MAP.sort];
         if (compact[KEY_MAP.mediaType])     state.mediaType = compact[KEY_MAP.mediaType];
+        if (compact[KEY_MAP.startPage])     state.startPage = compact[KEY_MAP.startPage];
         if (compact[KEY_MAP.rules])         state.rules = compact[KEY_MAP.rules].map(decompressRule);
         
         return state;

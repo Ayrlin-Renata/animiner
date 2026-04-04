@@ -14,6 +14,7 @@ export const state = {
   sort: 'POPULARITY_DESC',
   mediaType: 'ANIME',
   targetMatches: 50,
+  startPage: 1,
   rateLimitRemaining: 90,
   rateLimitReset: 0,
   searchMode: 'MEDIA', // MEDIA, CHARACTER, STAFF, STUDIO, USER
@@ -102,6 +103,7 @@ export function saveSettings() {
   const settings = {
     searchMode: state.searchMode,
     targetMatches: state.targetMatches,
+    startPage: state.startPage,
     sort: state.sort,
     mediaType: state.mediaType,
     rules: state.rules,
@@ -125,6 +127,7 @@ export function loadSettings() {
       const parsed = JSON.parse(local);
       state.searchMode = parsed.searchMode || state.searchMode;
       state.targetMatches = parsed.targetMatches || state.targetMatches;
+      state.startPage = parsed.startPage || state.startPage;
       state.sort = parsed.sort || state.sort;
       state.mediaType = parsed.mediaType || state.mediaType;
       state.rules = parsed.rules || state.rules;

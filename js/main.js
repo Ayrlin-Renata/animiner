@@ -53,6 +53,7 @@ async function init() {
     if (decompressed) {
         state.searchMode = decompressed.searchMode || state.searchMode;
         state.targetMatches = decompressed.targetMatches || state.targetMatches;
+        state.startPage = decompressed.startPage || state.startPage;
         state.sort = decompressed.sort || state.sort;
         state.mediaType = decompressed.mediaType || state.mediaType;
         state.rules = decompressed.rules || [];
@@ -131,6 +132,11 @@ async function init() {
   };
 
   UI.targetResults.onchange = () => {
+    updateStateFromUI();
+    saveSettings();
+  };
+
+  UI.startPage.onchange = () => {
     updateStateFromUI();
     saveSettings();
   };
@@ -282,7 +288,8 @@ async function init() {
 
 function updateStateFromUI() {
   state.rules = collectRulesRecursive(UI.rootGroup);
-  state.targetMatches = parseInt(UI.targetResults.value || '50');
+  state.targetMatches = parseInt(UI.targetResults?.value || '50');
+  state.startPage = parseInt(UI.startPage?.value || '1');
   state.sort = UI.mediaSort?.value || state.sort;
   state.mediaType = UI.mediaType?.value || state.mediaType;
   saveSettings();

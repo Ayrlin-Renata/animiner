@@ -81,7 +81,14 @@
 
                     <div class="control-group">
                         <label for="targetResults">Target</label>
-                        <input type="number" id="targetResults" value="50" min="1" max="500">
+                        <input type="number" id="targetResults" value="50" min="1" max="500"
+                            title="Number of matches to find before stopping">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="startPage">Start Page</label>
+                        <input type="number" id="startPage" value="1" min="1" max="1000"
+                            title="The AniList page to begin scanning from">
                     </div>
 
                     <div class="control-group" id="mediaSortControl">
