@@ -64,6 +64,13 @@ window.toggleSeen = (id, title, image, forceState) => {
         } else if (badge && badge.classList.contains('badge-seen')) {
             badge.remove();
         }
+
+        // Sync button active state
+        const seenBtn = card.querySelector('.seen-btn');
+        if (seenBtn) {
+            seenBtn.classList.toggle('active', isAdding);
+            seenBtn.setAttribute('title', isAdding ? 'Unmark Seen' : 'Mark as Seen');
+        }
     });
 
     if (window.lucide) window.lucide.createIcons();
@@ -104,6 +111,13 @@ window.toggleWatched = (id, title, image, btn) => {
             }
         } else if (badge && badge.classList.contains('badge-watched')) {
             badge.remove();
+        }
+
+        // Sync button active state
+        const watchedBtn = card.querySelector('.watched-btn');
+        if (watchedBtn) {
+            watchedBtn.classList.toggle('active', isWatched);
+            watchedBtn.setAttribute('title', isWatched ? 'Unmark Watched' : 'Mark as Watched');
         }
         
         // Handle scanner-style removal if hidden
@@ -168,6 +182,13 @@ window.toggleBlacklist = (id, title, image, forceState) => {
             const badge = card.querySelector('.badge-corner');
             if (badge && badge.classList.contains('badge-blacklisted')) {
                 badge.remove();
+            }
+
+            // Sync button active state
+            const blockBtn = card.querySelector('.block-btn');
+            if (blockBtn) {
+                blockBtn.classList.toggle('active', false);
+                blockBtn.setAttribute('title', 'Block this result');
             }
         });
         if (window.lucide) window.lucide.createIcons();
