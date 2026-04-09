@@ -18,8 +18,8 @@ query {
 `;
 
 const IMPORT_QUERY = `
-query ($userName: String, $userId: Int) {
-  MediaListCollection(userName: $userName, userId: $userId, type: ANIME) {
+query ($userName: String, $userId: Int, $type: MediaType) {
+  MediaListCollection(userName: $userName, userId: $userId, type: $type) {
     lists {
       name
       status
@@ -38,9 +38,9 @@ query ($userName: String, $userId: Int) {
 `;
 
 /**
- * Fetches the user's MediaListCollection from AniList.
+ * Fetches the user's MediaListCollection from AniList for both ANYME and MANGA.
  * @param {string} userName - Optional username for public import.
- * @returns {Promise<Object>} - The raw collection data.
+ * @returns {Promise<Object>} - Consolidated collection data.
  */
 async function fetchUserLists(userName = null) {
   const token = auth.getToken();
@@ -55,7 +55,6 @@ async function fetchUserLists(userName = null) {
 
   const variables = {};
   
-  // If no username is provided, we try to fetch the current authenticated user's ID
   if (!userName && token) {
     const viewerResponse = await fetch(ANILIST_URL, {
       method: 'POST',
@@ -73,20 +72,30 @@ async function fetchUserLists(userName = null) {
     throw new Error('Username or Login required for import.');
   }
 
-  const response = await fetch(ANILIST_URL, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ query: IMPORT_QUERY, variables })
-  });
+  const types = ['ANIME', 'MANGA'];
+  const consolidated = { lists: [] };
 
-  const json = await response.json();
-  if (json.errors) throw new Error(json.errors[0].message);
-  
-  if (!json.data.MediaListCollection) {
+  for (const type of types) {
+    const typeVariables = { ...variables, type };
+    const response = await fetch(ANILIST_URL, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ query: IMPORT_QUERY, variables: typeVariables })
+    });
+
+    const json = await response.json();
+    if (json.errors) continue; // Soft-fail on one type if the other works
+    
+    if (json.data.MediaListCollection && json.data.MediaListCollection.lists) {
+        consolidated.lists.push(...json.data.MediaListCollection.lists);
+    }
+  }
+
+  if (consolidated.lists.length === 0) {
     throw new Error("No data found for this user.");
   }
 
-  return json.data.MediaListCollection;
+  return consolidated;
 }
 
 /**
@@ -96,7 +105,7 @@ async function fetchUserLists(userName = null) {
 export function mergeImportedData(collection) {
   if (!collection || !collection.lists) return { added: 0 };
 
-  const mode = 'MEDIA'; // Targeted mode for initial version
+  const mode = 'MEDIA'; 
   let addedCount = 0;
 
   collection.lists.forEach(list => {
@@ -110,6 +119,7 @@ export function mergeImportedData(collection) {
           id: media.id,
           title,
           image: media.coverImage.large,
+          type: media.type, // Explicitly capture type for tabbed managers
           _imported: true
       };
 

@@ -10,7 +10,7 @@ import { UI } from '../base.js';
  */
 export function openImportModal() {
     const isLoggedIn = sessionStorage.getItem('al_access_token');
-    
+
     const content = `
         <div class="import-modal">
             <div class="modal-header">
@@ -75,7 +75,7 @@ window.anilistLogin = async () => {
 window.executeImport = async (isPrivate) => {
     const statusEl = document.getElementById('importStatus');
     const username = document.getElementById('importUsername')?.value;
-    
+
     if (!isPrivate && !username) {
         alert('Please enter a username.');
         return;
@@ -88,7 +88,7 @@ window.executeImport = async (isPrivate) => {
         const { importer } = await import('../../api/import.js');
         const collection = await importer.fetchUserLists(isPrivate ? null : username);
         const result = importer.mergeImportedData(collection);
-        
+
         statusEl.innerHTML = `
             <div class="success-message">
                 <i data-lucide="check-circle"></i>
@@ -96,10 +96,10 @@ window.executeImport = async (isPrivate) => {
             </div>
         `;
         if (window.lucide) window.lucide.createIcons();
-        
+
         // Refresh display if results are visible
         if (window.runSearch) window.runSearch();
-        
+
     } catch (err) {
         statusEl.innerHTML = `<div class="error-message">${err.message}</div>`;
     }
