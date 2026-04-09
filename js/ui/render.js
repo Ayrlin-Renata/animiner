@@ -162,7 +162,7 @@ export function renderResultsList(rawItems, forceClear = false) {
         <button class="action-card-btn watched-btn ${isWatched ? 'active' : ''}" title="${isWatched ? 'Unmark Watched' : 'Mark as Watched'}" onclick="event.stopPropagation(); window.toggleWatched(${item.id}, '${(title || '').replace(/'/g, "\\'")}', '${image || ''}', undefined, '${item.type || 'ANIME'}')">
           <i data-lucide="check-circle"></i>
         </button>
-        <button class="action-card-btn block-btn ${isBlacklisted ? 'active' : ''}" title="${isBlacklisted ? 'Remove Block' : 'Block this result'}" onclick="event.stopPropagation(); window.blockItem(${item.id}, '${(title || '').replace(/'/g, "\\'")}', '${image || ''}', false, '${item.type || 'ANIME'}')">
+        <button class="action-card-btn block-btn ${isBlacklisted ? 'active' : ''}" title="${isBlacklisted ? 'Remove Block' : 'Block this result'}" onclick="event.stopPropagation(); window.toggleBlacklist(${item.id}, '${(title || '').replace(/'/g, "\\'")}', '${image || ''}', undefined, '${item.type || 'ANIME'}')">
           <i data-lucide="shield-off"></i>
         </button>
       </div>

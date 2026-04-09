@@ -17,7 +17,13 @@ export function markAsSeen(item) {
     if (!state.seen[state.searchMode]) state.seen[state.searchMode] = [];
     const mode = state.searchMode;
     if (!state.seen[mode].some(s => (typeof s === 'object' ? s.id : s) === id)) {
-        state.seen[mode].push({ id, title, image, _sessionSeen: true });
+        state.seen[mode].push({ 
+            id, 
+            title, 
+            image, 
+            type: item.type || 'ANIME',
+            _sessionSeen: true 
+        });
         import('../../state.js').then(m => m.saveSettings());
 
         // Update ALL cards (mini and main) across the entire session
