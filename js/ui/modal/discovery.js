@@ -36,7 +36,7 @@ export function markAsSeen(item) {
 
 window.markAsSeen = markAsSeen;
 
-window.toggleSeen = (id, title, image, forceState) => {
+window.toggleSeen = (id, title, image, forceState, type) => {
     if (!state.seen[state.searchMode]) state.seen[state.searchMode] = [];
     const list = state.seen[state.searchMode];
     const index = list.findIndex(item => (typeof item === 'object' ? item.id : item) === id);
@@ -44,7 +44,7 @@ window.toggleSeen = (id, title, image, forceState) => {
     // Toggle logic: if forceState is provided, use it. Otherwise, flip the current state.
     const isAdding = forceState !== undefined ? forceState : (index === -1);
     
-    if (isAdding && index === -1) list.push({ id, title, image });
+    if (isAdding && index === -1) list.push({ id, title, image, type: type || 'ANIME' });
     else if (!isAdding && index !== -1) list.splice(index, 1);
     import('../../state.js').then(m => m.saveSettings());
 
@@ -76,24 +76,17 @@ window.toggleSeen = (id, title, image, forceState) => {
     if (window.lucide) window.lucide.createIcons();
 };
 
-window.toggleWatched = (id, title, image, btn) => {
+window.toggleWatched = (id, title, image, forceState, type) => {
+    if (!state.watched[state.searchMode]) state.watched[state.searchMode] = [];
     const list = state.watched[state.searchMode];
     const index = list.findIndex(item => (typeof item === 'object' ? item.id : item) === id);
-    let isWatched = index === -1;
-    if (isWatched) list.push({ id, title, image });
-    else list.splice(index, 1);
+    
+    let isWatched = forceState !== undefined ? forceState : index === -1;
+    if (isWatched && index === -1) list.push({ id, title, image, type: type || 'ANIME' });
+    else if (!isWatched && index !== -1) list.splice(index, 1);
 
     import('../../state.js').then(m => m.saveSettings());
 
-    if (btn) {
-        const icon = btn.querySelector('i');
-        if (icon) {
-            icon.setAttribute('data-lucide', isWatched ? 'check-circle' : 'eye');
-            if (window.lucide) window.lucide.createIcons();
-        }
-        btn.classList.toggle('active', isWatched);
-        btn.setAttribute('title', isWatched ? 'Watched! (Click to Unmark)' : 'Mark as Watched');
-    }
     if (window.lucide) window.lucide.createIcons();
 
     // Update ALL cards (mini and main) across the entire session
@@ -131,10 +124,10 @@ window.toggleWatched = (id, title, image, btn) => {
     if (window.lucide) window.lucide.createIcons();
 };
 
-window.blockItem = (id, title, image, hideModal = false) => {
+window.blockItem = (id, title, image, hideModal = false, type) => {
     const list = state.blacklist[state.searchMode];
     if (!list.some(item => (typeof item === 'object' ? item.id : item) === id)) {
-        list.push({ id, title, image });
+        list.push({ id, title, image, type: type || 'ANIME' });
         import('../../state.js').then(m => m.saveSettings());
         
         document.querySelectorAll(`[data-id="${id}"]`).forEach(card => {
@@ -164,7 +157,7 @@ window.blockItem = (id, title, image, hideModal = false) => {
     }
 };
 
-window.toggleBlacklist = (id, title, image, forceState) => {
+window.toggleBlacklist = (id, title, image, forceState, type) => {
     if (!state.blacklist[state.searchMode]) state.blacklist[state.searchMode] = [];
     const list = state.blacklist[state.searchMode];
     const index = list.findIndex(item => (typeof item === 'object' ? item.id : item) === id);
@@ -172,7 +165,7 @@ window.toggleBlacklist = (id, title, image, forceState) => {
     const isAdding = forceState !== undefined ? forceState : (index === -1);
     
     if (isAdding) {
-        window.blockItem(id, title, image);
+        window.blockItem(id, title, image, false, type);
     } else {
         state.blacklist[state.searchMode] = state.blacklist[state.searchMode].filter(item => (typeof item === 'object' ? item.id : item) !== id);
         import('../../state.js').then(m => m.saveSettings());
@@ -195,22 +188,38 @@ window.toggleBlacklist = (id, title, image, forceState) => {
     }
 };
 
-export function openSeenManager() {
+export function openSeenManager(tabArg) {
+    const tab = tabArg || window.currentDiscoveryTab || 'ALL';
+    window.currentDiscoveryTab = tab;
     const list = [...(state.seen[state.searchMode] || [])].reverse();
+    const filteredList = tab === 'ALL' ? list : list.filter(i => (i.type || 'ANIME') === tab);
+    
+    const tabsHtml = state.searchMode === 'MEDIA' ? `
+        <div class="mgr-tabs">
+            <button class="mgr-tab-btn ${tab === 'ALL' ? 'active' : ''}" onclick="window.openSeenManager('ALL')">All</button>
+            <button class="mgr-tab-btn ${tab === 'ANIME' ? 'active' : ''}" onclick="window.openSeenManager('ANIME')">Anime</button>
+            <button class="mgr-tab-btn ${tab === 'MANGA' ? 'active' : ''}" onclick="window.openSeenManager('MANGA')">Manga</button>
+        </div>
+    ` : '';
+
     const content = `
         <div class="blacklist-manager seen-manager">
             <div class="mgr-header-row">
                 <h2>Seen History (${list.length})</h2>
                 ${list.length > 0 ? `<button class="text-btn clear-history-btn" onclick="window.clearDiscoveryList('seen')"><i data-lucide="trash-2"></i> Clear History</button>` : ''}
             </div>
+            ${tabsHtml}
             <div class="blacklist-items">
-                ${list.length === 0 ? '<div class="empty-state">No history yet.</div>' : list.map(item => `
+                ${filteredList.length === 0 ? '<div class="empty-state">No history here.</div>' : filteredList.map(item => `
                     <div class="blacklist-item">
                         <div class="blacklist-item-info">
                             ${item.image ? `<img src="${item.image}" class="blacklist-thumb">` : '<div class="blacklist-thumb-placeholder">?</div>'}
                             <span class="item-title">${item.title || `ID: ${item.id}`}</span>
                         </div>
-                        <button class="remove-btn" onclick="window.toggleSeen(${typeof item === 'object' ? item.id : item}, '', '', false); window.openSeenManager();"><i data-lucide="x-circle"></i></button>
+                        <div class="blacklist-item-right">
+                            ${(tab === 'ALL' && state.searchMode === 'MEDIA') ? `<span class="mgr-type-label mgr-${(item.type || 'ANIME').toLowerCase()}">${item.type || 'ANIME'}</span>` : ''}
+                            <button class="remove-btn" onclick="window.toggleSeen(${typeof item === 'object' ? item.id : item}, '', '', false); window.openSeenManager();"><i data-lucide="x-circle"></i></button>
+                        </div>
                     </div>`).join('')}
             </div>
         </div>`;
@@ -219,22 +228,38 @@ export function openSeenManager() {
     if (window.lucide) window.lucide.createIcons();
 }
 
-export function openWatchedManager() {
+export function openWatchedManager(tabArg) {
+    const tab = tabArg || window.currentDiscoveryTab || 'ALL';
+    window.currentDiscoveryTab = tab;
     const list = [...(state.watched[state.searchMode] || [])].reverse();
+    const filteredList = tab === 'ALL' ? list : list.filter(i => (i.type || 'ANIME') === tab);
+    
+    const tabsHtml = state.searchMode === 'MEDIA' ? `
+        <div class="mgr-tabs">
+            <button class="mgr-tab-btn ${tab === 'ALL' ? 'active' : ''}" onclick="window.openWatchedManager('ALL')">All</button>
+            <button class="mgr-tab-btn ${tab === 'ANIME' ? 'active' : ''}" onclick="window.openWatchedManager('ANIME')">Anime</button>
+            <button class="mgr-tab-btn ${tab === 'MANGA' ? 'active' : ''}" onclick="window.openWatchedManager('MANGA')">Manga</button>
+        </div>
+    ` : '';
+
     const content = `
         <div class="blacklist-manager watched-manager">
             <div class="mgr-header-row">
                 <h2>Watched List (${list.length})</h2>
                 ${list.length > 0 ? `<button class="text-btn clear-history-btn" onclick="window.clearDiscoveryList('watched')"><i data-lucide="trash-2"></i> Clear Watched</button>` : ''}
             </div>
+            ${tabsHtml}
             <div class="blacklist-items">
-                ${list.length === 0 ? '<div class="empty-state">No watched items yet.</div>' : list.map(item => `
+                ${filteredList.length === 0 ? '<div class="empty-state">No watched items here.</div>' : filteredList.map(item => `
                     <div class="blacklist-item">
                         <div class="blacklist-item-info">
                             ${item.image ? `<img src="${item.image}" class="blacklist-thumb">` : '<div class="blacklist-thumb-placeholder">?</div>'}
                             <span class="item-title">${item.title || `ID: ${item.id}`}</span>
                         </div>
-                        <button class="remove-btn" onclick="window.toggleWatched(${typeof item === 'object' ? item.id : item}, '', '', false); window.openWatchedManager();"><i data-lucide="x-circle"></i></button>
+                        <div class="blacklist-item-right">
+                            ${(tab === 'ALL' && state.searchMode === 'MEDIA') ? `<span class="mgr-type-label mgr-${(item.type || 'ANIME').toLowerCase()}">${item.type || 'ANIME'}</span>` : ''}
+                            <button class="remove-btn" onclick="window.toggleWatched(${typeof item === 'object' ? item.id : item}, '', '', false); window.openWatchedManager();"><i data-lucide="x-circle"></i></button>
+                        </div>
                     </div>`).join('')}
             </div>
         </div>`;
@@ -243,22 +268,38 @@ export function openWatchedManager() {
     if (window.lucide) window.lucide.createIcons();
 }
 
-export function openBlacklistManager() {
+export function openBlacklistManager(tabArg) {
+    const tab = tabArg || window.currentDiscoveryTab || 'ALL';
+    window.currentDiscoveryTab = tab;
     const list = [...(state.blacklist[state.searchMode] || [])].reverse();
+    const filteredList = tab === 'ALL' ? list : list.filter(i => (i.type || 'ANIME') === tab);
+    
+    const tabsHtml = state.searchMode === 'MEDIA' ? `
+        <div class="mgr-tabs">
+            <button class="mgr-tab-btn ${tab === 'ALL' ? 'active' : ''}" onclick="window.openBlacklistManager('ALL')">All</button>
+            <button class="mgr-tab-btn ${tab === 'ANIME' ? 'active' : ''}" onclick="window.openBlacklistManager('ANIME')">Anime</button>
+            <button class="mgr-tab-btn ${tab === 'MANGA' ? 'active' : ''}" onclick="window.openBlacklistManager('MANGA')">Manga</button>
+        </div>
+    ` : '';
+
     const content = `
         <div class="blacklist-manager">
             <div class="mgr-header-row">
                 <h2 style="color: #ef4444">Blacklisted Items (${list.length})</h2>
                 ${list.length > 0 ? `<button class="text-btn clear-history-btn" onclick="window.clearDiscoveryList('blacklist')"><i data-lucide="trash-2"></i> Clear Blacklist</button>` : ''}
             </div>
+            ${tabsHtml}
             <div class="blacklist-items">
-                ${list.length === 0 ? '<div class="empty-state">Your blacklist is empty.</div>' : list.map(item => `
+                ${filteredList.length === 0 ? '<div class="empty-state">Your blacklist is empty here.</div>' : filteredList.map(item => `
                     <div class="blacklist-item">
                         <div class="blacklist-item-info">
                             ${item.image ? `<img src="${item.image}" class="blacklist-thumb">` : '<div class="blacklist-thumb-placeholder">?</div>'}
                             <span class="item-title">${item.title || `ID: ${item.id}`}</span>
                         </div>
-                        <button class="remove-btn" onclick="window.toggleBlacklist(${typeof item === 'object' ? item.id : item}, '', '', false); window.openBlacklistManager();"><i data-lucide="x-circle"></i></button>
+                        <div class="blacklist-item-right">
+                            ${(tab === 'ALL' && state.searchMode === 'MEDIA') ? `<span class="mgr-type-label mgr-${(item.type || 'ANIME').toLowerCase()}">${item.type || 'ANIME'}</span>` : ''}
+                            <button class="remove-btn" onclick="window.toggleBlacklist(${typeof item === 'object' ? item.id : item}, '', '', false); window.openBlacklistManager();"><i data-lucide="x-circle"></i></button>
+                        </div>
                     </div>`).join('')}
             </div>
         </div>`;

@@ -72,10 +72,73 @@
 .item-title {
   font-weight: 600;
   font-size: 0.95rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   color: var(--text-primary);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.blacklist-item-right {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  flex-shrink: 0;
+  margin-left: 1.5rem;
+}
+
+/* Tabs UI for List Managers */
+.mgr-tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.25rem;
+  border-radius: var(--radius-md);
+  width: fit-content;
+}
+
+.mgr-tab-btn {
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.5rem 1.25rem;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mgr-tab-btn:hover {
+  color: #fff;
+}
+
+.mgr-tab-btn.active {
+  background: var(--accent-hover);
+  color: #111827;
+  font-weight: 700;
+}
+
+/* Specific Media Type Labels */
+.mgr-type-label {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mgr-anime {
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.mgr-manga {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 /* Polished Empty State for Blacklist Manager */

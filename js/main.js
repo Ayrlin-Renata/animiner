@@ -154,14 +154,12 @@ async function init() {
   };
 
   if (UI.blacklistBtn) {
-    UI.blacklistBtn?.addEventListener('click', openBlacklistManager);
+    UI.blacklistBtn?.addEventListener('click', () => openBlacklistManager('ALL'));
   }
-  UI.watchedBtn?.addEventListener('click', openWatchedManager);
+  UI.watchedBtn?.addEventListener('click', () => openWatchedManager('ALL'));
   
   if (UI.seenBtn) {
-    UI.seenBtn.addEventListener('click', () => {
-        import('./ui/modal/index.js').then(m => m.openSeenManager());
-    });
+    UI.seenBtn.addEventListener('click', () => openSeenManager('ALL'));
   }
   
   const showWatchedToggle = document.getElementById('showWatchedToggle');

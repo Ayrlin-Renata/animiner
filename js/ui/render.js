@@ -156,13 +156,13 @@ export function renderResultsList(rawItems, forceClear = false) {
       ${badgeHtml}
       <img src="${image || 'https://via.placeholder.com/200x300?text=No+Image'}" alt="${title}" loading="lazy">
       <div class="card-actions-top">
-        <button class="action-card-btn seen-btn ${isSeen ? 'active' : ''}" title="${isSeen ? 'Unmark Seen' : 'Mark as Seen'}" onclick="event.stopPropagation(); window.toggleSeen(${item.id}, '${(title || '').replace(/'/g, "\\'")}', '${image || ''}')">
+        <button class="action-card-btn seen-btn ${isSeen ? 'active' : ''}" title="${isSeen ? 'Unmark Seen' : 'Mark as Seen'}" onclick="event.stopPropagation(); window.toggleSeen(${item.id}, '${(title || '').replace(/'/g, "\\'")}', '${image || ''}', undefined, '${item.type || 'ANIME'}')">
           <i data-lucide="eye"></i>
         </button>
-        <button class="action-card-btn watched-btn ${isWatched ? 'active' : ''}" title="${isWatched ? 'Unmark Watched' : 'Mark as Watched'}" onclick="event.stopPropagation(); window.toggleWatched(${item.id}, '${(title || '').replace(/'/g, "\\'")}', '${image || ''}')">
+        <button class="action-card-btn watched-btn ${isWatched ? 'active' : ''}" title="${isWatched ? 'Unmark Watched' : 'Mark as Watched'}" onclick="event.stopPropagation(); window.toggleWatched(${item.id}, '${(title || '').replace(/'/g, "\\'")}', '${image || ''}', undefined, '${item.type || 'ANIME'}')">
           <i data-lucide="check-circle"></i>
         </button>
-        <button class="action-card-btn block-btn ${isBlacklisted ? 'active' : ''}" title="${isBlacklisted ? 'Remove Block' : 'Block this result'}" onclick="event.stopPropagation(); window.blockItem(${item.id}, '${(title || '').replace(/'/g, "\\'")}', '${image || ''}')">
+        <button class="action-card-btn block-btn ${isBlacklisted ? 'active' : ''}" title="${isBlacklisted ? 'Remove Block' : 'Block this result'}" onclick="event.stopPropagation(); window.blockItem(${item.id}, '${(title || '').replace(/'/g, "\\'")}', '${image || ''}', false, '${item.type || 'ANIME'}')">
           <i data-lucide="shield-off"></i>
         </button>
       </div>
