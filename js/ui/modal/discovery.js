@@ -359,22 +359,84 @@ window.checkAllFilterStatus = async (mediaItem) => {
         // We'll proceed but carefully. AniList gives us 90/min.
     }
 
+    const deeplyCheckGroup = (item, groupRule, softFails) => {
+        const subRules = groupRule.rules || [];
+        let allSubsSoftOrPass = true;
+        subRules.forEach(sr => {
+            const srMatch = evaluateRule(item, sr);
+            if (!srMatch.success) {
+                if (sr.type === 'GROUP') {
+                    if (!deeplyCheckGroup(item, sr, softFails)) allSubsSoftOrPass = false;
+                } else if (sr.path === 'format' || sr.path === 'status') {
+                    if (!softFails.includes(sr.path)) softFails.push(sr.path);
+                } else {
+                    allSubsSoftOrPass = false;
+                }
+            }
+        });
+        return allSubsSoftOrPass;
+    };
+
     try {
         const results = await fetchBulkMedia(idList);
         results.forEach(item => {
-            const matchResult = state.rules.every(rule => evaluateRule(item, rule).success);
+            let hardFail = false;
+            let softFails = [];
             
+            state.rules.forEach(rule => {
+                const matchResult = evaluateRule(item, rule);
+                if (!matchResult.success) {
+                    if (rule.type === 'GROUP') {
+                        if (!deeplyCheckGroup(item, rule, softFails)) hardFail = true;
+                    } else if (rule.path === 'format' || rule.path === 'status') {
+                        if (!softFails.includes(rule.path)) softFails.push(rule.path);
+                    } else {
+                        hardFail = true;
+                    }
+                }
+            });
+            
+            const isMatch = !hardFail && softFails.length === 0;
+            const isSoftFail = !hardFail && softFails.length > 0;
+
             const cards = document.querySelectorAll(`.mini-card[data-id="${item.id}"]`);
             cards.forEach(card => {
                 card.classList.remove('checking-match');
                 
-                if (!matchResult) {
+                if (hardFail) {
                     card.classList.add('match-fail');
                     // Add no-match indicator icon
                     const indicator = document.createElement('div');
                     indicator.className = 'match-indicator fail';
                     indicator.innerHTML = '<i data-lucide="filter-x"></i>';
                     card.appendChild(indicator);
+                } else if (isMatch || isSoftFail) {
+                    // Inject newly fetched formatted strings, highlighting if soft-failed
+                    const metaEl = card.querySelector('.mini-meta');
+                    if (metaEl) {
+                        const fmtStr = item.format ? item.format.replace(/_/g, ' ') : '';
+                        const stStr = item.status ? item.status.replace(/_/g, ' ') : '';
+                        
+                        let displayFmt = fmtStr;
+                        if (softFails.includes('format') && fmtStr) {
+                             displayFmt = `<span class="soft-fail-text">${fmtStr}</span>`;
+                        }
+                        
+                        let displaySt = stStr;
+                        if (softFails.includes('status') && stStr) {
+                             displaySt = `<span class="soft-fail-text">${stStr}</span>`;
+                        }
+                        
+                        const parts = [];
+                        if (fmtStr) parts.push(displayFmt);
+                        if (stStr) parts.push(displaySt);
+                        
+                        if (parts.length > 0) {
+                            metaEl.innerHTML = parts.join(' · ');
+                        } else if (item.type) {
+                            metaEl.innerHTML = item.type;
+                        }
+                    }
                 }
             });
         });

@@ -201,6 +201,11 @@
 .tag-rank { font-weight: 600; opacity: 0.7; }
 .tag-list-item.spoiler { border-left: 2px solid var(--danger-color); }
 
+.soft-fail-text {
+    color: #ef4444;
+    font-weight: 600;
+}
+
 .stats-distributions {
   display: flex;
   flex-direction: column;
