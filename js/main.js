@@ -141,6 +141,20 @@ async function init() {
     saveSettings();
   };
 
+  if (UI.mediaType) {
+    UI.mediaType.onchange = () => {
+        updateStateFromUI();
+        saveSettings();
+    };
+  }
+
+  if (UI.mediaSort) {
+    UI.mediaSort.onchange = () => {
+        updateStateFromUI();
+        saveSettings();
+    };
+  }
+
   UI.closeModal.onclick = () => {
     UI.modalOverlay.classList.add('hidden');
     document.body.style.overflow = 'auto';
