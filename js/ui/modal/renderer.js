@@ -7,32 +7,32 @@ import { state } from '../../state.js';
 import { highlightText, formatDescription, getAnilistUrl, renderStatusBadge } from './logic.js';
 
 export function renderMediaContent(item) {
-    const details = item._matchDetails || {};
-    const genresList = item.genres?.map(g => {
-        const terms = details['genres'] || [];
-        const isMatch = terms.some(t => new RegExp(`\\b${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(g));
-        return `<span class="tag ${isMatch ? 'match-highlight-tag' : ''}">${highlightText(g, terms)}</span>`;
-    }) || [];
-    
-    if (item.isAdult) {
-        genresList.unshift('<span class="tag adult-tag">18+ Adult</span>');
-    }
-    const genres = genresList.join(' ');
+  const details = item._matchDetails || {};
+  const genresList = item.genres?.map(g => {
+    const terms = details['genres'] || [];
+    const isMatch = terms.some(t => new RegExp(`\\b${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(g));
+    return `<span class="tag ${isMatch ? 'match-highlight-tag' : ''}">${highlightText(g, terms)}</span>`;
+  }) || [];
 
-    const studios = item.studios?.edges?.filter(e => e.isMain).map(e => e.node.name).join(', ') || 'Unknown';
-    const sourceFormatted = item.source?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) || '?';
-    
-    const allTags = (item.tags || []).sort((a, b) => b.rank - a.rank);
-    const visibleTags = allTags.filter(t => !t.isGeneralSpoiler && !t.isMediaSpoiler);
-    const spoilerTags = allTags.filter(t => t.isGeneralSpoiler || t.isMediaSpoiler);
+  if (item.isAdult) {
+    genresList.unshift('<span class="tag adult-tag">Adult</span>');
+  }
+  const genres = genresList.join(' ');
 
-    const trailerHtml = item.trailer && item.trailer.site === 'youtube' 
-        ? `<div class="section-title">Trailer</div>
+  const studios = item.studios?.edges?.filter(e => e.isMain).map(e => e.node.name).join(', ') || 'Unknown';
+  const sourceFormatted = item.source?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) || '?';
+
+  const allTags = (item.tags || []).sort((a, b) => b.rank - a.rank);
+  const visibleTags = allTags.filter(t => !t.isGeneralSpoiler && !t.isMediaSpoiler);
+  const spoilerTags = allTags.filter(t => t.isGeneralSpoiler || t.isMediaSpoiler);
+
+  const trailerHtml = item.trailer && item.trailer.site === 'youtube'
+    ? `<div class="section-title">Trailer</div>
            <div class="video-container">
              <iframe src="https://www.youtube.com/embed/${item.trailer.id}" frameborder="0" allowfullscreen></iframe>
            </div>` : '';
 
-    const relationsHtml = item.relations?.edges?.length ? `
+  const relationsHtml = item.relations?.edges?.length ? `
         <div class="expandable-section ${item.relations.edges.length > 5 ? 'has-more' : ''}">
             <div class="section-title">Relations</div>
             <div class="expandable-grid mini-grid ${item.relations.edges.length > 5 ? 'is-collapsed' : ''}">
@@ -76,14 +76,14 @@ export function renderMediaContent(item) {
         </div>
     ` : '';
 
-    const recommendationsHtml = item.recommendations?.nodes?.length ? `
+  const recommendationsHtml = item.recommendations?.nodes?.length ? `
         <div class="expandable-section has-more">
             <div class="section-title">Recommendations</div>
             <div class="expandable-grid mini-grid is-collapsed">
                 ${item.recommendations.nodes.map(n => {
-                    const rec = n.mediaRecommendation;
-                    if (!rec) return '';
-                    return `
+    const rec = n.mediaRecommendation;
+    if (!rec) return '';
+    return `
                         <a href="https://anilist.co/${rec.type.toLowerCase()}/${rec.id}" 
                            target="_blank" 
                            class="mini-card glass-dark vertical no-style" 
@@ -112,7 +112,7 @@ export function renderMediaContent(item) {
                         ` : ''}
                     </a>
                     `;
-                }).join('')}
+  }).join('')}
             </div>
             <button class="expand-btn glass-light hidden" onclick="window.toggleSection(this)">
                 <span>Show More</span>
@@ -121,7 +121,7 @@ export function renderMediaContent(item) {
         </div>
     ` : '';
 
-    const statsHtml = item.stats ? `
+  const statsHtml = item.stats ? `
         <div class="section-title">Statistics</div>
         <div class="stats-distributions">
             <div class="dist-group">
@@ -139,11 +139,11 @@ export function renderMediaContent(item) {
                 <h4>Score Distribution</h4>
                 <div class="dist-bar scores">
                     ${item.stats.scoreDistribution.map(d => {
-                        const maxAmount = Math.max(...item.stats.scoreDistribution.map(sd => sd.amount));
-                        return `
+    const maxAmount = Math.max(...item.stats.scoreDistribution.map(sd => sd.amount));
+    return `
                             <div class="bar-seg score" style="height: ${(d.amount / maxAmount * 100).toFixed(1)}%; width: calc(10% - 2px); background: var(--accent-color)" title="${d.score}: ${d.amount.toLocaleString()}"></div>
                         `;
-                    }).join('')}
+  }).join('')}
                 </div>
                 <div class="dist-legend">
                   <span class="legend-item">Score (10-100)</span>
@@ -152,7 +152,7 @@ export function renderMediaContent(item) {
         </div>
     ` : '';
 
-    const linksHtml = item.externalLinks?.length ? `
+  const linksHtml = item.externalLinks?.length ? `
         <div class="external-links">
             ${item.externalLinks.map(l => `
                 <a href="${l.url}" target="_blank" class="ext-link" style="background: ${l.color || 'rgba(255,255,255,0.1)'}">
@@ -162,20 +162,20 @@ export function renderMediaContent(item) {
         </div>
     ` : '';
 
-    const anilistUrl = getAnilistUrl(item);
-    const isWatched = state.watched[state.searchMode]?.some(w => (typeof w === 'object' ? w.id : w) === item.id);
-    
-    // Wrap in a setTimeout to ensure the DOM is updated before we start targeting elements
-    setTimeout(() => {
-        if (window.checkAllFilterStatus) {
-            window.checkAllFilterStatus(item);
-        }
-        if (window.lucide) {
-            window.lucide.createIcons();
-        }
-    }, 10);
+  const anilistUrl = getAnilistUrl(item);
+  const isWatched = state.watched[state.searchMode]?.some(w => (typeof w === 'object' ? w.id : w) === item.id);
 
-    return `
+  // Wrap in a setTimeout to ensure the DOM is updated before we start targeting elements
+  setTimeout(() => {
+    if (window.checkAllFilterStatus) {
+      window.checkAllFilterStatus(item);
+    }
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
+  }, 10);
+
+  return `
       <div class="media-details-container">
       <div class="modal-banner" style="background-image: url('${item.bannerImage || item.coverImage.extraLarge}')"></div>
       <div class="modal-header-content">
@@ -227,25 +227,25 @@ export function renderMediaContent(item) {
             <div class="section-title small">Tags</div>
             <div class="tag-list">
               ${visibleTags.map(t => {
-                const terms = details['tags.name'] || [];
-                const isMatch = terms.some(mt => new RegExp(`\\b${mt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(t.name));
-                return `
+    const terms = details['tags.name'] || [];
+    const isMatch = terms.some(mt => new RegExp(`\\b${mt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(t.name));
+    return `
                   <div class="tag-list-item ${isMatch ? 'match-highlight-tag' : ''}">
                     <span class="tag-name">${highlightText(t.name, terms)}</span>
                     <span class="tag-rank">${t.rank}%</span>
                   </div>`;
-              }).join('')}
+  }).join('')}
               ${spoilerTags.length ? `<button class="text-btn spoiler-toggle" onclick="this.nextElementSibling.classList.toggle('hidden')">Show Spoiler Tags (+${spoilerTags.length})</button>
               <div class="tag-list hidden">
                 ${spoilerTags.map(t => {
-                  const terms = details['tags.name'] || [];
-                  const isMatch = terms.some(mt => new RegExp(`\\b${mt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(t.name));
-                  return `
+    const terms = details['tags.name'] || [];
+    const isMatch = terms.some(mt => new RegExp(`\\b${mt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(t.name));
+    return `
                     <div class="tag-list-item spoiler ${isMatch ? 'match-highlight-tag' : ''}">
                       <span class="tag-name">${highlightText(t.name, terms)}</span>
                       <span class="tag-rank">${t.rank}%</span>
                     </div>`;
-                }).join('')}
+  }).join('')}
               </div>` : ''}
             </div>
           </div>
@@ -260,9 +260,9 @@ export function renderMediaContent(item) {
               <div class="section-title">Characters</div>
               <div class="expandable-grid char-grid is-collapsed">
                 ${item.characters.edges.map(e => {
-                  const nativeVA = e.voiceActors?.find(va => va.languageV2 === 'Japanese');
-                  const vaLabel = nativeVA ? `${nativeVA.name.full} (Japanese)` : 'No VA info';
-                  return `
+    const nativeVA = e.voiceActors?.find(va => va.languageV2 === 'Japanese');
+    const vaLabel = nativeVA ? `${nativeVA.name.full} (Japanese)` : 'No VA info';
+    return `
                   <div class="char-card glass-dark" style="background-image: url('${e.node.image?.large}')">
                     <div class="char-card-overlay"></div>
                     <div class="char-link">
@@ -297,7 +297,7 @@ export function renderMediaContent(item) {
                         </div>
                       </div>` : ''}
                   </div>`;
-                }).join('')}
+  }).join('')}
               </div>
               <button class="expand-btn glass-light hidden" onclick="window.toggleSection(this)">
                 <span>Show More</span>
@@ -320,8 +320,8 @@ export function renderMediaContent(item) {
               <div class="section-title">Staff</div>
               <div class="expandable-grid char-grid is-collapsed">
                 ${[...item.staff.edges]
-                  .sort((a, b) => window.getStaffPriority(b.role) - window.getStaffPriority(a.role))
-                  .map(e => `
+        .sort((a, b) => window.getStaffPriority(b.role) - window.getStaffPriority(a.role))
+        .map(e => `
                   <a href="https://anilist.co/staff/${e.node.id}" target="_blank" class="char-card no-style" style="background-image: url('${e.node.image?.large}')">
                     <div class="char-card-overlay"></div>
                     <div class="char-link">
@@ -348,11 +348,11 @@ export function renderMediaContent(item) {
 }
 
 export function renderStaffContent(item) {
-    const title = item.name?.full || item.name;
-    const subTitle = item.name?.native || '';
-    const image = item.image?.large || item.avatar?.large || (item.media?.nodes?.[0]?.coverImage?.medium) || '';
-    const anilistUrl = getAnilistUrl(item);
-    return `
+  const title = item.name?.full || item.name;
+  const subTitle = item.name?.native || '';
+  const image = item.image?.large || item.avatar?.large || (item.media?.nodes?.[0]?.coverImage?.medium) || '';
+  const anilistUrl = getAnilistUrl(item);
+  return `
       <div class="modal-header-content simple">
         <img src="${image}" class="modal-poster clickable" onclick="window.openLightbox('${image}')" title="View Full Image">
         <div class="modal-title-area">
