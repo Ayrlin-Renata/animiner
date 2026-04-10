@@ -300,8 +300,10 @@ export function evaluateRule(item, rule) {
                 case 'ALL':
                 case 'EVERY':      return { success: subResults.every(r => r.success), matches };
                 case 'ANY':
-                case 'SOME':       return { success: subResults.some(r => r.success), matches };
-                case 'NONE':        return { success: !subResults.some(r => r.success), matches: {} };
+                case 'SOME':       
+                case 'SOME_ANY':   return { success: subResults.some(r => r.success), matches };
+                case 'NONE':        
+                case 'NONE_ANY':   return { success: !subResults.some(r => r.success), matches: {} };
                 case 'NOT_ALL':     return { success: !subResults.every(r => r.success), matches: {} };
                 default:            return { success: true, matches: {} };
             }

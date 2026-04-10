@@ -226,29 +226,51 @@ export function addGroupUI(initialData = null, parentContainer = null) {
 
     const updateGroupContext = () => {
         const isLogic = pathSelect.value === 'ROOT';
+        
+        // Disable redundant fuzzy match options for Logic Containers
+        const optSomeAny = quantSelect.querySelector('option[value="SOME_ANY"]');
+        const optNoneAny = quantSelect.querySelector('option[value="NONE_ANY"]');
+        if (optSomeAny) optSomeAny.disabled = isLogic;
+        if (optNoneAny) optNoneAny.disabled = isLogic;
+        
+        // Fallback to strict equivalents if switching to Logic with a disabled option selected
+        if (isLogic && quantSelect.value === 'SOME_ANY') quantSelect.value = 'ANY';
+        if (isLogic && quantSelect.value === 'NONE_ANY') quantSelect.value = 'NONE';
+        
         const quantifier = quantSelect.value;
-        const isAny = quantifier === 'ANY';
+        
+        let isOr = false;
+        let isNegated = false;
+        
+        if (isLogic) {
+            isOr = ['ANY', 'SOME_ANY', 'NONE', 'NONE_ANY'].includes(quantifier);
+            isNegated = ['NONE', 'NONE_ANY', 'NOT_ALL'].includes(quantifier);
+        } else {
+            isOr = ['SOME_ANY', 'NONE_ANY'].includes(quantifier);
+            isNegated = ['NONE', 'NOT_ALL', 'NONE_ANY'].includes(quantifier);
+        }
 
         box.classList.toggle('logic-group', isLogic);
         box.classList.toggle('collection-group', !isLogic); // Add blue theme class
+        box.classList.toggle('any-logic', isOr);
+        box.classList.toggle('negated-group', isNegated);
+
         box.querySelector('.group-name').textContent = isLogic ? 'Logic Container' : 'Collection Group';
         
         box.querySelector('.collection-icon').classList.toggle('hidden', isLogic);
         box.querySelector('.logic-icon').classList.toggle('hidden', !isLogic);
-
-        box.classList.toggle('any-logic', isLogic && isAny);
 
         // Tag container for DND validation
         container.dataset.accepts = isLogic ? 'MEDIA' : pathSelect.value;
         box.dataset.context = isLogic ? 'MEDIA' : 'GROUP';
 
         const quantifierText = {
-            ALL: isLogic ? 'Matches if ALL of these rules pass (AND logic).' : 'Requirement: Every single entry must match THIS entire profile.',
-            ANY: isLogic ? 'Matches if ANY of these rules pass (OR logic).' : 'Requirement: At least one entry must match THIS entire profile.',
-            NONE: isLogic ? 'Matches only if NONE of these rules pass (NOT logic).' : 'Exclusion: No entry in this list can match THIS entire profile.',
-            NOT_ALL: isLogic ? 'Matches if at least one rule FAILS (NOT ALL logic).' : 'Exclusion: At least one entry in this list must fail this profile.',
-            SOME_ANY: 'Fuzzy Match: At least one entry must match AT LEAST ONE of these rules.',
-            NONE_ANY: 'Strict Exclusion: No entry in this list can match EVEN ONE of these rules.'
+            ALL: isLogic ? 'Matches only if ALL of these rules are true.' : 'Requirement: EVERY item in this list must match this ENTIRE profile.',
+            ANY: isLogic ? 'Matches if AT LEAST ONE of these rules is true.' : 'Requirement: AT LEAST ONE item in this list must match this ENTIRE profile.',
+            NONE: isLogic ? 'Matches only if NONE of these rules are true.' : 'Exclusion: NO item in this list can match this ENTIRE profile.',
+            NOT_ALL: isLogic ? 'Matches if AT LEAST ONE of these rules is false.' : 'Requirement: AT LEAST ONE item in this list must fail this profile.',
+            SOME_ANY: 'Fuzzy: AT LEAST ONE item in this list must match at least ONE of these rules.',
+            NONE_ANY: 'Strict Exclusion: NO item in this list can match even ONE of these rules.'
         };
         box.querySelector('.group-help-text').textContent = quantifierText[quantifier];
     };
@@ -415,18 +437,23 @@ export function addRelationGroupUI(initialData = null, parentContainer = null) {
     const updateRelationContext = () => {
         const rt = relTypeSelect.value === 'ANY' ? 'any relation' : relTypeSelect.value.replace(/_/g, ' ').toLowerCase();
         const qt = quantSelect.value;
+        
+        const isOr = ['SOME_ANY', 'NONE_ANY'].includes(qt);
+        const isNegated = ['NONE', 'NOT_ALL', 'NONE_ANY'].includes(qt);
+        
         const texts = {
-            NONE:     `Excludes items that have any ${rt} matching this profile.`,
-            ANY:      `Matches if at least one ${rt} matches this profile.`,
-            ALL:      `Matches if every single ${rt} matches this profile.`,
-            NOT_ALL:  `Matches if at least one ${rt} fails to match this profile.`,
-            SOME_ANY: `Fuzzy: Matches if any ${rt} matches at least one of these rules.`,
-            NONE_ANY: `Strict: Excludes if any ${rt} matches even one of these rules.`
+            ALL:      `Requirement: EVERY ${rt} must match this ENTIRE profile.`,
+            ANY:      `Requirement: AT LEAST ONE ${rt} must match this ENTIRE profile.`,
+            NONE:     `Exclusion: NO ${rt} can match this ENTIRE profile.`,
+            NOT_ALL:  `Requirement: AT LEAST ONE ${rt} must fail this profile.`,
+            SOME_ANY: `Fuzzy: AT LEAST ONE ${rt} must match at least ONE of these rules.`,
+            NONE_ANY: `Strict Exclusion: NO ${rt} can match even ONE of these rules.`
         };
         box.querySelector('.group-help-text').textContent = texts[qt];
         
-        // Also toggle logic connectors class
-        box.classList.toggle('any-logic', qt === 'ANY');
+        // Toggle logic connectors class and negated state
+        box.classList.toggle('any-logic', isOr);
+        box.classList.toggle('negated-group', isNegated);
     };
 
     const addSubRule = (data = null) => {

@@ -297,6 +297,27 @@
   line-height: 1.4;
   background: rgba(0, 0, 0, 0.2);
   border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+}
+
+.negated-group > .group-help-text::after {
+  content: 'NOT';
+  position: absolute;
+  bottom: -11px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: block;
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #ef4444;
+  background: rgba(26, 38, 54, 0.98);
+  width: 44px;
+  padding: 0.2rem 0;
+  border-radius: 4px;
+  letter-spacing: 0.1em;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  z-index: 10;
 }
 
 .logic-group .group-help-text {
