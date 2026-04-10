@@ -380,12 +380,19 @@ export function evaluateRule(item, rule, callStack = new Set()) {
     }
 
     if (rule.type === 'RELATION') {
-        const { relationType, quantifier } = rule;
+        let { relationTypes, relationType, quantifier, isOptional } = rule;
+        
+        // Backwards compatibility migration
+        if (!relationTypes) relationTypes = relationType ? [relationType] : ['ANY'];
+
         const subRules = rule.rules || [];
         const relations = item.relations?.edges || [];
         
-        const filteredRels = relationType === 'ANY' ? relations : relations.filter(e => e.relationType === relationType);
-        if (filteredRels.length === 0) return { success: quantifier === 'NONE', matches: {} };
+        const filteredRels = relationTypes.includes('ANY') ? relations : relations.filter(e => relationTypes.includes(e.relationType));
+        if (filteredRels.length === 0) {
+            if (isOptional) return { success: true, matches: {} };
+            return { success: quantifier === 'NONE', matches: {} };
+        }
 
         const subResults = filteredRels.map(edge => {
             const entryResults = subRules.map(sr => evaluateRule(edge.node, sr, callStack));

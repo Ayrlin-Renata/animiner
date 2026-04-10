@@ -328,7 +328,11 @@ function collectRulesRecursive(container) {
 }
 
 function parseRelationBox(box) {
-  const relationType = box.querySelector('.group-rel-type')?.value || 'ANY';
+  const checkboxes = Array.from(box.querySelectorAll('.multi-select-dropdown input:checked')).map(cb => cb.value);
+  const relationTypes = checkboxes.length ? checkboxes : ['ANY'];
+  const reqSelect = box.querySelector('.group-requirement');
+  const isOptional = reqSelect ? reqSelect.value === 'OPTIONAL' : false;
+
   const quantifier   = box.querySelector('.group-quantifier')?.value || 'NONE';
   const alias        = box.querySelector('.group-label-input')?.value.trim() || undefined;
   const collapsed    = box.classList.contains('collapsed');
@@ -336,8 +340,9 @@ function parseRelationBox(box) {
   
   const rule = {
     type: 'RELATION',
-    relationType,
+    relationTypes,
     quantifier,
+    isOptional,
     alias,
     collapsed,
     rules: collectRulesRecursive(container)

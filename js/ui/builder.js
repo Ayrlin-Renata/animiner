@@ -7,6 +7,7 @@ import { UI, syncUI, updateDatalist } from './base.js';
 import { state } from '../state.js';
 import { FIELDS, RECURSIVE_CATEGORIES, SEARCH_MODE_CATEGORIES, OPERATORS_BY_TYPE, COLLECTION_PATHS, GROUP_TYPES, SUB_FIELDS, RELATION_TYPES, RELATION_FIELDS } from '../filter.js';
 import { createCombobox } from './combobox.js';
+import { createMultiSelect } from './multiselect.js';
 
 // Global Drop Indicator Element
 const dropIndicator = document.createElement('div');
@@ -431,9 +432,11 @@ export function addRelationGroupUI(initialData = null, parentContainer = null) {
                 <input type="text" class="group-label-input" placeholder="Alias / Name" spellcheck="false" />
             </div>
             <div class="group-controls">
-                <select class="group-rel-type" title="Relation Type">
-                    ${RELATION_TYPES.map(t => `<option value="${t}">${t === 'ANY' ? 'Any Relation' : t.replace(/_/g, ' ')}</option>`).join('')}
+                <select class="group-requirement" title="Requirement Level">
+                    <option value="REQUIRED">Required</option>
+                    <option value="OPTIONAL">Optional</option>
                 </select>
+                <div class="multi-select-placeholder"></div>
                 <select class="group-quantifier">
                     <option value="NONE">has NONE that match</option>
                     <option value="ANY">has SOME that match</option>
@@ -458,25 +461,44 @@ export function addRelationGroupUI(initialData = null, parentContainer = null) {
         </div>
     `;
 
-    const relTypeSelect = box.querySelector('.group-rel-type');
+    const reqSelect = box.querySelector('.group-requirement');
     const quantSelect = box.querySelector('.group-quantifier');
     const container = box.querySelector('.group-rules-container');
+    const placeholder = box.querySelector('.multi-select-placeholder');
+    
     container.dataset.accepts = 'MEDIA';
 
+    // Initialize Multi-Select Component
+    const multiSelectOptions = RELATION_TYPES.map(t => ({ 
+        value: t, 
+        label: t === 'ANY' ? 'Any Relation' : t.replace(/_/g, ' ') 
+    }));
+
+    const initialTypes = initialData ? (initialData.relationTypes || (initialData.relationType ? [initialData.relationType] : ['ANY'])) : ['ANY'];
+
+    const multiSelect = createMultiSelect(multiSelectOptions, initialTypes, () => {
+        updateRelationContext();
+    });
+
+    placeholder.replaceWith(multiSelect);
+
     const updateRelationContext = () => {
-        const rt = relTypeSelect.value === 'ANY' ? 'any relation' : relTypeSelect.value.replace(/_/g, ' ').toLowerCase();
+        const checked = Array.from(multiSelect.querySelectorAll('input:checked')).map(cb => cb.value);
+        const rt = checked.length === 0 || checked.includes('ANY') ? 'any relation' : checked.map(c => c.replace(/_/g, ' ').toLowerCase()).join(' or ');
         const qt = quantSelect.value;
+        const isOpt = reqSelect.value === 'OPTIONAL';
 
         const isOr = ['SOME_ANY', 'NONE_ANY'].includes(qt);
         const isNegated = ['NONE', 'NOT_ALL', 'NONE_ANY'].includes(qt);
 
+        const prefix = isOpt ? '[Optional] ' : '[Required] ';
         const texts = {
-            ALL: `Requirement: EVERY ${rt} must match this ENTIRE profile.`,
-            ANY: `Requirement: AT LEAST ONE ${rt} must match this ENTIRE profile.`,
-            NONE: `Exclusion: NO ${rt} can match this ENTIRE profile.`,
-            NOT_ALL: `Requirement: AT LEAST ONE ${rt} must fail this profile.`,
-            SOME_ANY: `Fuzzy: AT LEAST ONE ${rt} must match at least ONE of these rules.`,
-            NONE_ANY: `Strict Exclusion: NO ${rt} can match even ONE of these rules.`
+            ALL: `${prefix} EVERY matching ${rt} must match this ENTIRE profile.`,
+            ANY: `${prefix} AT LEAST ONE matching ${rt} must match this ENTIRE profile.`,
+            NONE: `${prefix} NO matching ${rt} can match this ENTIRE profile.`,
+            NOT_ALL: `${prefix} AT LEAST ONE matching ${rt} must fail this profile.`,
+            SOME_ANY: `${prefix} (Fuzzy) AT LEAST ONE matching ${rt} must match at least ONE of these rules.`,
+            NONE_ANY: `${prefix} (Strict Exclude) NO matching ${rt} can match even ONE of these rules.`
         };
         box.querySelector('.group-help-text').textContent = texts[qt];
 
@@ -497,7 +519,7 @@ export function addRelationGroupUI(initialData = null, parentContainer = null) {
     box.querySelector('.add-relation-rule-btn').onclick = () => addSubRule();
     box.querySelector('.add-sub-group-btn').onclick = () => addSubGroup();
     box.querySelector('.remove-btn').onclick = () => box.remove();
-    relTypeSelect.onchange = updateRelationContext;
+    reqSelect.onchange = updateRelationContext;
     quantSelect.onchange = updateRelationContext;
 
     box.querySelector('.collapse-btn').onclick = () => {
@@ -508,8 +530,9 @@ export function addRelationGroupUI(initialData = null, parentContainer = null) {
     // Load saved state
     if (initialData) {
         if (initialData.collapsed) box.classList.add('collapsed');
-        relTypeSelect.value = initialData.relationType || 'ANY';
+        reqSelect.value = initialData.isOptional ? 'OPTIONAL' : 'REQUIRED';
         quantSelect.value = initialData.quantifier || 'NONE';
+        
         if (initialData.alias) {
             box.querySelector('.group-label-input').value = initialData.alias;
         }

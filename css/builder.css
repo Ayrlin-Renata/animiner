@@ -191,12 +191,8 @@
   gap: 0.6rem;
 }
 
-.group-rel-type {
-  min-width: 140px;
-  width: auto;
-}
-
-.relation-group .group-quantifier {
+.relation-group .group-quantifier,
+.relation-group .group-requirement {
   min-width: 120px;
   width: auto;
 }
