@@ -119,10 +119,8 @@
 }
 
 /* Logic indicators (AND/OR) */
-#rootGroup>.rule-row:not(:last-child)::after,
-#rootGroup>.rule-group-box:not(:last-child)::after,
-.group-rules-container>.rule-row:not(:last-child)::after,
-.group-rules-container>.rule-group-box:not(:last-child)::after {
+#rootGroup > :is(.rule-row, .rule-group-box):has(+ :is(.rule-row, .rule-group-box))::after,
+.group-rules-container > :is(.rule-row, .rule-group-box):has(+ :is(.rule-row, .rule-group-box))::after {
   content: 'AND';
   position: absolute;
   bottom: -15px;
@@ -143,16 +141,14 @@
 }
 
 /* OR Logic for ANY Logic Groups and ANY Relation Groups */
-.any-logic>.group-rules-container>.rule-row:not(:last-child)::after,
-.any-logic>.group-rules-container>.rule-group-box:not(:last-child)::after {
+.any-logic > .group-rules-container > :is(.rule-row, .rule-group-box):has(+ :is(.rule-row, .rule-group-box))::after {
   content: 'OR';
   color: #fbbf24;
   border-color: rgba(245, 166, 35, 0.4);
 }
 
-#rootGroup>.rule-row:not(:last-child),
-#rootGroup>.rule-group-box:not(:last-child),
-.group-rules-container>.rule-row:not(:last-child) {
+#rootGroup > :is(.rule-row, .rule-group-box):has(+ :is(.rule-row, .rule-group-box)),
+.group-rules-container > :is(.rule-row, .rule-group-box):has(+ :is(.rule-row, .rule-group-box)) {
   margin-bottom: 2.5rem;
 }
 

@@ -99,7 +99,8 @@
 }
 
 .share-btn-pill {
-  background: rgba(146, 86, 243, 0.08); /* More subtle */
+  background: rgba(146, 86, 243, 0.08);
+  /* More subtle */
   color: var(--accent-hover);
   border: 1px solid rgba(146, 86, 243, 0.2);
   border-radius: 20px;
@@ -131,7 +132,8 @@
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-secondary);
   border-color: var(--glass-border);
-  margin-right: 0; /* Align side-by-side without extra margin */
+  margin-right: 0;
+  /* Align side-by-side without extra margin */
 }
 
 .share-btn-pill.secondary:hover {
@@ -201,7 +203,8 @@
   gap: 0.8rem;
   cursor: pointer;
   user-select: none;
-  height: 48px; /* Match input height */
+  height: 48px;
+  /* Match input height */
   white-space: nowrap;
 }
 
@@ -234,12 +237,12 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.switch-container input:checked + .switch-slider {
+.switch-container input:checked+.switch-slider {
   background: rgba(16, 185, 129, 0.2);
   border-color: var(--success-color);
 }
 
-.switch-container input:checked + .switch-slider:before {
+.switch-container input:checked+.switch-slider:before {
   transform: translateX(20px);
   background: var(--success-color);
   box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
@@ -295,11 +298,12 @@
 }
 
 .action-card-btn:hover {
-  background: rgba(0,0,0,0.8);
+  background: rgba(0, 0, 0, 0.8);
   transform: scale(1.1);
 }
 
-.action-card-btn.watched-btn:hover, .action-card-btn.watched-btn.active {
+.action-card-btn.watched-btn:hover,
+.action-card-btn.watched-btn.active {
   background: var(--success-color);
   border-color: var(--success-color);
   color: white;
@@ -312,7 +316,6 @@
 }
 
 .watched-list-btn:hover {
-  background: rgba(16, 185, 129, 0.15) !important;
   border-color: var(--success-color) !important;
   color: var(--success-color) !important;
 }
