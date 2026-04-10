@@ -21,30 +21,44 @@
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
-  margin-bottom: 2.5rem; /* Increased for logic indicator */
+  margin-bottom: 2.5rem;
+  /* Increased for logic indicator */
   animation: fadeIn 0.3s ease;
   position: relative;
 }
 
-.rule-row select, .rule-row input {
+.rule-row select,
+.rule-row input {
   background: rgba(0, 0, 0, 0.2);
 }
 
-.rule-top, .rule-bottom {
+.rule-top,
+.rule-bottom {
   display: flex;
   gap: 0.8rem;
   width: 100%;
   align-items: center;
 }
 
-.rule-top .cat-select { flex: 1; }
-.rule-top .field-select { flex: 2; }
-.rule-bottom .op-select { flex: 1; }
-.rule-bottom .val-container { flex: 3; }
+.rule-top .cat-select {
+  flex: 1;
+}
+
+.rule-top .field-select {
+  flex: 2;
+}
+
+.rule-bottom .op-select {
+  flex: 1;
+}
+
+.rule-bottom .val-container {
+  flex: 3;
+}
 
 /* AND Logic indicator */
-#rootGroup > .rule-row:not(:last-child)::after,
-#rootGroup > .rule-group-box:not(:last-child)::after {
+#rootGroup>.rule-row:not(:last-child)::after,
+#rootGroup>.rule-group-box:not(:last-child)::after {
   content: 'AND';
   position: absolute;
   bottom: -15px;
@@ -64,8 +78,8 @@
   z-index: 10;
 }
 
-#rootGroup > .rule-row:not(:last-child),
-#rootGroup > .rule-group-box:not(:last-child) {
+#rootGroup>.rule-row:not(:last-child),
+#rootGroup>.rule-group-box:not(:last-child) {
   margin-bottom: 2.5rem;
 }
 
@@ -77,16 +91,19 @@
 .rule-group-box {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--glass-border);
-  border-left: 4px solid var(--success-color); /* Green for Collection */
+  border-left: 4px solid var(--success-color);
+  /* Green for Collection */
   border-radius: var(--radius-md);
   margin-bottom: 1.5rem;
-  overflow: visible; /* Prevent combobox clipping */
+  overflow: visible;
+  /* Prevent combobox clipping */
   animation: fadeIn 0.3s ease;
   position: relative;
 }
 
 .rule-group-box.logic-group {
-  border-left-color: var(--accent-color); /* Purple/Violet for Logic */
+  border-left-color: var(--accent-color);
+  /* Purple/Violet for Logic */
   background: rgba(146, 86, 243, 0.03);
 }
 
@@ -138,8 +155,7 @@
 }
 
 .group-rules-container {
-  padding: 1.2rem;
-  padding-bottom: 0.5rem;
+  padding: 0.6rem 0.2rem;
 }
 
 .group-rules-container .rule-row {

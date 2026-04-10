@@ -88,7 +88,8 @@
   opacity: 0.3;
   transition: opacity 0.2s;
   flex-shrink: 0;
-  margin-right: -2px; /* Pull handle closer to icon */
+  margin-right: -2px;
+  /* Pull handle closer to icon */
 }
 
 .rule-drag-handle:hover,
@@ -221,7 +222,8 @@
   font-weight: 700;
   color: var(--text-primary);
   font-size: 0.9rem;
-  flex: 1; /* Allow title to grow but keep controls on right */
+  flex: 1;
+  /* Allow title to grow but keep controls on right */
   min-width: 0;
 }
 
@@ -282,7 +284,7 @@
   }
 
   /* The remove button stays tiny and circular on the right */
-  .rule-group-header > .remove-btn {
+  .rule-group-header>.remove-btn {
     grid-column: 2 / 3;
     align-self: end;
     margin-bottom: 0.2rem;
@@ -300,7 +302,7 @@
   position: relative;
 }
 
-.negated-group > .group-help-text::after {
+.negated-group>.group-help-text::after {
   content: 'NOT';
   position: absolute;
   bottom: -11px;
@@ -337,9 +339,8 @@
 }
 
 .group-rules-container {
-  padding: 1.2rem;
-  padding-bottom: 0.8rem; /* Enough room to hit the end drop zone */
-  min-height: 2.5rem; /* Ensure empty groups are drop targets */
+  padding: 0.6rem 0.2rem;
+  min-height: 2.5rem;
 }
 
 .group-rules-container.drag-over {
@@ -424,6 +425,7 @@
   border-bottom: 6px solid transparent;
   border-left: 8px solid var(--accent-hover);
 }
+
 #dropIndicator::after {
   content: '';
   position: absolute;
@@ -474,7 +476,8 @@
   }
 
   .group-controls .remove-btn {
-    width: 44px; /* Maintain circle */
+    width: 44px;
+    /* Maintain circle */
     height: 44px;
     align-self: flex-end;
   }
