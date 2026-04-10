@@ -210,6 +210,17 @@ async function init() {
     });
   }
 
+  const showRelationFilteredToggle = document.getElementById('showRelationFilteredToggle');
+  if (showRelationFilteredToggle) {
+    showRelationFilteredToggle.checked = state.showRelationFiltered;
+    showRelationFilteredToggle.addEventListener('change', (e) => {
+      state.showRelationFiltered = e.target.checked;
+      saveSettings();
+      // Instant refresh of results logic
+      renderResultsList(state.results, true);
+    });
+  }
+
   if (UI.toggleFiltersBtn) {
     UI.toggleFiltersBtn.onclick = () => toggleFilters();
   }

@@ -158,3 +158,4 @@ window.getStaffPriority = function(role) {
   
   return score;
 };
+

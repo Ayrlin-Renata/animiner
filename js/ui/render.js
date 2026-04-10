@@ -84,7 +84,7 @@ export function renderResultsList(rawItems, forceClear = false) {
     if (!state.isScanning) UI.noResults.classList.remove('hidden');
     return;
   }
-  
+
   if (items.length > 0) {
     UI.noResults.classList.add('hidden');
   }
@@ -98,27 +98,27 @@ export function renderResultsList(rawItems, forceClear = false) {
   newItems.forEach(item => {
     const id = item.id;
     const mode = state.searchMode;
-    
+
     // Track ID
     state.renderedIds.add(id);
 
     // STATUS BADGE CALCULATIONS (High priority wins)
     let badgeType = null;
     let badgeIcon = '';
-    
+
     const isBlacklisted = (state.blacklist[mode] || []).some(b => (typeof b === 'object' ? b.id : b) === id);
     const isWatched = (state.watched[mode] || []).some(w => (typeof w === 'object' ? w.id : w) === id);
     const isSeen = (state.seen[mode] || []).some(s => (typeof s === 'object' ? s.id : s) === id);
 
     if (isBlacklisted) {
-        badgeType = 'badge-blacklisted';
-        badgeIcon = 'shield-off';
+      badgeType = 'badge-blacklisted';
+      badgeIcon = 'shield-off';
     } else if (isWatched) {
-        badgeType = 'badge-watched';
-        badgeIcon = 'check-circle';
+      badgeType = 'badge-watched';
+      badgeIcon = 'check-circle';
     } else if (isSeen) {
-        badgeType = 'badge-seen';
-        badgeIcon = 'eye';
+      badgeType = 'badge-seen';
+      badgeIcon = 'eye';
     }
 
     const card = document.createElement('div');
@@ -127,6 +127,11 @@ export function renderResultsList(rawItems, forceClear = false) {
     card.dataset.type = 'media-card';
 
     let badgeHtml = badgeType ? `<div class="badge-corner ${badgeType}"><i data-lucide="${badgeIcon}"></i></div>` : '';
+
+    // Add partial match indicator (Yellow circle in top left)
+    if (item._isPartialMatch) {
+      badgeHtml += `<div class="match-indicator-mini yellow" title="Matches core filters but fails specific relation rules"><i data-lucide="x-circle"></i></div>`;
+    }
 
     let title = '';
     let image = '';
@@ -194,8 +199,8 @@ export function renderResultsList(rawItems, forceClear = false) {
 
   // Scoped icon creation is much faster than scanning the whole page
   if (window.lucide) {
-      window.lucide.createIcons({ 
-          root: UI.resultsGrid // Target just the results grid or the fragment (using the grid here as it's the parent)
-      });
+    window.lucide.createIcons({
+      root: UI.resultsGrid // Target just the results grid or the fragment (using the grid here as it's the parent)
+    });
   }
 }

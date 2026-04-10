@@ -43,6 +43,7 @@ export const state = {
   showWatched: false,
   showSeen: false,
   showBlacklisted: false,
+  showRelationFiltered: false, // New toggle
   storageConsent: null, // null = not asked, true = accepted, false = declined
   seenValues: {
     genres: [],
@@ -114,6 +115,7 @@ export function saveSettings() {
     showWatched: state.showWatched,
     showSeen: state.showSeen,
     showBlacklisted: state.showBlacklisted,
+    showRelationFiltered: state.showRelationFiltered,
     storageConsent: state.storageConsent
   };
   if (state.storageConsent) {
@@ -138,6 +140,7 @@ export function loadSettings() {
       state.showWatched = parsed.showWatched ?? state.showWatched;
       state.showSeen = parsed.showSeen ?? state.showSeen;
       state.showBlacklisted = parsed.showBlacklisted ?? state.showBlacklisted;
+      state.showRelationFiltered = parsed.showRelationFiltered ?? state.showRelationFiltered;
       state.storageConsent = parsed.storageConsent ?? state.storageConsent;
       return true;
     } catch (e) { console.error('Failed to parse settings'); }

@@ -17,12 +17,12 @@ export function markAsSeen(item) {
     if (!state.seen[state.searchMode]) state.seen[state.searchMode] = [];
     const mode = state.searchMode;
     if (!state.seen[mode].some(s => (typeof s === 'object' ? s.id : s) === id)) {
-        state.seen[mode].push({ 
-            id, 
-            title, 
-            image, 
+        state.seen[mode].push({
+            id,
+            title,
+            image,
             type: item.type || 'ANIME',
-            _sessionSeen: true 
+            _sessionSeen: true
         });
         import('../../state.js').then(m => m.saveSettings());
 
@@ -46,10 +46,10 @@ window.toggleSeen = (id, title, image, forceState, type) => {
     if (!state.seen[state.searchMode]) state.seen[state.searchMode] = [];
     const list = state.seen[state.searchMode];
     const index = list.findIndex(item => (typeof item === 'object' ? item.id : item) === id);
-    
+
     // Toggle logic: if forceState is provided, use it. Otherwise, flip the current state.
     const isAdding = forceState !== undefined ? forceState : (index === -1);
-    
+
     if (isAdding && index === -1) list.push({ id, title, image, type: type || 'ANIME' });
     else if (!isAdding && index !== -1) list.splice(index, 1);
     import('../../state.js').then(m => m.saveSettings());
@@ -86,7 +86,7 @@ window.toggleWatched = (id, title, image, forceState, type) => {
     if (!state.watched[state.searchMode]) state.watched[state.searchMode] = [];
     const list = state.watched[state.searchMode];
     const index = list.findIndex(item => (typeof item === 'object' ? item.id : item) === id);
-    
+
     let isWatched = forceState !== undefined ? forceState : index === -1;
     if (isWatched && index === -1) list.push({ id, title, image, type: type || 'ANIME' });
     else if (!isWatched && index !== -1) list.splice(index, 1);
@@ -118,12 +118,12 @@ window.toggleWatched = (id, title, image, forceState, type) => {
             watchedBtn.classList.toggle('active', isWatched);
             watchedBtn.setAttribute('title', isWatched ? 'Unmark Watched' : 'Mark as Watched');
         }
-        
+
         // Handle scanner-style removal if hidden
         if (isWatched && !state.showWatched && card.classList.contains('media-card')) {
-             card.style.opacity = '0';
-             card.style.transform = 'scale(0.8)';
-             setTimeout(() => card.remove(), 300);
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.8)';
+            setTimeout(() => card.remove(), 300);
         }
     });
 
@@ -135,7 +135,7 @@ window.blockItem = (id, title, image, hideModal = false, type) => {
     if (!list.some(item => (typeof item === 'object' ? item.id : item) === id)) {
         list.push({ id, title, image, type: type || 'ANIME' });
         import('../../state.js').then(m => m.saveSettings());
-        
+
         document.querySelectorAll(`[data-id="${id}"]`).forEach(card => {
             const badge = card.querySelector('.badge-corner');
             if (!badge) {
@@ -167,15 +167,15 @@ window.toggleBlacklist = (id, title, image, forceState, type) => {
     if (!state.blacklist[state.searchMode]) state.blacklist[state.searchMode] = [];
     const list = state.blacklist[state.searchMode];
     const index = list.findIndex(item => (typeof item === 'object' ? item.id : item) === id);
-    
+
     const isAdding = forceState !== undefined ? forceState : (index === -1);
-    
+
     if (isAdding) {
         window.blockItem(id, title, image, false, type);
     } else {
         state.blacklist[state.searchMode] = state.blacklist[state.searchMode].filter(item => (typeof item === 'object' ? item.id : item) !== id);
         import('../../state.js').then(m => m.saveSettings());
-        
+
         // Remove indicators
         document.querySelectorAll(`[data-id="${id}"]`).forEach(card => {
             const badge = card.querySelector('.badge-corner');
@@ -199,7 +199,7 @@ export function openSeenManager(tabArg) {
     window.currentDiscoveryTab = tab;
     const list = [...(state.seen[state.searchMode] || [])].reverse();
     const filteredList = tab === 'ALL' ? list : list.filter(i => (i.type || 'ANIME') === tab);
-    
+
     const tabsHtml = state.searchMode === 'MEDIA' ? `
         <div class="mgr-tabs">
             <button class="mgr-tab-btn ${tab === 'ALL' ? 'active' : ''}" onclick="window.openSeenManager('ALL')">All</button>
@@ -239,7 +239,7 @@ export function openWatchedManager(tabArg) {
     window.currentDiscoveryTab = tab;
     const list = [...(state.watched[state.searchMode] || [])].reverse();
     const filteredList = tab === 'ALL' ? list : list.filter(i => (i.type || 'ANIME') === tab);
-    
+
     const tabsHtml = state.searchMode === 'MEDIA' ? `
         <div class="mgr-tabs">
             <button class="mgr-tab-btn ${tab === 'ALL' ? 'active' : ''}" onclick="window.openWatchedManager('ALL')">All</button>
@@ -279,7 +279,7 @@ export function openBlacklistManager(tabArg) {
     window.currentDiscoveryTab = tab;
     const list = [...(state.blacklist[state.searchMode] || [])].reverse();
     const filteredList = tab === 'ALL' ? list : list.filter(i => (i.type || 'ANIME') === tab);
-    
+
     const tabsHtml = state.searchMode === 'MEDIA' ? `
         <div class="mgr-tabs">
             <button class="mgr-tab-btn ${tab === 'ALL' ? 'active' : ''}" onclick="window.openBlacklistManager('ALL')">All</button>
@@ -359,22 +359,66 @@ window.checkAllFilterStatus = async (mediaItem) => {
         // We'll proceed but carefully. AniList gives us 90/min.
     }
 
+    const relMap = {};
+    mediaItem.relations?.edges?.forEach(e => relMap[e.node.id] = e.relationType);
+
     const deeplyCheckGroup = (item, groupRule, softFails) => {
         const subRules = groupRule.rules || [];
-        let allSubsSoftOrPass = true;
-        subRules.forEach(sr => {
-            const srMatch = evaluateRule(item, sr);
-            if (!srMatch.success) {
-                if (sr.type === 'GROUP') {
-                    if (!deeplyCheckGroup(item, sr, softFails)) allSubsSoftOrPass = false;
-                } else if (sr.path === 'format' || sr.path === 'status') {
-                    if (!softFails.includes(sr.path)) softFails.push(sr.path);
-                } else {
-                    allSubsSoftOrPass = false;
+        const quantifier = groupRule.quantifier || 'ALL';
+
+        const subResults = subRules.map(sr => ({
+            rule: sr,
+            match: evaluateRule(item, sr)
+        }));
+
+        // We only call this if groupRule FAILED
+        // Return true if this failure is "Soft" (caused only by format/status path issues)
+
+        if (quantifier === 'ALL' || quantifier === 'EVERY') {
+            // In an ALL group, failure is soft ONLY if every failing sub-rule is a soft-fail
+            const hardFails = subResults.filter(r => !r.match.success).filter(r => {
+                if (r.rule.type === 'GROUP') return !deeplyCheckGroup(item, r.rule, softFails);
+                if (r.rule.path === 'format' || r.rule.path === 'status') {
+                    if (!softFails.includes(r.rule.path)) softFails.push(r.rule.path);
+                    return false;
                 }
-            }
-        });
-        return allSubsSoftOrPass;
+                return true;
+            });
+            return hardFails.length === 0;
+        }
+
+        if (quantifier === 'ANY' || quantifier === 'SOME' || quantifier === 'SOME_ANY') {
+            // In an ANY group, failure is soft if at least one sub-rule would have caused a soft-fail pass.
+            // Actually, if ANY branch is a soft-fail, the failure to find a pass is "soft".
+            let foundSoftOption = false;
+            subResults.forEach(r => {
+                let isSoft = false;
+                if (r.rule.type === 'GROUP') isSoft = deeplyCheckGroup(item, r.rule, softFails);
+                else if (r.rule.path === 'format' || r.rule.path === 'status') {
+                    if (!softFails.includes(r.rule.path)) softFails.push(r.rule.path);
+                    isSoft = true;
+                }
+                if (isSoft) foundSoftOption = true;
+            });
+            return foundSoftOption;
+        }
+
+        if (quantifier === 'NONE' || quantifier === 'NONE_ANY') {
+            // In a NONE group, failure means something PASSED.
+            // It's a soft fail if everything that passed is a soft-path (format/status).
+            const passingRules = subResults.filter(r => r.match.success);
+            const hardPasses = passingRules.filter(r => {
+                if (r.rule.type === 'GROUP') return false; // Hard passes in sub-groups for NONE are complex, ignore for now
+                if (r.rule.path === 'format' || r.rule.path === 'status') {
+                    if (!softFails.includes(r.rule.path)) softFails.push(r.rule.path);
+                    return false;
+                }
+                return true;
+            });
+            return hardPasses.length === 0;
+        }
+
+        return false;
     };
 
     try {
@@ -382,55 +426,101 @@ window.checkAllFilterStatus = async (mediaItem) => {
         results.forEach(item => {
             let hardFail = false;
             let softFails = [];
-            
+
             state.rules.forEach(rule => {
                 const matchResult = evaluateRule(item, rule);
                 if (!matchResult.success) {
                     if (rule.type === 'GROUP') {
-                        if (!deeplyCheckGroup(item, rule, softFails)) hardFail = true;
+                        if (!deeplyCheckGroup(item, rule, softFails)) {
+                            hardFail = true;
+                            console.log(`[Filter Warning] ${item.title.romaji} (ID: ${item.id}) failed hard:`, matchResult.reason);
+                        }
                     } else if (rule.path === 'format' || rule.path === 'status') {
                         if (!softFails.includes(rule.path)) softFails.push(rule.path);
                     } else {
                         hardFail = true;
+                        console.log(`[Filter Warning] ${item.title.romaji} (ID: ${item.id}) failed hard:`, matchResult.reason);
                     }
                 }
             });
-            
+
+            // Specific Relation Logic Check
+            let relationFail = false;
+            const itemRelType = relMap[item.id];
+            if (itemRelType) {
+                const relevantRelRules = state.rules.filter(r => {
+                    if (r.type !== 'RELATION') return false;
+                    const types = r.relationTypes || (r.relationType ? [r.relationType] : ['ANY']);
+                    return types.includes('ANY') || types.includes(itemRelType);
+                });
+                if (relevantRelRules.length > 0) {
+                    const specificRes = relevantRelRules.map(relRule => {
+                        const subRes = evaluateRule(item, {
+                            type: 'GROUP',
+                            path: 'ROOT',
+                            quantifier: relRule.quantifier || 'ALL',
+                            rules: relRule.rules || []
+                        });
+                        if (!subRes.success) {
+                            console.log(`[Relation Warning] ${item.title.romaji} (ID: ${item.id}) failed relation logic:`, subRes.reason);
+                        }
+                        return subRes.success;
+                    });
+                    relationFail = !specificRes.every(res => res);
+                }
+            }
+
             const isMatch = !hardFail && softFails.length === 0;
             const isSoftFail = !hardFail && softFails.length > 0;
 
             const cards = document.querySelectorAll(`.mini-card[data-id="${item.id}"]`);
             cards.forEach(card => {
                 card.classList.remove('checking-match');
-                
-                if (hardFail) {
-                    card.classList.add('match-fail');
-                    // Add no-match indicator icon
+
+                if (relationFail) {
+                    card.classList.add('fails-rel-filter');
                     const indicator = document.createElement('div');
-                    indicator.className = 'match-indicator fail';
+                    indicator.className = 'match-indicator fail yellow';
                     indicator.innerHTML = '<i data-lucide="filter-x"></i>';
                     card.appendChild(indicator);
+                }
+
+                if (hardFail) {
+                    card.classList.add('match-fail');
+
+                    const miniFail = document.createElement('div');
+                    miniFail.className = 'mini-fail-icon fail-total';
+                    miniFail.title = 'Does not match global search criteria';
+                    miniFail.innerHTML = '<i data-lucide="x-circle"></i>';
+                    card.appendChild(miniFail);
+
+                    if (!relationFail) {
+                        const indicator = document.createElement('div');
+                        indicator.className = 'match-indicator fail';
+                        indicator.innerHTML = '<i data-lucide="filter-x"></i>';
+                        card.appendChild(indicator);
+                    }
                 } else if (isMatch || isSoftFail) {
                     // Inject newly fetched formatted strings, highlighting if soft-failed
                     const metaEl = card.querySelector('.mini-meta');
                     if (metaEl) {
                         const fmtStr = item.format ? item.format.replace(/_/g, ' ') : '';
                         const stStr = item.status ? item.status.replace(/_/g, ' ') : '';
-                        
+
                         let displayFmt = fmtStr;
                         if (softFails.includes('format') && fmtStr) {
-                             displayFmt = `<span class="soft-fail-text">${fmtStr}</span>`;
+                            displayFmt = `<span class="soft-fail-text">${fmtStr}</span>`;
                         }
-                        
+
                         let displaySt = stStr;
                         if (softFails.includes('status') && stStr) {
-                             displaySt = `<span class="soft-fail-text">${stStr}</span>`;
+                            displaySt = `<span class="soft-fail-text">${stStr}</span>`;
                         }
-                        
+
                         const parts = [];
                         if (fmtStr) parts.push(displayFmt);
                         if (stStr) parts.push(displaySt);
-                        
+
                         if (parts.length > 0) {
                             metaEl.innerHTML = parts.join(' · ');
                         } else if (item.type) {

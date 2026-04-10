@@ -307,10 +307,15 @@ export function evaluateRule(item, rule, callStack = new Set()) {
         const refResult = evaluateRule(item, targetGroup, callStack);
         callStack.delete(targetGroup);
         
-        // We do NOT merge matches up here if we want references to just act as a filter?
-        // Actually, we want highlights from inside the reference to show on the card!
-        mergeMatches(refResult.matches);
-        return { success: refResult.success, matches };
+        if (refResult.success) {
+            mergeMatches(refResult.matches);
+        }
+        
+        return { 
+            success: refResult.success, 
+            matches, 
+            reason: refResult.success ? null : `Reference '${refLabel}' failed: ${refResult.reason || 'Unknown reason'}`
+        };
     }
 
     if (rule.type === 'GROUP' || type === 'GROUP') {
@@ -321,19 +326,36 @@ export function evaluateRule(item, rule, callStack = new Set()) {
         if (rule.path === COLLECTION_PATHS.LOGIC) {
             if (subRules.length === 0) return { success: true, matches: {} };
             const subResults = subRules.map(sr => evaluateRule(item, sr, callStack));
-            subResults.forEach(r => mergeMatches(r.matches));
 
+            let success = false;
             switch (quantifier) {
                 case 'ALL':
-                case 'EVERY':      return { success: subResults.every(r => r.success), matches };
+                case 'EVERY':      success = subResults.every(r => r.success); break;
                 case 'ANY':
                 case 'SOME':       
-                case 'SOME_ANY':   return { success: subResults.some(r => r.success), matches };
+                case 'SOME_ANY':   success = subResults.some(r => r.success); break;
                 case 'NONE':        
-                case 'NONE_ANY':   return { success: !subResults.some(r => r.success), matches: {} };
-                case 'NOT_ALL':     return { success: !subResults.every(r => r.success), matches: {} };
-                default:            return { success: true, matches: {} };
+                case 'NONE_ANY':   success = !subResults.some(r => r.success); break;
+                case 'NOT_ALL':     success = !subResults.every(r => r.success); break;
+                default:            success = true; break;
             }
+
+            if (success) {
+                // Only merge matches from successful rules, matching the logic of the quantifier
+                if (quantifier === 'NONE' || quantifier === 'NONE_ANY' || quantifier === 'NOT_ALL') {
+                    // Negation groups shouldn't provide positive match terms
+                } else {
+                    subResults.forEach(r => { if (r.success) mergeMatches(r.matches); });
+                }
+            }
+
+            let reason = null;
+            if (!success) {
+                const fails = subResults.filter(r => !r.success).map(r => r.reason).filter(Boolean);
+                reason = `Group (${quantifier}) failed. Sub-fails: [${fails.join('; ')}]`;
+            }
+
+            return { success, matches, reason };
         }
 
         // Standard Collection Groups (Characters, Staff, etc.)
@@ -341,7 +363,11 @@ export function evaluateRule(item, rule, callStack = new Set()) {
         if (!collection || !Array.isArray(collection)) {
             // Empty collections succeed on negative checks (NONE, NOT_ALL) but fail on positive ones (ALL, ANY)
             const negSuccess = (quantifier === 'NONE' || quantifier === 'NONE_ANY');
-            return { success: negSuccess, matches: {} };
+            return { 
+                success: negSuccess, 
+                matches: {}, 
+                reason: negSuccess ? null : `Collection '${path || 'Unknown'}' is empty or not found.` 
+            };
         }
         
         const subResults = collection.map(entry => {
@@ -374,9 +400,16 @@ export function evaluateRule(item, rule, callStack = new Set()) {
             case 'SOME_ANY': allPass = subResults.some(r => r.innerSuccess); break;
             case 'NONE_ANY': allPass = !subResults.some(r => r.innerSuccess); break;
         }
-        
         subResults.forEach(r => { if (r.innerSuccess) mergeMatches(r.matches); });
-        return { success: allPass, matches: matches };
+        
+        let reason = null;
+        if (!allPass) {
+            const fails = subResults.filter(r => !r.innerSuccess).map(r => r.matches); // This is not right
+            // For collection groups, we just summarize
+            reason = `Collection Group '${path || 'Unknown'}' (${quantifier}) failed criteria.`;
+        }
+
+        return { success: allPass, matches: matches, reason };
     }
 
     if (rule.type === 'RELATION') {
@@ -390,8 +423,13 @@ export function evaluateRule(item, rule, callStack = new Set()) {
         
         const filteredRels = relationTypes.includes('ANY') ? relations : relations.filter(e => relationTypes.includes(e.relationType));
         if (filteredRels.length === 0) {
-            if (isOptional) return { success: true, matches: {} };
-            return { success: quantifier === 'NONE', matches: {} };
+            if (isOptional) return { success: true, matches: {}, reason: null };
+            const success = (quantifier === 'NONE' || quantifier === 'NONE_ANY');
+            return { 
+                success, 
+                matches: {}, 
+                reason: success ? null : `No relations found for mandatory types: ${relationTypes.join(', ')}` 
+            };
         }
 
         const subResults = filteredRels.map(edge => {
@@ -422,8 +460,18 @@ export function evaluateRule(item, rule, callStack = new Set()) {
             case 'NONE_ANY': allPass = !subResults.some(r => r.innerSuccess); break;
         }
         
-        subResults.forEach(r => { if (r.innerSuccess) mergeMatches(r.matches); });
-        return { success: allPass, matches: matches };
+        if (allPass) {
+            if (quantifier !== 'NONE' && quantifier !== 'NONE_ANY') {
+                subResults.forEach(r => { if (r.innerSuccess) mergeMatches(r.matches); });
+            }
+        }
+        
+        let reason = null;
+        if (!allPass) {
+            reason = `Relation rule (${relationTypes.join(', ')}) failed logic.`;
+        }
+
+        return { success: allPass, matches: matches, reason };
     }
 
     // Leaf Rule Logic
@@ -447,7 +495,11 @@ export function evaluateRule(item, rule, callStack = new Set()) {
             success = !list.includes(itemValStr);
         }
         if (success && itemValStr) addMatch(path, itemValStr);
-        return { success, matches };
+        let reason = null;
+        if (!success) {
+            reason = `${path} ${operator} LIST [${list.join(', ')}] (Actual: '${itemValStr}')`;
+        }
+        return { success, matches, reason };
     }
 
     switch (operator) {
@@ -511,11 +563,25 @@ export function evaluateRule(item, rule, callStack = new Set()) {
                 }
             } catch (e) { success = true; }
             break;
+        case OPERATORS.REGEX_NOT_MATCH:
+            try {
+                if (!actualValue) success = true;
+                else {
+                    const re = new RegExp(value, 'gi');
+                    success = !re.test(actualValue.toString());
+                }
+            } catch (e) { success = true; }
+            break;
         default:
             success = true;
     }
 
-    return { success, matches };
+    let reason = null;
+    if (!success) {
+        reason = `${path} ${operator} '${value}' (Actual: '${actualValue}')`;
+    }
+
+    return { success, matches, reason };
 }
 
 /**
@@ -555,18 +621,19 @@ export function filterResults(results, rules) {
             rule,
             result: evaluateRule(item, rule)
         }));
-        const allPass = ruleResults.every(r => r.result.success);
 
-        if (!allPass && !debugTriggered && state.isScanning) {
+        const passesCore = ruleResults.filter(r => r.rule.type !== 'RELATION').every(r => r.result.success);
+        const failsRelations = ruleResults.some(r => r.rule.type === 'RELATION' && !r.result.success);
+        
+        const isFullMatch = passesCore && !failsRelations;
+        const isPartialMatch = passesCore && failsRelations;
+
+        if (!isFullMatch && !isPartialMatch && !debugTriggered && state.isScanning) {
             const findDeepFailure = (res) => {
                 const fail = res.find(r => !r.result.success);
                 if (!fail) return null;
                 if (fail.rule.type === 'GROUP' || fail.rule.type === 'RELATION') {
-                    // Try to evaluate its children to see why it failed
-                    const subResults = (fail.rule.rules || []).map(sr => ({
-                        rule: sr,
-                        result: evaluateRule(item, sr)
-                    }));
+                    const subResults = (fail.rule.rules || []).map(sr => ({ rule: sr, result: evaluateRule(item, sr) }));
                     const deep = findDeepFailure(subResults);
                     return deep || fail;
                 }
@@ -586,12 +653,13 @@ export function filterResults(results, rules) {
             debugTriggered = true;
         }
 
-        if (allPass) {
-            // Success TRACE: Deep report of why it matched
+        const shouldShow = isFullMatch || (isPartialMatch && state.showRelationFiltered);
+        
+        if (shouldShow) {
             if (state.isScanning) {
                 const getDeepTrace = (res) => {
                     return res.map(r => {
-                        const base = `${r.rule.path}:${r.result.success ? 'PASS' : 'FAIL'}`;
+                        const base = `${r.rule.path || r.rule.type}:${r.result.success ? 'PASS' : 'FAIL'}`;
                         if (r.rule.rules) {
                             const subRes = r.rule.rules.map(sr => ({ rule: sr, result: evaluateRule(item, sr) }));
                             return { [base]: getDeepTrace(subRes) };
@@ -602,8 +670,6 @@ export function filterResults(results, rules) {
                 console.info(`[Match Trail] "${item.title.romaji}" FOUND:`, getDeepTrace(ruleResults));
             }
 
-            // Attach unique matching terms to the item for highlighting in UI
-            // This now uses path-specific tracking to prevent "highlight bleed"
             const allMatches = {};
             ruleResults.forEach(r => {
                 if (r.result.matches) {
@@ -614,17 +680,18 @@ export function filterResults(results, rules) {
                 }
             });
 
-            // Convert Sets back to arrays for JSON compatibility and UI consumption
             item._matchDetails = {};
             Object.entries(allMatches).forEach(([p, termsSet]) => {
                 item._matchDetails[p] = [...termsSet].filter(t => t && t.length >= 2);
             });
+            
+            item._isPartialMatch = isPartialMatch;
             
             if (state.isScanning) {
                 console.info(`[Match Trail] "${item.title.romaji || 'Unknown'}" FOUND. Reasons:`, item._matchDetails);
             }
         }
 
-        return allPass;
+        return shouldShow;
     });
 }

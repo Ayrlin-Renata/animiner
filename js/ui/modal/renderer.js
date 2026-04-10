@@ -36,7 +36,8 @@ export function renderMediaContent(item) {
         <div class="expandable-section ${item.relations.edges.length > 5 ? 'has-more' : ''}">
             <div class="section-title">Relations</div>
             <div class="expandable-grid mini-grid ${item.relations.edges.length > 5 ? 'is-collapsed' : ''}">
-                ${item.relations.edges.map(e => `
+                ${item.relations.edges.map(e => {
+                    return `
                     <a href="https://anilist.co/${e.node.type.toLowerCase()}/${e.node.id}" 
                        target="_blank" 
                        class="mini-card glass-dark vertical no-style" 
@@ -65,7 +66,7 @@ export function renderMediaContent(item) {
                             </div>
                         ` : ''}
                     </a>
-                `).join('')}
+                `;}).join('')}
             </div>
             ${item.relations.edges.length > 5 ? `
               <button class="expand-btn glass-light" onclick="window.toggleSection(this)">
