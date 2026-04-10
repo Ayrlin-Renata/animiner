@@ -6,6 +6,7 @@
 export const state = {
   results: [],
   rules: [],
+  groupRefs: {},
   loading: false,
   isScanning: false,
   isCancelled: false,

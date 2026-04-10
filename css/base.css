@@ -17,7 +17,7 @@
   --font-main: 'Outfit', sans-serif;
   --transition-fast: 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
   --transition-smooth: 0.3s ease;
-  
+
   /* Status Colors */
   --color-completed: #46d160;
   --color-planning: #9256f3;
@@ -62,15 +62,17 @@ body {
   line-height: 1.6;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
-  color-scheme: dark; /* Helps with native element rendering */
+  color-scheme: dark;
+  /* Helps with native element rendering */
 }
 
 /* Global Form Resets */
-button, select, input {
+button,
+select,
+input {
   font-family: inherit;
   font-size: inherit;
   color: var(--text-primary) !important;
-  background-color: var(--bg-color-alt) !important;
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   outline: none;
@@ -78,7 +80,8 @@ button, select, input {
 
 select {
   cursor: pointer;
-  appearance: none; /* Remove default arrow to allow better styling */
+  appearance: none;
+  /* Remove default arrow to allow better styling */
   padding-right: 2rem;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%239fadbd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
@@ -95,6 +98,7 @@ option {
 button {
   cursor: pointer;
   background: none;
+  background-color: var(--bg-color-alt) !important;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -113,13 +117,32 @@ input::placeholder {
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
   border-radius: var(--radius-lg);
-  overflow: visible; /* Always expand to contain children */
+  overflow: visible;
+  /* Always expand to contain children */
 }
 
-.spin { animation: rotate 2s linear infinite; }
-@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.spin {
+  animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

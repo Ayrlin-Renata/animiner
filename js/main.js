@@ -299,6 +299,7 @@ async function init() {
 }
 
 function updateStateFromUI() {
+  state.groupRefs = {}; // Reset before collection
   state.rules = collectRulesRecursive(UI.rootGroup);
   state.targetMatches = parseInt(UI.targetResults?.value || '50');
   state.startPage = parseInt(UI.startPage?.value || '1');
@@ -329,13 +330,19 @@ function collectRulesRecursive(container) {
 function parseRelationBox(box) {
   const relationType = box.querySelector('.group-rel-type')?.value || 'ANY';
   const quantifier   = box.querySelector('.group-quantifier')?.value || 'NONE';
+  const alias        = box.querySelector('.group-label-input')?.value.trim() || undefined;
   const container    = box.querySelector('.group-rules-container');
-  return {
+  
+  const rule = {
     type: 'RELATION',
     relationType,
     quantifier,
+    alias,
     rules: collectRulesRecursive(container)
   };
+  
+  if (alias) state.groupRefs[alias] = rule;
+  return rule;
 }
 
 function parseRuleRow(row) {
@@ -357,14 +364,19 @@ function parseRuleRow(row) {
 function parseGroupbox(box) {
   const path = box.querySelector('.group-path').value;
   const quantifier = box.querySelector('.group-quantifier').value;
+  const alias = box.querySelector('.group-label-input')?.value.trim() || undefined;
   const container = box.querySelector('.group-rules-container');
   
-  return {
+  const rule = {
     type: 'GROUP',
     path,
     quantifier,
+    alias,
     rules: collectRulesRecursive(container)
   };
+  
+  if (alias) state.groupRefs[alias] = rule;
+  return rule;
 }
 
 // Trigger search (externally callable)

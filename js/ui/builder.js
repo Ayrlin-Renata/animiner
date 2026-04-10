@@ -52,7 +52,12 @@ export function addRuleUI(initialData = null, parentContainer = null, isSubField
         <div class="rule-content">
             <div class="rule-top">
                 ${isSubField ? '' : `<select class="cat-select" title="Category">
-                    ${availableCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+                    ${availableCategories.map(cat => {
+                        if (cat === RECURSIVE_CATEGORIES.REFERENCES) {
+                            return `<option disabled>──────────</option><option value="${cat}">Group References</option>`;
+                        }
+                        return `<option value="${cat}">${cat}</option>`;
+                    }).join('')}
                 </select>`}
                 <select class="field-select"></select>
                 <button class="remove-btn" title="Remove constraint"><i data-lucide="trash-2"></i></button>
@@ -70,14 +75,18 @@ export function addRuleUI(initialData = null, parentContainer = null, isSubField
     const valContainer = row.querySelector('.val-container');
 
     const updateFields = () => {
+        if (!isSubField) {
+            row.classList.toggle('reference-rule', catSelect?.value === RECURSIVE_CATEGORIES.REFERENCES);
+        }
+        
         const fields = isSubField ? subFields : (FIELDS[catSelect?.value] || []);
         fieldSelect.innerHTML = fields.map((f, i) => `<option value="${i}">${f.label}</option>`).join('');
-        
+
         if (initialData && initialData.path) {
             const idx = fields.findIndex(f => f.path === initialData.path && (initialData.label ? f.label === initialData.label : true));
             if (idx !== -1) fieldSelect.value = idx;
         }
-        
+
         updateOps();
     };
 
@@ -96,22 +105,26 @@ export function addRuleUI(initialData = null, parentContainer = null, isSubField
 
         const ops = OPERATORS_BY_TYPE[field.type] || [];
         opSelect.innerHTML = ops.map(o => `<option value="${o}">${o.replace('_', ' ')}</option>`).join('');
-        
+
         if (initialData && initialData.operator) {
             opSelect.value = initialData.operator;
         }
-        
+
         updateValInput(field);
     };
 
     const updateValInput = (field) => {
         valContainer.innerHTML = '';
         let input;
-        
+
         if (field.type === 'boolean') {
             input = document.createElement('select');
             input.className = 'val-select';
             input.innerHTML = `<option value="true">true</option><option value="false">false</option>`;
+            valContainer.appendChild(input);
+        } else if (field.type === 'reference') {
+            field.seenKey = '__REFERENCES__';
+            input = createCombobox([], 'Search aliases...', field);
             valContainer.appendChild(input);
         } else if (field.type === 'enum' && field.options) {
             input = createCombobox(field.options, 'Select option...', field);
@@ -133,7 +146,7 @@ export function addRuleUI(initialData = null, parentContainer = null, isSubField
             input.placeholder = 'Value...';
             valContainer.appendChild(input);
         }
-        
+
         if (initialData && initialData.value !== undefined) {
             const actualInput = input.classList.contains('combobox-container') ? input.querySelector('input') : input;
             actualInput.value = initialData.value;
@@ -157,7 +170,7 @@ export function addRuleUI(initialData = null, parentContainer = null, isSubField
     } else {
         updateFields();
     }
-    
+
     // Tag row with context for DND validation
     row.dataset.context = isSubField ? (subFields === RELATION_FIELDS ? 'RELATION' : (parentContainer?.dataset.accepts || 'UNKNOWN')) : 'MEDIA';
 
@@ -190,6 +203,7 @@ export function addGroupUI(initialData = null, parentContainer = null) {
                 <i data-lucide="layers" class="collection-icon"></i>
                 <i data-lucide="square-slash" class="logic-icon hidden"></i>
                 <span class="group-name">Collection Group</span>
+                <input type="text" class="group-label-input" placeholder="Alias / Name" spellcheck="false" />
             </div>
             <div class="group-controls">
                 <select class="group-path">
@@ -226,22 +240,22 @@ export function addGroupUI(initialData = null, parentContainer = null) {
 
     const updateGroupContext = () => {
         const isLogic = pathSelect.value === 'ROOT';
-        
+
         // Disable redundant fuzzy match options for Logic Containers
         const optSomeAny = quantSelect.querySelector('option[value="SOME_ANY"]');
         const optNoneAny = quantSelect.querySelector('option[value="NONE_ANY"]');
         if (optSomeAny) optSomeAny.disabled = isLogic;
         if (optNoneAny) optNoneAny.disabled = isLogic;
-        
+
         // Fallback to strict equivalents if switching to Logic with a disabled option selected
         if (isLogic && quantSelect.value === 'SOME_ANY') quantSelect.value = 'ANY';
         if (isLogic && quantSelect.value === 'NONE_ANY') quantSelect.value = 'NONE';
-        
+
         const quantifier = quantSelect.value;
-        
+
         let isOr = false;
         let isNegated = false;
-        
+
         if (isLogic) {
             isOr = ['ANY', 'SOME_ANY', 'NONE', 'NONE_ANY'].includes(quantifier);
             isNegated = ['NONE', 'NONE_ANY', 'NOT_ALL'].includes(quantifier);
@@ -256,7 +270,7 @@ export function addGroupUI(initialData = null, parentContainer = null) {
         box.classList.toggle('negated-group', isNegated);
 
         box.querySelector('.group-name').textContent = isLogic ? 'Logic Container' : 'Collection Group';
-        
+
         box.querySelector('.collection-icon').classList.toggle('hidden', isLogic);
         box.querySelector('.logic-icon').classList.toggle('hidden', !isLogic);
 
@@ -278,6 +292,9 @@ export function addGroupUI(initialData = null, parentContainer = null) {
     if (initialData) {
         pathSelect.value = initialData.path;
         quantSelect.value = initialData.quantifier || 'ANY';
+        if (initialData.alias) {
+            box.querySelector('.group-label-input').value = initialData.alias;
+        }
     }
 
     const addSubRule = (data = null) => {
@@ -315,9 +332,9 @@ export function addGroupUI(initialData = null, parentContainer = null) {
     } else {
         addSubRule();
     }
-    
+
     updateGroupContext();
-    
+
     // Drag and Drop listeners
     const groupHandle = box.querySelector('.group-drag-handle');
     groupHandle.ondragstart = (e) => {
@@ -327,7 +344,7 @@ export function addGroupUI(initialData = null, parentContainer = null) {
         dropIndicator.classList.remove('hidden');
         e.stopPropagation();
     }
-    
+
     // Tag relation group for DND
     box.dataset.accepts = 'RELATION';
     box.dataset.context = 'MEDIA'; // A group-box itself is a top-level media entity
@@ -405,6 +422,8 @@ export function addRelationGroupUI(initialData = null, parentContainer = null) {
                     <i data-lucide="grip-vertical"></i>
                 </div>
                 <i data-lucide="git-branch-plus"></i>
+                <span class="group-name">Relation Group</span>
+                <input type="text" class="group-label-input" placeholder="Alias / Name" spellcheck="false" />
             </div>
             <div class="group-controls">
                 <select class="group-rel-type" title="Relation Type">
@@ -430,27 +449,27 @@ export function addRelationGroupUI(initialData = null, parentContainer = null) {
         </div>
     `;
 
-    const relTypeSelect  = box.querySelector('.group-rel-type');
-    const quantSelect    = box.querySelector('.group-quantifier');
-    const container      = box.querySelector('.group-rules-container');
+    const relTypeSelect = box.querySelector('.group-rel-type');
+    const quantSelect = box.querySelector('.group-quantifier');
+    const container = box.querySelector('.group-rules-container');
 
     const updateRelationContext = () => {
         const rt = relTypeSelect.value === 'ANY' ? 'any relation' : relTypeSelect.value.replace(/_/g, ' ').toLowerCase();
         const qt = quantSelect.value;
-        
+
         const isOr = ['SOME_ANY', 'NONE_ANY'].includes(qt);
         const isNegated = ['NONE', 'NOT_ALL', 'NONE_ANY'].includes(qt);
-        
+
         const texts = {
-            ALL:      `Requirement: EVERY ${rt} must match this ENTIRE profile.`,
-            ANY:      `Requirement: AT LEAST ONE ${rt} must match this ENTIRE profile.`,
-            NONE:     `Exclusion: NO ${rt} can match this ENTIRE profile.`,
-            NOT_ALL:  `Requirement: AT LEAST ONE ${rt} must fail this profile.`,
+            ALL: `Requirement: EVERY ${rt} must match this ENTIRE profile.`,
+            ANY: `Requirement: AT LEAST ONE ${rt} must match this ENTIRE profile.`,
+            NONE: `Exclusion: NO ${rt} can match this ENTIRE profile.`,
+            NOT_ALL: `Requirement: AT LEAST ONE ${rt} must fail this profile.`,
             SOME_ANY: `Fuzzy: AT LEAST ONE ${rt} must match at least ONE of these rules.`,
             NONE_ANY: `Strict Exclusion: NO ${rt} can match even ONE of these rules.`
         };
         box.querySelector('.group-help-text').textContent = texts[qt];
-        
+
         // Toggle logic connectors class and negated state
         box.classList.toggle('any-logic', isOr);
         box.classList.toggle('negated-group', isNegated);
@@ -464,12 +483,15 @@ export function addRelationGroupUI(initialData = null, parentContainer = null) {
     box.querySelector('.add-relation-rule-btn').onclick = () => addSubRule();
     box.querySelector('.remove-btn').onclick = () => box.remove();
     relTypeSelect.onchange = updateRelationContext;
-    quantSelect.onchange   = updateRelationContext;
+    quantSelect.onchange = updateRelationContext;
 
     // Load saved state
     if (initialData) {
         relTypeSelect.value = initialData.relationType || 'ANY';
-        quantSelect.value   = initialData.quantifier   || 'NONE';
+        quantSelect.value = initialData.quantifier || 'NONE';
+        if (initialData.alias) {
+            box.querySelector('.group-label-input').value = initialData.alias;
+        }
         (initialData.rules || []).forEach(r => addSubRule(r));
     } else {
         addSubRule(); // Start with one empty rule
@@ -546,21 +568,21 @@ export function addRelationGroupUI(initialData = null, parentContainer = null) {
  */
 export function getDragAfterElement(container, y, draggable) {
     const draggableElements = [...container.querySelectorAll(':scope > .rule-row:not(.is-dragging), :scope > .rule-group-box:not(.is-dragging)')];
-    
+
     return draggableElements.reduce((closest, child) => {
         const box = child.getBoundingClientRect();
-        
+
         // Hysteresis: If we are already the last child, we make it harder to jump 'before' the last element (and vice versa)
         const isLastChild = draggable && !draggable.nextElementSibling && container.contains(draggable);
         const isCurrentTarget = draggable && draggable.nextElementSibling === child;
-        
+
         let thresholdPercent = 0.85; // Default for downward move
-        if (isLastChild && child === draggableElements[draggableElements.length-1]) thresholdPercent = 0.2; // Sticky at end
+        if (isLastChild && child === draggableElements[draggableElements.length - 1]) thresholdPercent = 0.2; // Sticky at end
         if (isCurrentTarget) thresholdPercent = 0.3; // Sticky in middle
-        
+
         const threshold = box.top + (box.height * thresholdPercent);
         const offset = y - threshold;
-        
+
         if (offset < 0 && offset > closest.offset) {
             return { offset: offset, element: child };
         } else {
@@ -576,9 +598,9 @@ export function resetUI(skipDefaultRule = false) {
     UI.loading.classList.add('hidden');
     UI.scannedCount.textContent = '0';
     UI.foundCount.textContent = '0';
-    
+
     updateDatalist();
-    
+
     if (!skipDefaultRule) {
         addRuleUI();
     }
@@ -591,7 +613,7 @@ export function toggleFilters(forceCollapse = null) {
     if (!content || !btn) return;
 
     const isCollapsed = forceCollapse !== null ? forceCollapse : !content.classList.contains('hidden-height');
-    
+
     if (isCollapsed) {
         content.classList.add('hidden-height');
         btn.innerHTML = '<i data-lucide="chevron-down"></i> Show Filters';

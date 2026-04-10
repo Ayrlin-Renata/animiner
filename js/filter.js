@@ -12,7 +12,9 @@ export const FIELD_TYPES = {
     COLLECTION: 'collection',
     BOOLEAN: 'boolean',
     ENUM: 'enum',
-    LIST: 'list'
+    LIST: 'list',
+    REFERENCE: 'reference',
+    REFERENCE: 'reference'
 };
 
 export const GROUP_TYPES = {
@@ -72,7 +74,8 @@ export const RECURSIVE_CATEGORIES = {
     STUDIO: 'Studio',
     CHARACTER: 'Character',
     STAFF: 'Staff',
-    USER: 'User'
+    USER: 'User',
+    REFERENCES: 'References'
 };
 
 // Map used to decide which category to show in the UI builder.
@@ -86,11 +89,12 @@ export const SEARCH_MODE_CATEGORIES = {
         RECURSIVE_CATEGORIES.STUDIO,
         RECURSIVE_CATEGORIES.CHARACTER,
         RECURSIVE_CATEGORIES.STAFF,
+        RECURSIVE_CATEGORIES.REFERENCES
     ],
-    CHARACTER: [RECURSIVE_CATEGORIES.IDENTIFIERS, RECURSIVE_CATEGORIES.CHARACTER],
-    STAFF: [RECURSIVE_CATEGORIES.IDENTIFIERS, RECURSIVE_CATEGORIES.STAFF],
-    STUDIO: [RECURSIVE_CATEGORIES.IDENTIFIERS, RECURSIVE_CATEGORIES.STUDIO],
-    USER: [RECURSIVE_CATEGORIES.IDENTIFIERS, RECURSIVE_CATEGORIES.USER],
+    CHARACTER: [RECURSIVE_CATEGORIES.IDENTIFIERS, RECURSIVE_CATEGORIES.CHARACTER, RECURSIVE_CATEGORIES.REFERENCES],
+    STAFF: [RECURSIVE_CATEGORIES.IDENTIFIERS, RECURSIVE_CATEGORIES.STAFF, RECURSIVE_CATEGORIES.REFERENCES],
+    STUDIO: [RECURSIVE_CATEGORIES.IDENTIFIERS, RECURSIVE_CATEGORIES.STUDIO, RECURSIVE_CATEGORIES.REFERENCES],
+    USER: [RECURSIVE_CATEGORIES.IDENTIFIERS, RECURSIVE_CATEGORIES.USER, RECURSIVE_CATEGORIES.REFERENCES],
 };
 
 export const FIELDS = {
@@ -172,6 +176,9 @@ export const FIELDS = {
     [RECURSIVE_CATEGORIES.USER]: [
         { label: 'Username', path: 'name', type: FIELD_TYPES.STRING },
         { label: 'User ID', path: 'id', type: FIELD_TYPES.NUMBER }
+    ],
+    [RECURSIVE_CATEGORIES.REFERENCES]: [
+        { label: 'Labeled Group', path: '__REFERENCE__', type: FIELD_TYPES.REFERENCE }
     ]
 };
 
@@ -213,7 +220,8 @@ export const OPERATORS_BY_TYPE = {
     [FIELD_TYPES.COLLECTION]: [OPERATORS.CONTAINS, OPERATORS.NOT_CONTAINS, OPERATORS.EQUALS, OPERATORS.NOT_EQUALS],
     [FIELD_TYPES.BOOLEAN]: [OPERATORS.IS],
     [FIELD_TYPES.ENUM]: [OPERATORS.EQUALS, OPERATORS.NOT_EQUALS],
-    [FIELD_TYPES.LIST]: [OPERATORS.EQUALS, OPERATORS.NOT_EQUALS]
+    [FIELD_TYPES.LIST]: [OPERATORS.EQUALS, OPERATORS.NOT_EQUALS],
+    [FIELD_TYPES.REFERENCE]: [OPERATORS.EQUALS]
 };
 
 /**
@@ -256,8 +264,9 @@ export function getValueByPath(obj, path) {
 /**
  * Evaluates a single rule against a result item.
  * Returns { success: boolean, terms: string[] } for highlighting match reasons in the UI.
+ * @param callStack - optional Set to track references and prevent deadlocks
  */
-export function evaluateRule(item, rule) {
+export function evaluateRule(item, rule, callStack = new Set()) {
     const { type, path, operator, value } = rule;
 
     // Matches object: { [path]: Set<term> }
@@ -281,9 +290,31 @@ export function evaluateRule(item, rule) {
     // SAFETY GUARD: If value is empty/invalid but required, we skip (success=true)
     if (value === '' || value === null || value === undefined) {
         if (rule.type !== 'GROUP' && rule.type !== 'RELATION' && 
-            type !== 'boolean' && operator !== 'is' && operator !== 'equals' && operator !== 'not_equals') {
+            type !== 'boolean' && type !== 'reference' && operator !== 'is' && operator !== 'equals' && operator !== 'not_equals') {
             return { success: true, matches: {} };
         }
+    }
+
+    if (type === 'reference') {
+        const refLabel = value;
+        const targetGroup = state.groupRefs?.[refLabel];
+        
+        // If reference is broken, gracefully ignore it
+        if (!targetGroup) return { success: true, matches: {} };
+        
+        if (callStack.has(targetGroup)) {
+            console.warn(`Circular reference detected for alias: ${refLabel}. Evaluation aborted.`);
+            return { success: true, matches: {} };
+        }
+
+        callStack.add(targetGroup);
+        const refResult = evaluateRule(item, targetGroup, callStack);
+        callStack.delete(targetGroup);
+        
+        // We do NOT merge matches up here if we want references to just act as a filter?
+        // Actually, we want highlights from inside the reference to show on the card!
+        mergeMatches(refResult.matches);
+        return { success: refResult.success, matches };
     }
 
     if (rule.type === 'GROUP' || type === 'GROUP') {
@@ -293,7 +324,7 @@ export function evaluateRule(item, rule) {
         // Special handling for LOGIC/ROOT groups that apply to the current object
         if (rule.path === COLLECTION_PATHS.LOGIC) {
             if (subRules.length === 0) return { success: true, matches: {} };
-            const subResults = subRules.map(sr => evaluateRule(item, sr));
+            const subResults = subRules.map(sr => evaluateRule(item, sr, callStack));
             subResults.forEach(r => mergeMatches(r.matches));
 
             switch (quantifier) {
@@ -318,7 +349,7 @@ export function evaluateRule(item, rule) {
         }
         
         const subResults = collection.map(entry => {
-            const entryResults = subRules.map(sr => evaluateRule(entry, sr));
+            const entryResults = subRules.map(sr => evaluateRule(entry, sr, callStack));
             const entryMatches = {};
             entryResults.forEach(r => {
                 Object.entries(r.matches).forEach(([p, terms]) => {
@@ -361,7 +392,7 @@ export function evaluateRule(item, rule) {
         if (filteredRels.length === 0) return { success: quantifier === 'NONE', matches: {} };
 
         const subResults = filteredRels.map(edge => {
-            const entryResults = subRules.map(sr => evaluateRule(edge.node, sr));
+            const entryResults = subRules.map(sr => evaluateRule(edge.node, sr, callStack));
             const entryMatches = {};
             entryResults.forEach(r => {
                 Object.entries(r.matches).forEach(([p, terms]) => {

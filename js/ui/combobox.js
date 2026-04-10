@@ -19,7 +19,16 @@ export function createCombobox(options, placeholder, field) {
     results.className = 'combobox-results glass-dark';
     
     const updateResults = (filterText = '') => {
-        const currentOptions = field.seenKey ? (state.seenValues[field.seenKey] || []) : options;
+        let currentOptions;
+        if (field.seenKey === '__REFERENCES__') {
+            const aliases = Array.from(document.querySelectorAll('.group-label-input'))
+                .map(el => el.value.trim())
+                .filter(v => v);
+            currentOptions = [...new Set(aliases)];
+        } else {
+            currentOptions = field.seenKey ? (state.seenValues[field.seenKey] || []) : options;
+        }
+        
         const filtered = currentOptions.filter(o => o.toLowerCase().includes(filterText.toLowerCase()));
         
         results.innerHTML = filtered.map(o => `<div class="combobox-item">${o}</div>`).join('');
