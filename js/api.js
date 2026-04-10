@@ -49,7 +49,7 @@ export const QUERIES = {
               averageScore: $averageScore, averageScore_not: $averageScore_not, averageScore_greater: $averageScore_greater, averageScore_lesser: $averageScore_lesser,
               popularity: $popularity, popularity_not: $popularity_not, popularity_greater: $popularity_greater, popularity_lesser: $popularity_lesser,
               source: $source, source_in: $source_in, countryOfOrigin: $countryOfOrigin, isLicensed: $isLicensed) {
-          id title { romaji english native } format type status description bannerImage genres source
+          id title { romaji english native } format type status description bannerImage genres source isAdult
           startDate { year month day } endDate { year month day }
           coverImage { extraLarge large }
           averageScore meanScore popularity trending favourites episodes duration chapters volumes

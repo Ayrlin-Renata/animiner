@@ -65,6 +65,9 @@
 
 .modal-poster {
   width: 180px;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
   border-radius: var(--radius-md);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   border: 4px solid var(--bg-color-alt);
@@ -177,6 +180,17 @@
   border-color: var(--accent-color);
   color: #fff;
   transform: translateY(-1px);
+}
+
+.modal-badge-row .tag.adult-tag {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.modal-badge-row .tag.adult-tag:hover {
+  background: #ef4444;
+  color: #fff;
 }
 
 .tag-list {

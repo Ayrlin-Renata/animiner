@@ -8,11 +8,17 @@ import { highlightText, formatDescription, getAnilistUrl, renderStatusBadge } fr
 
 export function renderMediaContent(item) {
     const details = item._matchDetails || {};
-    const genres = item.genres?.map(g => {
+    const genresList = item.genres?.map(g => {
         const terms = details['genres'] || [];
         const isMatch = terms.some(t => new RegExp(`\\b${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(g));
         return `<span class="tag ${isMatch ? 'match-highlight-tag' : ''}">${highlightText(g, terms)}</span>`;
-    }).join(' ') || '';
+    }) || [];
+    
+    if (item.isAdult) {
+        genresList.unshift('<span class="tag adult-tag">18+ Adult</span>');
+    }
+    const genres = genresList.join(' ');
+
     const studios = item.studios?.edges?.filter(e => e.isMain).map(e => e.node.name).join(', ') || 'Unknown';
     const sourceFormatted = item.source?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) || '?';
     
