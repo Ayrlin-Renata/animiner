@@ -328,9 +328,9 @@ function collectRulesRecursive(container) {
 }
 
 function parseRelationBox(box) {
-  const relationType = box.querySelector('.group-rel-type')?.value || 'ANY';
   const quantifier   = box.querySelector('.group-quantifier')?.value || 'NONE';
   const alias        = box.querySelector('.group-label-input')?.value.trim() || undefined;
+  const collapsed    = box.classList.contains('collapsed');
   const container    = box.querySelector('.group-rules-container');
   
   const rule = {
@@ -338,6 +338,7 @@ function parseRelationBox(box) {
     relationType,
     quantifier,
     alias,
+    collapsed,
     rules: collectRulesRecursive(container)
   };
   
@@ -365,6 +366,7 @@ function parseGroupbox(box) {
   const path = box.querySelector('.group-path').value;
   const quantifier = box.querySelector('.group-quantifier').value;
   const alias = box.querySelector('.group-label-input')?.value.trim() || undefined;
+  const collapsed = box.classList.contains('collapsed');
   const container = box.querySelector('.group-rules-container');
   
   const rule = {
@@ -372,6 +374,7 @@ function parseGroupbox(box) {
     path,
     quantifier,
     alias,
+    collapsed,
     rules: collectRulesRecursive(container)
   };
   

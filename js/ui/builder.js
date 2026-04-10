@@ -218,6 +218,7 @@ export function addGroupUI(initialData = null, parentContainer = null) {
                     <option value="SOME_ANY">SOME matches ANY rule</option>
                     <option value="NONE_ANY">NO item matches ANY rule</option>
                 </select>
+                <button class="collapse-btn" title="Collapse/Expand"><i data-lucide="chevron-up"></i></button>
                 <button class="remove-btn" title="Remove Group"><i data-lucide="trash-2"></i></button>
             </div>
         </div>
@@ -321,6 +322,16 @@ export function addGroupUI(initialData = null, parentContainer = null) {
     quantSelect.onchange = updateGroupContext;
     box.querySelector('.remove-btn').onclick = () => box.remove();
 
+    box.querySelector('.collapse-btn').onclick = () => {
+        box.classList.toggle('collapsed');
+        // updateStateFromUI() needs to be called to save state, but it's defined in main.js
+        // We can trigger a 'change' event on the box so the observer in main.js sees it
+        box.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
+    if (initialData && initialData.collapsed) {
+        box.classList.add('collapsed');
+    }
     if (initialData && initialData.rules) {
         initialData.rules.forEach(r => {
             if (r.type === 'GROUP') {
@@ -437,6 +448,7 @@ export function addRelationGroupUI(initialData = null, parentContainer = null) {
                     <option value="SOME_ANY">at least one matches ANY rule</option>
                     <option value="NONE_ANY">zero match ANY rule</option>
                 </select>
+                <button class="collapse-btn" title="Collapse/Expand"><i data-lucide="chevron-up"></i></button>
                 <button class="remove-btn" title="Remove Relation Group"><i data-lucide="trash-2"></i></button>
             </div>
         </div>
@@ -485,8 +497,14 @@ export function addRelationGroupUI(initialData = null, parentContainer = null) {
     relTypeSelect.onchange = updateRelationContext;
     quantSelect.onchange = updateRelationContext;
 
+    box.querySelector('.collapse-btn').onclick = () => {
+        box.classList.toggle('collapsed');
+        box.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
     // Load saved state
     if (initialData) {
+        if (initialData.collapsed) box.classList.add('collapsed');
         relTypeSelect.value = initialData.relationType || 'ANY';
         quantSelect.value = initialData.quantifier || 'NONE';
         if (initialData.alias) {

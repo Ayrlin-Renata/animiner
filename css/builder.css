@@ -224,6 +224,43 @@
   padding: 0.8rem 1.2rem;
   background: rgba(255, 255, 255, 0.05);
   border-bottom: 1px solid var(--glass-border);
+  transition: border-bottom 0.2s ease;
+}
+
+.rule-group-box.collapsed .rule-group-header {
+  border-bottom-color: transparent;
+}
+
+.rule-group-box.collapsed .group-rules-container,
+.rule-group-box.collapsed .group-actions,
+.rule-group-box.collapsed .group-help-text {
+  display: none;
+}
+
+.rule-group-box.collapsed {
+  margin-bottom: 1rem;
+}
+
+.collapse-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease, color 0.2s ease;
+  border-radius: 4px;
+}
+
+.collapse-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.rule-group-box.collapsed .collapse-btn {
+  transform: rotate(180deg);
 }
 
 .group-title {
