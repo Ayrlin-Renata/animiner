@@ -5,7 +5,7 @@
 
 import { UI, syncUI, updateDatalist } from './base.js';
 import { state } from '../state.js';
-import { FIELDS, RECURSIVE_CATEGORIES, OPERATORS_BY_TYPE, COLLECTION_PATHS, GROUP_TYPES, SUB_FIELDS, RELATION_TYPES, RELATION_FIELDS } from '../filter.js';
+import { FIELDS, RECURSIVE_CATEGORIES, SEARCH_MODE_CATEGORIES, OPERATORS_BY_TYPE, COLLECTION_PATHS, GROUP_TYPES, SUB_FIELDS, RELATION_TYPES, RELATION_FIELDS } from '../filter.js';
 import { createCombobox } from './combobox.js';
 
 // Global Drop Indicator Element
@@ -34,14 +34,8 @@ export function addRuleUI(initialData = null, parentContainer = null, isSubField
     row.className = 'rule-row';
 
     const availableCategories = isSubField ? [] : Object.keys(FIELDS).filter(cat => {
-        if (state.searchMode === 'MEDIA') return true;
-        const mapping = {
-            CHARACTER: [RECURSIVE_CATEGORIES.CHARACTER, RECURSIVE_CATEGORIES.IDENTIFIERS],
-            STAFF: [RECURSIVE_CATEGORIES.STAFF, RECURSIVE_CATEGORIES.IDENTIFIERS],
-            STUDIO: [RECURSIVE_CATEGORIES.STUDIO, RECURSIVE_CATEGORIES.IDENTIFIERS],
-            USER: [RECURSIVE_CATEGORIES.USER, RECURSIVE_CATEGORIES.IDENTIFIERS]
-        };
-        return (mapping[state.searchMode] || []).includes(cat);
+        const mapping = SEARCH_MODE_CATEGORIES[state.searchMode] || [];
+        return mapping.includes(cat);
     });
 
     row.draggable = false; // Rows are only draggable via handle
@@ -53,11 +47,11 @@ export function addRuleUI(initialData = null, parentContainer = null, isSubField
             <div class="rule-top">
                 ${isSubField ? '' : `<select class="cat-select" title="Category">
                     ${availableCategories.map(cat => {
-                        if (cat === RECURSIVE_CATEGORIES.REFERENCES) {
-                            return `<option disabled>──────────</option><option value="${cat}">Group References</option>`;
-                        }
-                        return `<option value="${cat}">${cat}</option>`;
-                    }).join('')}
+        if (cat === RECURSIVE_CATEGORIES.REFERENCES) {
+            return `<option disabled>──────────</option><option value="${cat}">Group References</option>`;
+        }
+        return `<option value="${cat}">${cat}</option>`;
+    }).join('')}
                 </select>`}
                 <select class="field-select"></select>
                 <button class="remove-btn" title="Remove constraint"><i data-lucide="trash-2"></i></button>
@@ -78,7 +72,7 @@ export function addRuleUI(initialData = null, parentContainer = null, isSubField
         if (!isSubField) {
             row.classList.toggle('reference-rule', catSelect?.value === RECURSIVE_CATEGORIES.REFERENCES);
         }
-        
+
         const fields = isSubField ? subFields : (FIELDS[catSelect?.value] || []);
         fieldSelect.innerHTML = fields.map((f, i) => `<option value="${i}">${f.label}</option>`).join('');
 
@@ -207,7 +201,7 @@ export function addGroupUI(initialData = null, parentContainer = null) {
             </div>
             <div class="group-controls">
                 <select class="group-path">
-                    <option value="ROOT">Manual Logic</option>
+                    <option value="ROOT">MEDIA</option>
                     ${Object.entries(COLLECTION_PATHS).filter(([k]) => k !== 'LOGIC').map(([key, val]) => `<option value="${val}">${key}</option>`).join('')}
                 </select>
                 <select class="group-quantifier">
@@ -270,7 +264,7 @@ export function addGroupUI(initialData = null, parentContainer = null) {
         box.classList.toggle('any-logic', isOr);
         box.classList.toggle('negated-group', isNegated);
 
-        box.querySelector('.group-name').textContent = isLogic ? 'Logic Container' : 'Collection Group';
+        box.querySelector('.group-name').textContent = isLogic ? 'Logic' : 'Collection';
 
         box.querySelector('.collection-icon').classList.toggle('hidden', isLogic);
         box.querySelector('.logic-icon').classList.toggle('hidden', !isLogic);
