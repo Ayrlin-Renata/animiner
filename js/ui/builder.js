@@ -452,12 +452,16 @@ export function addRelationGroupUI(initialData = null, parentContainer = null) {
             <button class="text-btn add-relation-rule-btn">
                 <i data-lucide="plus"></i> Add Sub-Constraint
             </button>
+            <button class="text-btn secondary add-sub-group-btn">
+                <i data-lucide="layers"></i> Add Sub-Group
+            </button>
         </div>
     `;
 
     const relTypeSelect = box.querySelector('.group-rel-type');
     const quantSelect = box.querySelector('.group-quantifier');
     const container = box.querySelector('.group-rules-container');
+    container.dataset.accepts = 'MEDIA';
 
     const updateRelationContext = () => {
         const rt = relTypeSelect.value === 'ANY' ? 'any relation' : relTypeSelect.value.replace(/_/g, ' ').toLowerCase();
@@ -482,11 +486,16 @@ export function addRelationGroupUI(initialData = null, parentContainer = null) {
     };
 
     const addSubRule = (data = null) => {
-        // Create a rule row using RELATION_FIELDS directly (isSubField mode, no category picker)
-        addRuleUI(data, container, true, RELATION_FIELDS);
+        // Use full media rule categories, identical to root logic
+        addRuleUI(data, container);
+    };
+
+    const addSubGroup = (data = null) => {
+        addGroupUI(data, container);
     };
 
     box.querySelector('.add-relation-rule-btn').onclick = () => addSubRule();
+    box.querySelector('.add-sub-group-btn').onclick = () => addSubGroup();
     box.querySelector('.remove-btn').onclick = () => box.remove();
     relTypeSelect.onchange = updateRelationContext;
     quantSelect.onchange = updateRelationContext;
@@ -504,7 +513,17 @@ export function addRelationGroupUI(initialData = null, parentContainer = null) {
         if (initialData.alias) {
             box.querySelector('.group-label-input').value = initialData.alias;
         }
-        (initialData.rules || []).forEach(r => addSubRule(r));
+        if (initialData.rules) {
+            initialData.rules.forEach(r => {
+                if (r.type === 'GROUP') {
+                    addSubGroup(r);
+                } else if (r.type === 'RELATION') {
+                    addRelationGroupUI(r, container);
+                } else {
+                    addSubRule(r);
+                }
+            });
+        }
     } else {
         addSubRule(); // Start with one empty rule
     }

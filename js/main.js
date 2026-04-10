@@ -328,6 +328,7 @@ function collectRulesRecursive(container) {
 }
 
 function parseRelationBox(box) {
+  const relationType = box.querySelector('.group-rel-type')?.value || 'ANY';
   const quantifier   = box.querySelector('.group-quantifier')?.value || 'NONE';
   const alias        = box.querySelector('.group-label-input')?.value.trim() || undefined;
   const collapsed    = box.classList.contains('collapsed');

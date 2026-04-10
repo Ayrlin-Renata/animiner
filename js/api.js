@@ -92,17 +92,32 @@ export const QUERIES = {
             edges { 
               relationType 
               node { 
-                id 
-                title { romaji english } 
-                format 
-                type
-                status
-                genres
-                averageScore
-                popularity
-                startDate { year }
-                tags { name category rank }
-                coverImage { large } 
+                id title { romaji english native } format type status description bannerImage genres source isAdult
+                startDate { year month day } endDate { year month day }
+                coverImage { extraLarge large }
+                averageScore meanScore popularity trending favourites episodes duration chapters volumes
+                isLocked synonyms hashtag
+                tags { name category rank isGeneralSpoiler isMediaSpoiler }
+                studios { edges { node { id name siteUrl } isMain } }
+                characters(perPage: 12) { 
+                  edges { 
+                    role 
+                    node { 
+                      id name { full } image { large } gender age 
+                    } 
+                    voiceActors(sort: [RELEVANCE, ID]) {
+                      id name { full } image { large } languageV2 gender age
+                    }
+                  } 
+                }
+                staff(perPage: 50) { 
+                  edges { 
+                    role 
+                    node { 
+                      id name { full } image { large } gender age 
+                    } 
+                  } 
+                }
               } 
             } 
           }
@@ -224,6 +239,14 @@ export async function executeSearch(onProgress, onComplete) {
 
       if (errors) {
           console.error('GraphQL Errors:', errors);
+          // Pass the error message to the UI explicitly
+          const errMsg = errors.map(e => e.message).join(', ');
+          onProgress({ 
+            status: 'Query Failed', 
+            scanned: state.results.length, 
+            found: foundMatchesCount,
+            error: errMsg
+          });
           break;
       }
 

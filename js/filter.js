@@ -33,7 +33,6 @@ export const RELATION_TYPES = [
     'SEQUEL',
     'PARENT',
     'SIDE_STORY',
-    'CHARACTER',
     'SUMMARY',
     'ALTERNATIVE',
     'SPIN_OFF',

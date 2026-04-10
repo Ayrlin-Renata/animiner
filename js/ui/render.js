@@ -38,6 +38,19 @@ export function updateProgress(data) {
     UI.rateLimitNotice.classList.add('hidden');
   }
 
+  // Handle explicit API errors
+  const errorNotice = document.getElementById('errorNotice');
+  if (data.error) {
+    UI.scanStatus.classList.add('danger-text');
+    if (errorNotice) {
+      errorNotice.classList.remove('hidden');
+      errorNotice.querySelector('span').textContent = 'API Error: ' + data.error;
+    }
+  } else {
+    UI.scanStatus.classList.remove('danger-text');
+    if (errorNotice) errorNotice.classList.add('hidden');
+  }
+
   // Clear previous results on new scan start (Page 1)
   if (state.isScanning && state.page === 1 && (!data.filteredItems || data.filteredItems.length === 0)) {
     renderResultsList([], true); // Force clear
