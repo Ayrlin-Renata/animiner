@@ -4,20 +4,20 @@
  */
 
 const KEY_MAP = {
-    searchMode: 'm',
-    targetMatches: 't',
-    sort: 's',
-    mediaType: 'y',
+    searchMode: 'sm',
+    targetMatches: 'tm',
+    sort: 'st',
+    mediaType: 'mt',
     startPage: 'sp',
-    rules: 'r',
-    path: 'p',
-    operator: 'o',
-    value: 'v',
-    type: 't',
-    quantifier: 'q',
+    rules: 'rl',
+    path: 'pt',
+    operator: 'op',
+    value: 'vl',
+    type: 'tp',
+    quantifier: 'qn',
     relationTypes: 'rt',
-    alias: 'a',
-    collapsed: 'c',
+    alias: 'al',
+    collapsed: 'cl',
     isOptional: 'io'
 };
 
