@@ -172,5 +172,6 @@ function addToStateList(listName, mode, item) {
 
 export const importer = {
   fetchUserLists,
-  mergeImportedData
+  mergeImportedData,
+  addToStateList
 };

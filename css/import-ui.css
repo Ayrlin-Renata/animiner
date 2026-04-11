@@ -206,3 +206,61 @@
         width: 1px;
     }
 }
+
+/* File Sharing Specifics */
+.sharing-section.background-integrated {
+    margin-top: 2rem;
+    padding: 2rem 1.5rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid var(--glass-border);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    margin-left: -1rem;
+    margin-right: -1rem;
+    margin-bottom: -1rem; /* Anchor to modal bottom */
+}
+
+.sharing-top {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.sharing-info p {
+    margin-bottom: 0;
+}
+
+.sharing-selectors {
+    display: flex;
+    gap: 1.5rem;
+    background: transparent;
+    padding: 0;
+    border: none;
+}
+
+/* Override base switch text for modal context */
+.sharing-selectors .switch-text {
+    font-size: 0.75rem;
+    font-weight: 700;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.sharing-selectors .switch-container:hover .switch-text {
+    opacity: 1;
+}
+
+.sharing-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.sharing-actions .secondary-btn {
+    padding: 0 1.25rem;
+    height: 48px;
+    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.03);
+}
