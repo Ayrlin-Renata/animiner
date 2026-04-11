@@ -50,11 +50,13 @@
 .char-link {
   position: relative;
   z-index: 2;
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   padding: 1rem;
   width: 100%;
-  height: 100%;
+  flex: 1; /* Changed from height: 100% to fix flex behavior on <a> tags */
+  text-decoration: none;
+  color: inherit;
 }
 
 .char-info {

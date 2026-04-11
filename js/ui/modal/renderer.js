@@ -330,9 +330,9 @@ export function renderMediaContent(item) {
                 ${[...item.staff.edges]
         .sort((a, b) => window.getStaffPriority(b.role) - window.getStaffPriority(a.role))
         .map(e => `
-                  <a href="https://anilist.co/staff/${e.node.id}" target="_blank" class="char-card no-style" style="background-image: url('${e.node.image?.large}')">
+                  <div class="char-card glass-dark" style="background-image: url('${e.node.image?.large}')">
                     <div class="char-card-overlay"></div>
-                    <div class="char-link">
+                    <a href="https://anilist.co/staff/${e.node.id}" target="_blank" class="char-link no-style">
                       <div class="char-info">
                         <p class="char-name">${e.node.name?.full}</p>
                         <p class="char-role">${e.role}</p>
@@ -341,8 +341,9 @@ export function renderMediaContent(item) {
                           ${e.node.age ? `<span class="trait-badge">${e.node.age}</span>` : ''}
                         </div>
                       </div>
-                    </div>
-                  </a>`).join('')}
+                    </a>
+                  </div>
+`).join('')}
               </div>
               <button class="expand-btn glass-light hidden" onclick="window.toggleSection(this)">
                 <span>Show More</span>
