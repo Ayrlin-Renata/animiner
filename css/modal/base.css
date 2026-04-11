@@ -93,10 +93,59 @@
   min-width: 0;
 }
 
-.modal-title-area h2 {
+.modal-title-main h2 {
   font-size: 1.8rem;
   line-height: 1.2;
   margin-bottom: 0.2rem;
+  transition: color 0.3s ease;
+}
+
+.modal-title-main h2.translated {
+  color: var(--accent-color);
+}
+
+.modal-title-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.translate-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  opacity: 0.6;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.translate-btn:hover {
+  opacity: 1;
+  color: var(--accent-light);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.native-title {
+  margin-top: 0.3rem;
+  line-height: 1.4;
+}
+
+.native-title .prev-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  opacity: 0.9;
+  font-size: 0.95rem;
+}
+
+.native-title .native-orig {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  font-style: italic;
 }
 
 .modal-grid {

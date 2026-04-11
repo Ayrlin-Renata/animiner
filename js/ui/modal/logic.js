@@ -163,3 +163,43 @@ window.getStaffPriority = function(role) {
   return score;
 };
 
+
+window.translateText = async function(btn, text) {
+    if (!text || btn.disabled) return;
+    const icon = btn.querySelector('i');
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'wait';
+    
+    try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(text)}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Fetch failed');
+        const data = await response.json();
+        
+        if (data && data[0] && data[0][0] && data[0][0][0]) {
+            const translation = data[0][0][0];
+            const titleMain = btn.closest('.modal-title-main');
+            if (!titleMain) return;
+
+            const h2 = titleMain.querySelector('h2');
+            const nativeP = titleMain.querySelector('.native-title');
+            
+            if (h2) {
+                const originalTitle = h2.textContent;
+                h2.textContent = translation;
+                h2.classList.add('translated');
+                
+                if (nativeP) {
+                    nativeP.innerHTML = `<span class="prev-title">${originalTitle}</span><br><span class="native-orig">${text}</span>`;
+                }
+            }
+            btn.remove(); // Translation complete
+        }
+    } catch (e) {
+        console.error('Translation failed:', e);
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+    }
+};

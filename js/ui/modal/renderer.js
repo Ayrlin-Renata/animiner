@@ -184,8 +184,15 @@ export function renderMediaContent(item) {
         <div class="modal-title-area">
           <div class="modal-title-header">
             <div class="modal-title-main">
-              <h2>${item.title.english || item.title.romaji}</h2>
-              <p class="native-title">${item.title.native}</p>
+              <div class="modal-title-row">
+                <h2>${item.title.english || item.title.romaji}</h2>
+                ${item.title.native ? `
+                  <button class="translate-btn" onclick="window.translateText(this, '${item.title.native.replace(/'/g, "\\'")}')" title="Translate Native Title">
+                    <i data-lucide="languages"></i>
+                  </button>
+                ` : ''}
+              </div>
+              <p class="native-title">${item.title.native || ''}</p>
             </div>
             <div class="modal-actions">
               <button class="action-btn watched-btn ${isWatched ? 'active' : ''}" title="${isWatched ? 'Watched! (Click to Unmark)' : 'Mark as Watched'}" onclick="window.toggleWatched(${item.id}, '${(item.title.english || item.title.romaji || '').replace(/'/g, "\\'")}', '${item.coverImage.large}', this)">
