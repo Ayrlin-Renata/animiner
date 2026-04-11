@@ -58,7 +58,10 @@ function parseEpisodeCount(info) {
 export function renderStatusBadge(id, mediaType = 'ANIME') {
     if (!id) return '';
     // AniList uses ANIME/MANGA, which map to MEDIA/MANGA search modes
-    const mode = mediaType.toUpperCase() === 'MANGA' ? 'MANGA' : 'MEDIA';
+    // Both Anime and Manga items are stored in the 'MEDIA' bucket
+    const type = (mediaType || '').toUpperCase();
+    const isMedia = type === 'ANIME' || type === 'MANGA';
+    const mode = isMedia ? 'MEDIA' : type;
     
     const isBlacklisted = (state.blacklist[mode] || []).some(b => (typeof b === 'object' ? b.id : b) === id);
     const isWatched = (state.watched[mode] || []).some(w => (typeof w === 'object' ? w.id : w) === id);
