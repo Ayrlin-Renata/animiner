@@ -7,6 +7,7 @@ import { UI, updateDatalist } from './base.js';
 import { state } from '../state.js';
 import { openModal } from './modal/index.js';
 import { filterResults } from '../filter.js';
+import { attachTooltip } from './components/tooltip.js';
 
 /**
  * Updates the progress banner with current search status.
@@ -190,6 +191,14 @@ export function renderResultsList(rawItems, forceClear = false) {
         <div class="match-reasons">${reasonHtml}</div>
       </div>
     `;
+
+    // ATTACH TOOLTIP IF PARTIAL MATCH
+    if (item._isPartialMatch && item._filterFailReason) {
+        const indicator = card.querySelector('.match-indicator-mini');
+        if (indicator) {
+            attachTooltip(indicator, `Partial Match: ${item._filterFailReason}`);
+        }
+    }
 
     card.addEventListener('click', () => openModal(item));
     fragment.appendChild(card);

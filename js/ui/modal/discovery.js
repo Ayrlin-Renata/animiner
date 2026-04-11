@@ -5,8 +5,9 @@
 
 import { UI } from '../base.js';
 import { state } from '../../state.js';
-import { evaluateRule } from '../../filter.js';
+import { evaluateRule, formatReasonForUser, findDeepFailure } from '../../filter.js';
 import { fetchBulkMedia } from '../../api.js';
+import { attachTooltip } from '../components/tooltip.js';
 
 export function markAsSeen(item) {
     if (!item) return;
@@ -433,13 +434,15 @@ window.checkAllFilterStatus = async (mediaItem) => {
                     if (rule.type === 'GROUP') {
                         if (!deeplyCheckGroup(item, rule, softFails)) {
                             hardFail = true;
-                            console.log(`[Filter Warning] ${item.title.romaji} (ID: ${item.id}) failed hard:`, matchResult.reason);
+                            item._hardFailReason = findDeepFailure(item, rule, matchResult);
+                            console.log(`[Filter Warning] ${item.title.romaji} (ID: ${item.id}) failed hard:`, item._hardFailReason);
                         }
                     } else if (rule.path === 'format' || rule.path === 'status') {
                         if (!softFails.includes(rule.path)) softFails.push(rule.path);
                     } else {
                         hardFail = true;
-                        console.log(`[Filter Warning] ${item.title.romaji} (ID: ${item.id}) failed hard:`, matchResult.reason);
+                        item._hardFailReason = findDeepFailure(item, rule, matchResult);
+                        console.log(`[Filter Warning] ${item.title.romaji} (ID: ${item.id}) failed hard:`, item._hardFailReason);
                     }
                 }
             });
@@ -455,18 +458,25 @@ window.checkAllFilterStatus = async (mediaItem) => {
                 });
                 if (relevantRelRules.length > 0) {
                     const specificRes = relevantRelRules.map(relRule => {
-                        const subRes = evaluateRule(item, {
+                        return evaluateRule(item, {
                             type: 'GROUP',
                             path: 'ROOT',
                             quantifier: relRule.quantifier || 'ALL',
                             rules: relRule.rules || []
                         });
-                        if (!subRes.success) {
-                            console.log(`[Relation Warning] ${item.title.romaji} (ID: ${item.id}) failed relation logic:`, subRes.reason);
-                        }
-                        return subRes.success;
                     });
-                    relationFail = !specificRes.every(res => res);
+
+                    relationFail = !specificRes.every(res => res.success);
+                    if (relationFail) {
+                        const firstFail = specificRes.find(r => !r.success);
+                        if (firstFail) {
+                            // Find which sub-rule in the failing relation-group caused it
+                            const relRule = relevantRelRules[specificRes.indexOf(firstFail)];
+                            item._relationFailReason = findDeepFailure(item, relRule, firstFail);
+                        } else {
+                            item._relationFailReason = 'Unknown relation failure';
+                        }
+                    }
                 }
             }
 
@@ -482,6 +492,8 @@ window.checkAllFilterStatus = async (mediaItem) => {
                     const indicator = document.createElement('div');
                     indicator.className = 'match-indicator fail yellow';
                     indicator.innerHTML = '<i data-lucide="filter-x"></i>';
+                    indicator.dataset.reason = item._relationFailReason;
+                    attachTooltip(indicator, `Relation Fail: ${item._relationFailReason}`);
                     card.appendChild(indicator);
                 }
 
@@ -491,13 +503,17 @@ window.checkAllFilterStatus = async (mediaItem) => {
                     const miniFail = document.createElement('div');
                     miniFail.className = 'mini-fail-icon fail-total';
                     miniFail.title = 'Does not match global search criteria';
+                    miniFail.dataset.reason = item._hardFailReason;
                     miniFail.innerHTML = '<i data-lucide="x-circle"></i>';
+                    attachTooltip(miniFail, `Filter Fail: ${item._hardFailReason}`);
                     card.appendChild(miniFail);
 
                     if (!relationFail) {
                         const indicator = document.createElement('div');
                         indicator.className = 'match-indicator fail';
                         indicator.innerHTML = '<i data-lucide="filter-x"></i>';
+                        indicator.dataset.reason = item._hardFailReason;
+                        attachTooltip(indicator, `Filter Fail: ${item._hardFailReason}`);
                         card.appendChild(indicator);
                     }
                 } else if (isMatch || isSoftFail) {

@@ -1,0 +1,50 @@
+/**
+ * css/components/tooltip.css
+ * Styling for the absolute-positioned app tooltip.
+ */
+
+.app-tooltip {
+    position: absolute;
+    padding: 0.8rem 1.2rem; /* Slightly larger padding */
+    background: rgba(15, 18, 25, 0.95); /* Slightly more opaque */
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 500;
+    pointer-events: none;
+    z-index: 10000;
+    min-width: 220px;
+    max-width: 500px;
+    line-height: 1.6; /* Increased for readability in lists */
+    text-align: left;
+    white-space: pre-line;
+    word-break: break-word;
+    font-family: 'Inter', system-ui, sans-serif;
+    
+    transform: translateY(5px);
+    opacity: 0;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.app-tooltip.hidden {
+    display: none;
+}
+
+.app-tooltip.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Specific styling for filter labels and markers */
+.app-tooltip span {
+    color: var(--accent-light);
+    font-weight: 700;
+}
+
+/* Bullet styling */
+.app-tooltip::first-line {
+    font-weight: 700;
+    color: var(--accent-light);
+}

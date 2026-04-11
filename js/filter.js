@@ -64,6 +64,151 @@ export const COLLECTION_PATHS = {
     LOGIC: 'ROOT' // Special path for manual boolean logic
 };
 
+/**
+ * Humanizes technical filter reasons for UI tooltips.
+ */
+export function formatReasonForUser(rule, technicalReason) {
+    if (!technicalReason && rule.type === 'RELATION') {
+        return `Relation rule (${rule.relationTypes?.join(', ') || 'ANY'}) failed logic.`;
+    }
+    
+    // Attempt to map path to label
+    let label = rule.label || rule.path;
+    
+    if (technicalReason && technicalReason.includes(' (Actual:')) {
+        const val = rule.value;
+        const actualRaw = technicalReason.split("(Actual: '")[1]?.replace("')", "") || 'unknown';
+        
+        // SPECIAL CASE: Descriptions & Regex - Don't show the "Actual" data block unless tiny
+        if (rule.path === 'description' || rule.operator === 'regex_match') {
+            switch(rule.operator) {
+                case 'contains': return `Description does not contain '${val}'`;
+                case 'not_contains': return `Description contains forbidden '${val}'`;
+                case 'regex_match': return `Pattern /${val}/ not found in description`;
+                case 'not_equals': return `Description matches forbidden exact text`;
+                default: break; // Fall through to standard truncated logic
+            }
+        }
+
+        // Handle comma-separated lists (like tags)
+        let actual = actualRaw;
+        if (actualRaw.includes(',')) {
+            const arr = actualRaw.split(',').map(s => s.trim());
+            if (arr.length > 3) {
+                actual = `${arr.slice(0, 3).join(', ')} (+${arr.length - 3} more)`;
+            }
+        } else if (actualRaw.length > 50) {
+            actual = actualRaw.substring(0, 47) + '...';
+        }
+
+        switch(rule.operator) {
+            case 'contains': return `${label} missing '${val}'`;
+            case 'not_contains': return `${label} contains forbidden '${val}'`;
+            case 'equals': return `${label} must be '${val}' (Actual: '${actual}')`;
+            case 'not_equals': return `${label} cannot be '${val}'`;
+            case 'greater_than': return `${label} too low (${actual} < ${val})`;
+            case 'less_than': return `${label} too high (${actual} > ${val})`;
+            case 'regex_match': return `${label} matches forbidden pattern`;
+            default: return technicalReason;
+        }
+    }
+
+    if (rule.type === 'GROUP' || rule.type === 'RELATION') {
+        const type = rule.type === 'RELATION' ? 'Relation Group' : 'Group';
+        return `${type} (${rule.quantifier || 'ALL'}) failed criteria.`;
+    }
+
+    return technicalReason || "Unknown requirement failed.";
+}
+
+/**
+ * Recursively finds the specific leaf node failure and builds a bulleted path.
+ */
+export function findDeepFailure(item, rule, result, depth = 0) {
+    if (!result || result.success) return null;
+    
+    // We only want to add a visible indent/bullet line if we have something new to "say"
+    // like a Relation name, a Reference name, or a Labeled group.
+    
+    const indent = "  ".repeat(depth);
+    const bullet = (depth > 0) ? `\n${indent}• ` : "";
+
+    // REFERENCE handling
+    if (rule.type === 'reference') {
+        const refLabel = rule.value;
+        const targetGroup = state.groupRefs?.[refLabel];
+        if (targetGroup) {
+            const subRes = evaluateRule(item, targetGroup);
+            const subReason = findDeepFailure(item, targetGroup, subRes, depth + 1);
+            return `${bullet}[Reference: ${refLabel}] ${subReason}`;
+        }
+    }
+
+    // RELATION handling
+    if (rule.type === 'RELATION') {
+        const subRules = rule.rules || [];
+        const relations = item.relations?.edges || [];
+        const relationTypes = rule.relationTypes || (rule.relationType ? [rule.relationType] : ['ANY']);
+        const filteredRels = relationTypes.includes('ANY') ? relations : relations.filter(e => relationTypes.includes(e.relationType));
+        
+        if (filteredRels.length === 0) return bullet + formatReasonForUser(rule, result.reason);
+
+        for (const edge of filteredRels) {
+            for (const sr of subRules) {
+                const res = evaluateRule(edge.node, sr);
+                if (!res.success) {
+                    const subReason = findDeepFailure(edge.node, sr, res, depth + 1);
+                    const title = edge.node.title?.romaji || edge.node.title?.english || 'Unknown Relation';
+                    return `${bullet}[${edge.relationType}: ${title}] ${subReason}`;
+                }
+            }
+        }
+    }
+
+    // GROUP handling
+    if (rule.rules && rule.rules.length > 0) {
+        const subResults = rule.rules.map(sr => ({ rule: sr, result: evaluateRule(item, sr) }));
+        
+        if (rule.quantifier === 'ALL' || rule.quantifier === 'EVERY') {
+            const firstFail = subResults.find(r => !r.result.success);
+            if (firstFail) {
+                 const labelPart = firstFail.rule.label ? `[${firstFail.rule.label}] ` : '';
+                 const subReason = findDeepFailure(item, firstFail.rule, firstFail.result, depth + (firstFail.rule.label ? 1 : 0));
+                 
+                 if (firstFail.rule.label) {
+                     return `${bullet}${labelPart} ${subReason}`;
+                 }
+                 // No label? Just return the sub-reason without a new bullet level
+                 return subReason;
+            }
+        }
+        
+        if (rule.quantifier === 'NONE' || rule.quantifier === 'NONE_ANY') {
+            const firstPass = subResults.find(r => r.result.success);
+            if (firstPass) {
+                const label = firstPass.rule.label || firstPass.rule.path;
+                let val = getValueByPath(item, firstPass.rule.path);
+                if (Array.isArray(val)) {
+                   val = val.length > 3 ? `${val.slice(0, 3).join(', ')} (+${val.length - 3} more)` : val.join(', ');
+                } else if (typeof val === 'string' && val.length > 50) {
+                   val = val.substring(0, 47) + '...';
+                }
+                return `${bullet}Forbidden Match: ${label} is '${val}'`;
+            }
+        }
+
+        if (rule.quantifier === 'ANY' || rule.quantifier === 'SOME' || rule.quantifier === 'SOME_ANY') {
+            const firstFail = subResults[0];
+            const msg = findDeepFailure(item, firstFail.rule, firstFail.result, depth + 1);
+            const prefix = depth === 0 ? "None of the required conditions met:" : "";
+            return `${prefix} ${msg}`;
+        }
+    }
+
+    // Leaf node: format technical reason and wrap in bullet if nested
+    return bullet + formatReasonForUser(rule, result.reason);
+}
+
 export const RECURSIVE_CATEGORIES = {
     IDENTIFIERS: 'Identifiers',
     TIMELINE: 'Timeline',
@@ -686,6 +831,14 @@ export function filterResults(results, rules) {
             });
             
             item._isPartialMatch = isPartialMatch;
+
+            // CAPTURE FAILURE REASON (for tooltips)
+            if (isPartialMatch) {
+              const failingRel = ruleResults.find(r => r.rule.type === 'RELATION' && !r.result.success);
+              if (failingRel) {
+                  item._filterFailReason = findDeepFailure(item, failingRel.rule, failingRel.result);
+              }
+            }
             
             if (state.isScanning) {
                 console.info(`[Match Trail] "${item.title.romaji || 'Unknown'}" FOUND. Reasons:`, item._matchDetails);
