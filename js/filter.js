@@ -13,7 +13,6 @@ export const FIELD_TYPES = {
     BOOLEAN: 'boolean',
     ENUM: 'enum',
     LIST: 'list',
-    REFERENCE: 'reference',
     REFERENCE: 'reference'
 };
 
@@ -410,21 +409,37 @@ export function getValueByPath(obj, path) {
 export function evaluateRule(item, rule, callStack = new Set()) {
     const { type, path, operator, value } = rule;
 
-    // Matches object: { [path]: Set<term> }
     const matches = {};
     const addMatch = (sourcePath, term) => {
-        if (!term || typeof term !== 'string') return;
-        const normalized = term.toLowerCase().trim();
+        if (!term) return;
+        const normalized = term.toString().toLowerCase().trim();
         if (normalized.length < 2) return;
+
+        // LOCAL tracking (for internal group logic)
         if (!matches[sourcePath]) matches[sourcePath] = new Set();
         matches[sourcePath].add(normalized);
+
+        // GLOBAL tracking (for card display)
+        if (rule._globalCollector) {
+            rule._globalCollector(sourcePath, normalized);
+        }
     };
 
     const mergeMatches = (otherMatches) => {
-        if (!otherMatches) return;
+        if (!otherMatches || Object.keys(otherMatches).length === 0) return;
         Object.entries(otherMatches).forEach(([p, terms]) => {
             if (!matches[p]) matches[p] = new Set();
-            terms.forEach(t => matches[p].add(t));
+            if (Array.isArray(terms) || terms instanceof Set) {
+                terms.forEach(t => {
+                    if (typeof t === 'string' && t.length >= 2) {
+                        const norm = t.toLowerCase().trim();
+                        matches[p].add(norm);
+                        if (rule._globalCollector) rule._globalCollector(p, norm);
+                    }
+                });
+            } else if (typeof terms === 'string') {
+                addMatch(p, terms);
+            }
         });
     };
 
@@ -436,21 +451,22 @@ export function evaluateRule(item, rule, callStack = new Set()) {
         }
     }
 
-    if (type === 'reference') {
+    if (type === 'reference' || type === 'REFERENCE' || path === '__REFERENCE__' || path === 'REFERENCE') {
         const refLabel = value;
         const targetGroup = state.groupRefs?.[refLabel];
         
-        // If reference is broken, gracefully ignore it
         if (!targetGroup) return { success: true, matches: {} };
         
-        if (callStack.has(targetGroup)) {
-            console.warn(`Circular reference detected for alias: ${refLabel}. Evaluation aborted.`);
+        if (callStack.has(refLabel)) {
+            if (state.isScanning) {
+                console.warn(`Circular reference detected for alias: ${refLabel}. Evaluation aborted.`);
+            }
             return { success: true, matches: {} };
         }
 
-        callStack.add(targetGroup);
+        callStack.add(refLabel);
         const refResult = evaluateRule(item, targetGroup, callStack);
-        callStack.delete(targetGroup);
+        callStack.delete(refLabel);
         
         if (refResult.success) {
             mergeMatches(refResult.matches);
@@ -465,7 +481,10 @@ export function evaluateRule(item, rule, callStack = new Set()) {
 
     if (rule.type === 'GROUP' || type === 'GROUP') {
         const quantifier = rule.quantifier || 'ANY';
-        const subRules = rule.rules || [];
+        const subRules = (rule.rules || []).map(sr => ({
+            ...sr,
+            _globalCollector: rule._globalCollector
+        }));
 
         // Special handling for LOGIC/ROOT groups that apply to the current object
         if (rule.path === COLLECTION_PATHS.LOGIC) {
@@ -486,10 +505,7 @@ export function evaluateRule(item, rule, callStack = new Set()) {
             }
 
             if (success) {
-                // Only merge matches from successful rules, matching the logic of the quantifier
-                if (quantifier === 'NONE' || quantifier === 'NONE_ANY' || quantifier === 'NOT_ALL') {
-                    // Negation groups shouldn't provide positive match terms
-                } else {
+                if (quantifier !== 'NONE' && quantifier !== 'NONE_ANY' && quantifier !== 'NOT_ALL') {
                     subResults.forEach(r => { if (r.success) mergeMatches(r.matches); });
                 }
             }
@@ -578,7 +594,14 @@ export function evaluateRule(item, rule, callStack = new Set()) {
         }
 
         const subResults = filteredRels.map(edge => {
-            const entryResults = subRules.map(sr => evaluateRule(edge.node, sr, callStack));
+            const relCollector = (p, t) => {
+                if (rule._globalCollector) rule._globalCollector(`relations.${p}`, t);
+            };
+            const subRulesWithCollector = subRules.map(sr => ({
+                ...sr,
+                _globalCollector: relCollector
+            }));
+            const entryResults = subRulesWithCollector.map(sr => evaluateRule(edge.node, sr, callStack));
             const entryMatches = {};
             entryResults.forEach(r => {
                 Object.entries(r.matches).forEach(([p, terms]) => {
@@ -622,6 +645,11 @@ export function evaluateRule(item, rule, callStack = new Set()) {
     // Leaf Rule Logic
     let success = false;
     let actualValue = getValueByPath(item, path);
+    // CLEAN description to avoid matching HTML tags for highlights
+    if (path === 'description' && actualValue) {
+        actualValue = actualValue.replace(/<br\s*\/?>/gi, ' ').replace(/<\/?[^>]+(>|$)/g, "");
+    }
+
     // Special handling for fuzzy dates (objects { year, month, day })
     if (actualValue && typeof actualValue === 'object' && 'year' in actualValue) {
         actualValue = (actualValue.year || 0) * 10000 + (actualValue.month || 0) * 100 + (actualValue.day || 0);
@@ -708,15 +736,6 @@ export function evaluateRule(item, rule, callStack = new Set()) {
                 }
             } catch (e) { success = true; }
             break;
-        case OPERATORS.REGEX_NOT_MATCH:
-            try {
-                if (!actualValue) success = true;
-                else {
-                    const re = new RegExp(value, 'gi');
-                    success = !re.test(actualValue.toString());
-                }
-            } catch (e) { success = true; }
-            break;
         default:
             success = true;
     }
@@ -762,9 +781,15 @@ export function filterResults(results, rules) {
         // Apply rules if any are present
         if (!rules || rules.length === 0) return true;
 
+        const itemMatchBuffer = {};
+        const collector = (path, term) => {
+            if (!itemMatchBuffer[path]) itemMatchBuffer[path] = new Set();
+            itemMatchBuffer[path].add(term);
+        };
+
         const ruleResults = rules.map(rule => ({
             rule,
-            result: evaluateRule(item, rule)
+            result: evaluateRule(item, { ...rule, _globalCollector: collector })
         }));
 
         const passesCore = ruleResults.filter(r => r.rule.type !== 'RELATION').every(r => r.result.success);
@@ -801,33 +826,9 @@ export function filterResults(results, rules) {
         const shouldShow = isFullMatch || (isPartialMatch && state.showRelationFiltered);
         
         if (shouldShow) {
-            if (state.isScanning) {
-                const getDeepTrace = (res) => {
-                    return res.map(r => {
-                        const base = `${r.rule.path || r.rule.type}:${r.result.success ? 'PASS' : 'FAIL'}`;
-                        if (r.rule.rules) {
-                            const subRes = r.rule.rules.map(sr => ({ rule: sr, result: evaluateRule(item, sr) }));
-                            return { [base]: getDeepTrace(subRes) };
-                        }
-                        return base;
-                    });
-                };
-                console.info(`[Match Trail] "${item.title.romaji}" FOUND:`, getDeepTrace(ruleResults));
-            }
-
-            const allMatches = {};
-            ruleResults.forEach(r => {
-                if (r.result.matches) {
-                    Object.entries(r.result.matches).forEach(([p, terms]) => {
-                        if (!allMatches[p]) allMatches[p] = new Set();
-                        terms.forEach(t => allMatches[p].add(t));
-                    });
-                }
-            });
-
             item._matchDetails = {};
-            Object.entries(allMatches).forEach(([p, termsSet]) => {
-                item._matchDetails[p] = [...termsSet].filter(t => t && t.length >= 2);
+            Object.entries(itemMatchBuffer).forEach(([p, termsSet]) => {
+                item._matchDetails[p] = [...termsSet];
             });
             
             item._isPartialMatch = isPartialMatch;
@@ -838,10 +839,6 @@ export function filterResults(results, rules) {
               if (failingRel) {
                   item._filterFailReason = findDeepFailure(item, failingRel.rule, failingRel.result);
               }
-            }
-            
-            if (state.isScanning) {
-                console.info(`[Match Trail] "${item.title.romaji || 'Unknown'}" FOUND. Reasons:`, item._matchDetails);
             }
         }
 

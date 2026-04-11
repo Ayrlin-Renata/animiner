@@ -16,7 +16,11 @@ export function highlightText(text, terms) {
 export function formatDescription(html, item) {
   if (!html) return 'No description available.';
   const terms = item?._matchDetails?.['description'] || [];
-  const clean = html.replace(/<br\s*\/?>/gi, '\n').replace(/<\/?[^>]+(>|$)/g, "");
+  // Replace <br> and <p> tags with newlines to preserve basic structure
+  const clean = html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/?[^>]+(>|$)/g, "");
   return highlightText(clean, terms);
 }
 
