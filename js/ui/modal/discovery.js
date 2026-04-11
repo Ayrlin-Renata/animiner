@@ -48,10 +48,11 @@ window.toggleSeen = (id, title, image, forceState, type) => {
     const list = state.seen[state.searchMode];
     const index = list.findIndex(item => (typeof item === 'object' ? item.id : item) === id);
 
-    // Toggle logic: if forceState is provided, use it. Otherwise, flip the current state.
-    const isAdding = forceState !== undefined ? forceState : (index === -1);
+    // Toggle logic: if forceState is a boolean, use it. Otherwise, flip current state.
+    const isAdding = (typeof forceState === 'boolean') ? forceState : (index === -1);
+    const typeToUse = type || (state.searchMode === 'MANGA' ? 'MANGA' : 'ANIME');
 
-    if (isAdding && index === -1) list.push({ id, title, image, type: type || 'ANIME' });
+    if (isAdding && index === -1) list.push({ id, title, image, type: typeToUse });
     else if (!isAdding && index !== -1) list.splice(index, 1);
     import('../../state.js').then(m => m.saveSettings());
 
@@ -88,8 +89,11 @@ window.toggleWatched = (id, title, image, forceState, type) => {
     const list = state.watched[state.searchMode];
     const index = list.findIndex(item => (typeof item === 'object' ? item.id : item) === id);
 
-    let isWatched = forceState !== undefined ? forceState : index === -1;
-    if (isWatched && index === -1) list.push({ id, title, image, type: type || 'ANIME' });
+    // Toggle logic: if forceState is a boolean, use it. Otherwise, flip current state.
+    const isWatched = (typeof forceState === 'boolean') ? forceState : (index === -1);
+    const typeToUse = type || (state.searchMode === 'MANGA' ? 'MANGA' : 'ANIME');
+
+    if (isWatched && index === -1) list.push({ id, title, image, type: typeToUse });
     else if (!isWatched && index !== -1) list.splice(index, 1);
 
     import('../../state.js').then(m => m.saveSettings());
@@ -134,7 +138,8 @@ window.toggleWatched = (id, title, image, forceState, type) => {
 window.blockItem = (id, title, image, hideModal = false, type) => {
     const list = state.blacklist[state.searchMode];
     if (!list.some(item => (typeof item === 'object' ? item.id : item) === id)) {
-        list.push({ id, title, image, type: type || 'ANIME' });
+        const typeToUse = type || (state.searchMode === 'MANGA' ? 'MANGA' : 'ANIME');
+        list.push({ id, title, image, type: typeToUse });
         import('../../state.js').then(m => m.saveSettings());
 
         document.querySelectorAll(`[data-id="${id}"]`).forEach(card => {
