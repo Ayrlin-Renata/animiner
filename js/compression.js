@@ -15,7 +15,10 @@ const KEY_MAP = {
     value: 'v',
     type: 't',
     quantifier: 'q',
-    relationType: 'rt'
+    relationTypes: 'rt',
+    alias: 'a',
+    collapsed: 'c',
+    isOptional: 'io'
 };
 
 const REV_KEY_MAP = Object.fromEntries(Object.entries(KEY_MAP).map(([k, v]) => [v, k]));
@@ -70,7 +73,10 @@ function compressRule(rule) {
     if (rule.operator) compact[KEY_MAP.operator] = OP_MAP[rule.operator] || rule.operator;
     if (rule.value !== undefined && rule.value !== '') compact[KEY_MAP.value] = rule.value;
     if (rule.quantifier) compact[KEY_MAP.quantifier] = rule.quantifier;
-    if (rule.relationType) compact[KEY_MAP.relationType] = rule.relationType;
+    if (rule.relationTypes) compact[KEY_MAP.relationTypes] = rule.relationTypes;
+    if (rule.alias) compact[KEY_MAP.alias] = rule.alias;
+    if (rule.collapsed) compact[KEY_MAP.collapsed] = 1;
+    if (rule.isOptional) compact[KEY_MAP.isOptional] = 1;
     
     if (rule.rules && rule.rules.length > 0) {
         compact[KEY_MAP.rules] = rule.rules.map(compressRule);
@@ -93,14 +99,10 @@ function decompressRule(compact) {
         if (fullKey === 'path') fullVal = REV_PATH_MAP[val] || val;
         if (fullKey === 'operator') fullVal = REV_OP_MAP[val] || val;
         if (fullKey === 'rules') fullVal = val.map(decompressRule);
+        if (fullKey === 'collapsed') fullVal = !!val;
+        if (fullKey === 'isOptional') fullVal = !!val;
         
         rule[fullKey] = fullVal;
-    }
-    
-    // Restore static fields if it's a simple rule
-    if (rule.type && rule.type !== 'GROUP' && rule.type !== 'RELATION') {
-        // These will be reconstructed by the UI builder from the path anyway,
-        // but adding them back helps internal consistency.
     }
     
     return rule;
