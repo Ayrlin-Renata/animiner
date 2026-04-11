@@ -54,13 +54,13 @@ export function renderMediaContent(item) {
                         </div>
                         ${(e.node.type === 'ANIME' || e.node.type === 'MANGA') ? `
                             <div class="mini-card-actions">
-                                <button class="mini-action-btn seen" onclick="event.preventDefault(); window.toggleSeen(${e.node.id}, '${(e.node.title.english || e.node.title.romaji).replace(/'/g, "\\'")}', '${e.node.coverImage.large}', undefined, '${e.node.type}')" title="Toggle Seen">
+                                <button class="mini-action-btn seen" onclick="event.preventDefault(); window.toggleSeen(${e.node.id}, '${(e.node.title.english || e.node.title.romaji).replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${e.node.coverImage.large}', undefined, '${e.node.type}')" title="Toggle Seen">
                                     <i data-lucide="eye"></i>
                                 </button>
-                                <button class="mini-action-btn watched" onclick="event.preventDefault(); window.toggleWatched(${e.node.id}, '${(e.node.title.english || e.node.title.romaji).replace(/'/g, "\\'")}', '${e.node.coverImage.large}', undefined, '${e.node.type}')" title="Toggle Watched">
+                                <button class="mini-action-btn watched" onclick="event.preventDefault(); window.toggleWatched(${e.node.id}, '${(e.node.title.english || e.node.title.romaji).replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${e.node.coverImage.large}', undefined, '${e.node.type}')" title="Toggle Watched">
                                     <i data-lucide="check"></i>
                                 </button>
-                                <button class="mini-action-btn blacklist" onclick="event.preventDefault(); window.toggleBlacklist(${e.node.id}, '${(e.node.title.english || e.node.title.romaji).replace(/'/g, "\\'")}', '${e.node.coverImage.large}', undefined, '${e.node.type}')" title="Toggle Blacklist">
+                                <button class="mini-action-btn blacklist" onclick="event.preventDefault(); window.toggleBlacklist(${e.node.id}, '${(e.node.title.english || e.node.title.romaji).replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${e.node.coverImage.large}', undefined, '${e.node.type}')" title="Toggle Blacklist">
                                     <i data-lucide="shield-off"></i>
                                 </button>
                             </div>
@@ -100,13 +100,13 @@ export function renderMediaContent(item) {
                             </div>
                         ${(rec.type === 'ANIME' || rec.type === 'MANGA') ? `
                             <div class="mini-card-actions">
-                                <button class="mini-action-btn seen" onclick="event.preventDefault(); window.toggleSeen(${rec.id}, '${(rec.title.english || rec.title.romaji).replace(/'/g, "\\'")}', '${rec.coverImage.large}', undefined, '${rec.type}')" title="Toggle Seen">
+                                <button class="mini-action-btn seen" onclick="event.preventDefault(); window.toggleSeen(${rec.id}, '${(rec.title.english || rec.title.romaji).replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${rec.coverImage.large}', undefined, '${rec.type}')" title="Toggle Seen">
                                     <i data-lucide="eye"></i>
                                 </button>
-                                <button class="mini-action-btn watched" onclick="event.preventDefault(); window.toggleWatched(${rec.id}, '${(rec.title.english || rec.title.romaji).replace(/'/g, "\\'")}', '${rec.coverImage.large}', undefined, '${rec.type}')" title="Toggle Watched">
+                                <button class="mini-action-btn watched" onclick="event.preventDefault(); window.toggleWatched(${rec.id}, '${(rec.title.english || rec.title.romaji).replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${rec.coverImage.large}', undefined, '${rec.type}')" title="Toggle Watched">
                                     <i data-lucide="check"></i>
                                 </button>
-                                <button class="mini-action-btn blacklist" onclick="event.preventDefault(); window.toggleBlacklist(${rec.id}, '${(rec.title.english || rec.title.romaji).replace(/'/g, "\\'")}', '${rec.coverImage.large}', undefined, '${rec.type}')" title="Toggle Blacklist">
+                                <button class="mini-action-btn blacklist" onclick="event.preventDefault(); window.toggleBlacklist(${rec.id}, '${(rec.title.english || rec.title.romaji).replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${rec.coverImage.large}', undefined, '${rec.type}')" title="Toggle Blacklist">
                                     <i data-lucide="shield-off"></i>
                                 </button>
                             </div>
@@ -187,7 +187,7 @@ export function renderMediaContent(item) {
               <div class="modal-title-row">
                 <h2>${item.title.english || item.title.romaji}</h2>
                 ${item.title.native ? `
-                  <button class="translate-btn" onclick="window.translateText(this, '${item.title.native.replace(/'/g, "\\'")}')" title="Translate Native Title">
+                  <button class="translate-btn" onclick="window.translateText(this, '${item.title.native.replace(/'/g, "\\'").replace(/"/g, "&quot;")}')" title="Translate Native Title">
                     <i data-lucide="languages"></i>
                   </button>
                 ` : ''}
@@ -195,10 +195,10 @@ export function renderMediaContent(item) {
               <p class="native-title">${item.title.native || ''}</p>
             </div>
             <div class="modal-actions">
-              <button class="action-btn watched-btn ${isWatched ? 'active' : ''}" title="${isWatched ? 'Watched! (Click to Unmark)' : 'Mark as Watched'}" onclick="window.toggleWatched(${item.id}, '${(item.title.english || item.title.romaji || '').replace(/'/g, "\\'")}', '${item.coverImage.large}', this)">
+              <button class="action-btn watched-btn ${isWatched ? 'active' : ''}" title="${isWatched ? 'Watched! (Click to Unmark)' : 'Mark as Watched'}" onclick="window.toggleWatched(${item.id}, '${(item.title.english || item.title.romaji || '').replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${item.coverImage.large}', this)">
                 <i data-lucide="${isWatched ? 'check-circle' : 'check'}"></i>
               </button>
-              <button class="action-btn block-btn" title="Block Reference" onclick="window.blockItem(${item.id}, '${(item.title.english || item.title.romaji || '').replace(/'/g, "\\'")}', '${item.coverImage.large}', true)">
+              <button class="action-btn block-btn" title="Block Reference" onclick="window.blockItem(${item.id}, '${(item.title.english || item.title.romaji || '').replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${item.coverImage.large}', true)">
                 <i data-lucide="shield-off"></i>
               </button>
               <button class="action-btn" title="Copy AniList Link" onclick="window.copyToClipboard('${anilistUrl}', this)">
