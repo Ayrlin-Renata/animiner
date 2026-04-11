@@ -176,7 +176,12 @@ export function renderMediaContent(item) {
     }
   }, 10);
 
-  return `
+    const romajiTerms = details['title.romaji'] || [];
+    const englishTerms = details['title.english'] || [];
+    const nativeTerms = details['title.native'] || [];
+    const allTitleTerms = [...romajiTerms, ...englishTerms, ...nativeTerms];
+
+    return `
       <div class="media-details-container">
       <div class="modal-banner" style="background-image: url('${item.bannerImage || item.coverImage.extraLarge}')"></div>
       <div class="modal-header-content">
@@ -185,14 +190,14 @@ export function renderMediaContent(item) {
           <div class="modal-title-header">
             <div class="modal-title-main">
               <div class="modal-title-row">
-                <h2>${item.title.english || item.title.romaji}</h2>
+                <h2>${highlightText(item.title.english || item.title.romaji, allTitleTerms)}</h2>
                 ${item.title.native ? `
                   <button class="translate-btn" onclick="window.translateText(this, '${item.title.native.replace(/'/g, "\\'").replace(/"/g, "&quot;")}')" title="Translate Native Title">
                     <i data-lucide="languages"></i>
                   </button>
                 ` : ''}
               </div>
-              <p class="native-title">${item.title.native || ''}</p>
+              <p class="native-title">${highlightText(item.title.native || '', allTitleTerms)}</p>
             </div>
             <div class="modal-actions">
               <button class="action-btn watched-btn ${isWatched ? 'active' : ''}" title="${isWatched ? 'Watched! (Click to Unmark)' : 'Mark as Watched'}" onclick="window.toggleWatched(${item.id}, '${(item.title.english || item.title.romaji || '').replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${item.coverImage.large}', undefined, '${item.type || 'ANIME'}')">

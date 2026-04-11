@@ -44,7 +44,9 @@ export const RELATION_TYPES = [
 // Fields available on relation nodes (subset of full media fields)
 export const RELATION_FIELDS = [
     { label: 'ID', path: 'id', type: 'number' },
-    { label: 'Title', path: 'title.romaji', type: 'string' },
+    { label: 'Title (Romaji)', path: 'title.romaji', type: 'string' },
+    { label: 'Title (English)', path: 'title.english', type: 'string' },
+    { label: 'Title (Native)', path: 'title.native', type: 'string' },
     { label: 'Format', path: 'format', type: 'enum', options: ['TV', 'TV_SHORT', 'MOVIE', 'SPECIAL', 'OVA', 'ONA', 'MUSIC', 'MANGA', 'NOVEL', 'ONE_SHOT'] },
     { label: 'Type', path: 'type', type: 'enum', options: ['ANIME', 'MANGA'] },
     { label: 'Status', path: 'status', type: 'enum', options: ['FINISHED', 'RELEASING', 'NOT_YET_RELEASED', 'CANCELLED', 'HIATUS'] },
@@ -273,6 +275,9 @@ export const FIELDS = {
         { label: 'Min Tag Rank', path: 'tags.rank', type: FIELD_TYPES.NUMBER },
         { label: 'Synonyms', path: 'synonyms', type: FIELD_TYPES.COLLECTION },
         { label: 'Hashtag', path: 'hashtag', type: FIELD_TYPES.STRING },
+        { label: 'Title (Romaji)', path: 'title.romaji', type: FIELD_TYPES.STRING },
+        { label: 'Title (English)', path: 'title.english', type: FIELD_TYPES.STRING },
+        { label: 'Title (Native)', path: 'title.native', type: FIELD_TYPES.STRING },
         { label: 'Description', path: 'description', type: FIELD_TYPES.STRING }
     ],
     [RECURSIVE_CATEGORIES.METRICS]: [
