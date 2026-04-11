@@ -273,7 +273,7 @@ export function renderMediaContent(item) {
     return `
                   <div class="char-card glass-dark" style="background-image: url('${e.node.image?.large}')">
                     <div class="char-card-overlay"></div>
-                    <div class="char-link">
+                    <a href="https://anilist.co/character/${e.node.id}" target="_blank" class="char-link no-style">
                       <div class="char-info">
                         <p class="char-name">${e.node.name?.full}</p>
                         <p class="char-role">${e.role}</p>
@@ -282,7 +282,7 @@ export function renderMediaContent(item) {
                           ${e.node.age ? `<span class="trait-badge">${e.node.age}</span>` : ''}
                         </div>
                       </div>
-                    </div>
+                    </a>
                     ${e.voiceActors?.length ? `
                       <div class="va-expander">
                         <button class="va-toggle-btn" onclick="window.toggleVAs(this)">
