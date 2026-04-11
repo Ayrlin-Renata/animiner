@@ -180,8 +180,9 @@ window.translateText = async function(btn, text) {
         if (!response.ok) throw new Error('Fetch failed');
         const data = await response.json();
         
-        if (data && data[0] && data[0][0] && data[0][0][0]) {
-            const translation = data[0][0][0];
+        if (data && data[0]) {
+            // Google Translate splits translations into parts; join them all
+            const translation = data[0].map(part => part[0] || '').join('');
             const titleMain = btn.closest('.modal-title-main');
             if (!titleMain) return;
 
