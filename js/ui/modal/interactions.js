@@ -27,9 +27,12 @@ window.addToPlanning = async (mediaId, isPrivate, btn) => {
         // Update tooltip/title
         btn.title = isPrivate ? 'On Private Planning List' : 'On Planning List';
 
-        if (icon) {
+        // Re-query icon as Lucide replaces the element, making the original reference stale
+        const currentIcon = btn.querySelector('i, svg');
+        if (currentIcon) {
             const successIcon = isPrivate ? 'lock-check' : 'calendar-check';
-            icon.setAttribute('data-lucide', successIcon);
+            currentIcon.setAttribute('data-lucide', successIcon);
+            currentIcon.classList.remove('animate-spin');
             if (window.lucide) window.lucide.createIcons({ root: btn });
         }
     } catch (e) {

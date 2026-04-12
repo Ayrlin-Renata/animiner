@@ -208,7 +208,7 @@ export function renderMediaContent(item) {
               <p class="native-title">${highlightText(item.title.native || '', allTitleTerms)}</p>
               
               <div class="modal-badge-row">
-                ${statusLabel && statusLabel !== 'Planning' ? `<span class="tag list-status-tag status-${listStatus.toLowerCase()}"><i data-lucide="list"></i> ${statusLabel}</span>` : ''}
+                ${statusLabel ? `<span class="tag list-status-tag status-${listStatus.toLowerCase()}"><i data-lucide="list"></i> ${statusLabel}</span>` : ''}
                 ${genres}
               </div>
               ${linksHtml}
