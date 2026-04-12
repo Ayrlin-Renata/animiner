@@ -204,6 +204,7 @@ export async function executeSearch(onProgress, onComplete) {
   state.page = state.startPage || 1;
   state.results = [];
   let pagesSearched = 0;
+  let firstResultPage = null;
 
   try {
     let foundMatchesCount = 0;
@@ -287,6 +288,10 @@ export async function executeSearch(onProgress, onComplete) {
       const filtered = filterResults(state.results, state.rules);
       foundMatchesCount = filtered.length;
       
+      if (foundMatchesCount > 0 && firstResultPage === null) {
+        firstResultPage = state.page;
+      }
+      
       // Crucial: Pass status here as well
       onProgress({ 
         status: currentStatus, 
@@ -310,7 +315,8 @@ export async function executeSearch(onProgress, onComplete) {
     
     let stats = `(${actualPages} pages searched)`;
     if (actualPages > 0) {
-        stats = `(Page ${startPage} to ${endPage}, ${actualPages} pages searched)`;
+        let resultInfo = firstResultPage ? `, First match: p.${firstResultPage}` : '';
+        stats = `(Page ${startPage} to ${endPage}, ${actualPages} pages searched${resultInfo})`;
     }
 
     const finalStatus = (state.isCancelled ? 'Search Cancelled' : 'Search Complete') + ` ${stats}`;
