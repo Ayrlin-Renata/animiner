@@ -140,6 +140,9 @@ function detectContradiction(r1, r2) {
     const v1 = r1.value;
     const v2 = r2.value;
 
+    // Special Case: Labeled Group References are additive, not mutually exclusive
+    if (r1.path === '__REFERENCE__' || r2.path === '__REFERENCE__') return false;
+
     // Direct Equality Conflict
     if ((op1 === OPERATORS.EQUALS || op1 === OPERATORS.IS) && 
         (op2 === OPERATORS.EQUALS || op2 === OPERATORS.IS)) {
