@@ -1,4 +1,5 @@
 import { saveMediaListEntry } from '../../api.js';
+import { state } from '../../state.js';
 
 window.addToPlanning = async (mediaId, isPrivate, btn) => {
     const icon = btn.querySelector('i, svg');
@@ -11,10 +12,21 @@ window.addToPlanning = async (mediaId, isPrivate, btn) => {
         if (window.lucide) window.lucide.createIcons({ root: btn });
         btn.querySelector('svg')?.classList.add('animate-spin');
 
-        await saveMediaListEntry(mediaId, 'PLANNING', isPrivate);
+        const newEntry = await saveMediaListEntry(mediaId, 'PLANNING', isPrivate);
+        
+        // Update local state results so it persists when re-opening modal
+        state.results.forEach(item => {
+            if (item.id === mediaId) {
+                item.mediaListEntry = newEntry;
+            }
+        });
         
         btn.classList.remove('loading');
         btn.classList.add('success', 'active');
+        
+        // Update tooltip/title
+        btn.title = isPrivate ? 'On Private Planning List' : 'On Planning List';
+
         if (icon) {
             const successIcon = isPrivate ? 'lock-check' : 'calendar-check';
             icon.setAttribute('data-lucide', successIcon);
