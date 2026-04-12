@@ -1,0 +1,163 @@
+/**
+ * warning.css
+ * Styles for the filter validation warning modal.
+ */
+
+/* Target the parent modal when in warning state */
+.detail-modal.warning-state {
+    max-width: 650px !important;
+    border-left: 4px solid #ffab00;
+    box-shadow: 0 0 50px rgba(255, 171, 0, 0.15);
+}
+
+.warning-header {
+    padding: 2.5rem 2rem 1.5rem;
+    background: linear-gradient(135deg, rgba(255, 171, 0, 0.1) 0%, transparent 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.warning-header h2 {
+    color: #ffab00;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    font-size: 1.6rem;
+}
+
+.warning-header p {
+    margin: 10px 0 0 0;
+    opacity: 0.7;
+    font-size: 1rem;
+}
+
+.warning-list {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: rgba(0,0,0,0.1);
+}
+
+.search-warning-item {
+    display: flex;
+    gap: 16px;
+    padding: 1.2rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+}
+
+.search-warning-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.search-warning-item.contradiction {
+    border-left: 3px solid #ff4d4f;
+    background: rgba(255, 77, 79, 0.02);
+}
+
+.search-warning-item.empty_field {
+    border-left: 3px solid #1890ff;
+    background: rgba(24, 144, 255, 0.02);
+}
+
+.warning-icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 171, 0, 0.1);
+    color: #ffab00;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+.contradiction .warning-icon {
+    background: rgba(255, 77, 79, 0.1);
+    color: #ff4d4f;
+}
+
+.empty_field .warning-icon {
+    background: rgba(24, 144, 255, 0.1);
+    color: #1890ff;
+}
+
+.warning-text {
+    line-height: 1.6;
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.warning-text strong {
+    color: #ffab00;
+    background: rgba(255, 171, 0, 0.1);
+    padding: 0 4px;
+    border-radius: 4px;
+}
+
+.warning-text em {
+    font-style: normal;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.warning-actions {
+    padding: 1.5rem 2rem;
+    background: rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Generic Pill Button Style for Modals */
+.pill-action {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.8rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pill-action.secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.pill-action.secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.pill-action.warning-btn {
+    background: #ffab00;
+    color: #000;
+    box-shadow: 0 4px 15px rgba(255, 171, 0, 0.2);
+}
+
+.pill-action.warning-btn:hover {
+    background: #ffd600;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 171, 0, 0.4);
+}
+
+.pill-action span {
+    white-space: nowrap;
+}
+
+.pill-action i {
+    width: 18px;
+    height: 18px;
+}

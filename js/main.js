@@ -6,6 +6,8 @@ import { executeSearch } from './api.js';
 import { openBlacklistManager, openWatchedManager, openSeenManager, openImportModal } from './ui/modal/index.js';
 import { FIELDS, SUB_FIELDS, RELATION_FIELDS } from './filter.js';
 import { compressFilterData, decompressFilterData } from './compression.js';
+import { validateFilters } from './validation.js';
+import { showSearchWarning } from './ui/modal/warning.js';
 
 async function init() {
   await loadCache();
@@ -85,6 +87,20 @@ async function init() {
   // Event listeners
   const runSearch = () => {
     updateStateFromUI();
+    
+    // Pre-search validation
+    const warnings = validateFilters(state.rules);
+    if (warnings.length > 0) {
+        showSearchWarning(warnings, () => {
+            // Callback for "Search Anyway"
+            proceedWithSearch();
+        });
+    } else {
+        proceedWithSearch();
+    }
+  };
+
+  const proceedWithSearch = () => {
     toggleFilters(true); // Auto-collapse on search
     
     // Clear results grid and tracking before new search
