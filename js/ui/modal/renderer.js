@@ -4,6 +4,7 @@
  */
 
 import { state } from '../../state.js';
+import { auth } from '../../api/auth.js';
 import { highlightText, formatDescription, getAnilistUrl, renderStatusBadge } from './logic.js';
 
 export function renderMediaContent(item) {
@@ -180,6 +181,13 @@ export function renderMediaContent(item) {
     const englishTerms = details['title.english'] || [];
     const nativeTerms = details['title.native'] || [];
     const allTitleTerms = [...romajiTerms, ...englishTerms, ...nativeTerms];
+    
+    // AniList List Status Data
+    const entry = item.mediaListEntry;
+    const isPlanning = entry?.status === 'PLANNING';
+    const isPrivatePlanning = isPlanning && entry?.private;
+    const listStatus = entry?.status;
+    const statusLabel = listStatus ? listStatus.charAt(0) + listStatus.slice(1).toLowerCase() : null;
 
     return `
       <div class="media-details-container">
@@ -198,24 +206,51 @@ export function renderMediaContent(item) {
                 ` : ''}
               </div>
               <p class="native-title">${highlightText(item.title.native || '', allTitleTerms)}</p>
+              
+              <div class="modal-badge-row">
+                ${statusLabel && statusLabel !== 'Planning' ? `<span class="tag list-status-tag status-${listStatus.toLowerCase()}"><i data-lucide="list"></i> ${statusLabel}</span>` : ''}
+                ${genres}
+              </div>
+              ${linksHtml}
             </div>
-            <div class="modal-actions">
-              <button class="action-btn watched-btn ${isWatched ? 'active' : ''}" title="${isWatched ? 'Watched! (Click to Unmark)' : 'Mark as Watched'}" onclick="window.toggleWatched(${item.id}, '${(item.title.english || item.title.romaji || '').replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${item.coverImage.large}', undefined, '${item.type || 'ANIME'}')">
-                <i data-lucide="${isWatched ? 'check-circle' : 'check'}"></i>
-              </button>
-              <button class="action-btn block-btn" title="Block Reference" onclick="window.blockItem(${item.id}, '${(item.title.english || item.title.romaji || '').replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${item.coverImage.large}', true, '${item.type || 'ANIME'}')">
-                <i data-lucide="shield-off"></i>
-              </button>
-              <button class="action-btn" title="Copy AniList Link" onclick="window.copyToClipboard('${anilistUrl}', this)">
-                <i data-lucide="copy"></i>
-              </button>
-              <a href="${anilistUrl}" target="_blank" class="action-btn" title="Open on AniList">
-                <i data-lucide="external-link"></i>
-              </a>
+            <div class="header-actions-column">
+              <div class="modal-actions">
+                <button class="action-btn watched-btn ${isWatched ? 'active' : ''}" title="${isWatched ? 'Watched! (Click to Unmark)' : 'Mark as Watched'}" onclick="window.toggleWatched(${item.id}, '${(item.title.english || item.title.romaji || '').replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${item.coverImage.large}', undefined, '${item.type || 'ANIME'}')">
+                  <i data-lucide="${isWatched ? 'check-circle' : 'check'}"></i>
+                </button>
+                <button class="action-btn block-btn" title="Block Reference" onclick="window.blockItem(${item.id}, '${(item.title.english || item.title.romaji || '').replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${item.coverImage.large}', true, '${item.type || 'ANIME'}')">
+                  <i data-lucide="shield-off"></i>
+                </button>
+                <button class="action-btn" title="Copy AniList Link" onclick="window.copyToClipboard('${anilistUrl}', this)">
+                  <i data-lucide="copy"></i>
+                </button>
+                <a href="${anilistUrl}" target="_blank" class="action-btn" title="Open on AniList">
+                  <i data-lucide="external-link"></i>
+                </a>
+              </div>
+              <div class="modal-sync-row">
+                ${auth.isLoggedIn() ? `
+                  <button class="action-btn planning-btn ${isPlanning && !entry.private ? 'active' : ''}" 
+                          title="${isPlanning && !entry.private ? 'On Planning List' : 'Add to Planning'}" 
+                          onclick="window.addToPlanning(${item.id}, false, this)">
+                    <i data-lucide="${isPlanning && !entry.private ? 'calendar-check' : 'calendar-plus'}"></i>
+                    <span>Planning</span>
+                  </button>
+                  <button class="action-btn planning-btn private ${isPrivatePlanning ? 'active' : ''}" 
+                          title="${isPrivatePlanning ? 'On Private Planning List' : 'Add to Private Planning'}" 
+                          onclick="window.addToPlanning(${item.id}, true, this)">
+                    <i data-lucide="${isPrivatePlanning ? 'lock-check' : 'lock'}"></i>
+                    <span>Private Plan</span>
+                  </button>
+                ` : `
+                  <button class="action-btn connect-btn" title="Connect AniList Account" onclick="window.authLogin()">
+                    <i data-lucide="log-in"></i>
+                    <span>Connect AniList</span>
+                  </button>
+                `}
+              </div>
             </div>
           </div>
-          <div class="modal-badge-row">${genres}</div>
-          ${linksHtml}
         </div>
       </div>
       <div class="modal-grid">

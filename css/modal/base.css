@@ -231,6 +231,23 @@
   transform: translateY(-1px);
 }
 
+.modal-badge-row .tag.list-status-tag {
+  background: rgba(var(--accent-rgb), 0.2);
+  border-color: var(--accent-color);
+  color: #fff;
+  gap: 0.4rem;
+}
+
+.modal-badge-row .tag.list-status-tag i {
+  width: 14px;
+  height: 14px;
+}
+
+.modal-badge-row .tag.status-completed { background: rgba(16, 185, 129, 0.2); border-color: #10b981; }
+.modal-badge-row .tag.status-current { background: rgba(59, 130, 246, 0.2); border-color: #3b82f6; }
+.modal-badge-row .tag.status-paused { background: rgba(245, 166, 35, 0.2); border-color: #f5a623; }
+.modal-badge-row .tag.status-dropped { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; }
+
 .modal-badge-row .tag.adult-tag {
   background: rgba(239, 68, 68, 0.1);
   border-color: #ef4444;

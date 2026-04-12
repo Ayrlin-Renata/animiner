@@ -32,17 +32,37 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+.action-btn.planning-btn.active {
+  background: rgba(var(--accent-rgb), 0.15);
+  border-color: var(--accent-light);
+  color: var(--accent-light);
+}
+
+.action-btn.planning-btn.private.active {
+  background: rgba(245, 166, 35, 0.15);
+  border-color: #f5a623;
+  color: #f5a623;
+}
+
 .action-btn.success {
   background: rgba(16, 185, 129, 0.15);
   border-color: var(--success-color);
   color: var(--success-color);
 }
 
-.action-btn.block-btn:hover {
-  background: rgba(232, 93, 117, 0.15);
+.action-btn.error {
+  background: rgba(239, 68, 68, 0.15);
   border-color: var(--danger-color);
   color: var(--danger-color);
-  box-shadow: 0 4px 12px rgba(232, 93, 117, 0.2);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 
 .action-btn i {
@@ -220,4 +240,76 @@
   filter: brightness(1.1);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(232, 93, 117, 0.3);
+}
+
+/* Header Actions Stack */
+.header-actions-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.8rem;
+}
+
+/* AniList Sync Actions (Refined for Sidebar/Column) */
+.modal-sync-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+.modal-sync-row .action-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.6rem;
+  padding: 0.5rem 1rem;
+  width: auto;
+  height: auto;
+  min-height: 40px;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.modal-sync-row .action-btn i,
+.modal-sync-row .action-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.modal-sync-row .action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--text-primary);
+  transform: translateY(-2px);
+}
+
+.modal-sync-row .action-btn.active {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+}
+
+.modal-sync-row .action-btn.active:hover {
+  filter: brightness(1.1);
+}
+
+/* Connect Button Specifics */
+.connect-btn {
+  color: var(--accent-light) !important;
+  border-color: rgba(var(--primary-rgb), 0.3) !important;
+  background: rgba(var(--primary-rgb), 0.1) !important;
+}
+
+.connect-btn:hover {
+  background: rgba(var(--primary-rgb), 0.2) !important;
+  border-color: var(--accent-color) !important;
 }

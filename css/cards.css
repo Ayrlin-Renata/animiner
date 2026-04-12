@@ -263,6 +263,7 @@
 
 .media-card:hover .card-actions-top {
   opacity: 1;
+  pointer-events: auto;
   transform: scale(1);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }

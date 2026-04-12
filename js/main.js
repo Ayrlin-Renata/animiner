@@ -10,6 +10,7 @@ import { validateFilters } from './validation.js';
 import { showSearchWarning } from './ui/modal/warning.js';
 
 async function init() {
+  window.authLogin = () => auth.login();
   await loadCache();
   loadSettings();
   

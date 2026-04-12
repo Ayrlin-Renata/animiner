@@ -5,6 +5,7 @@
 
 import { state, updateSeenValues } from './state.js';
 import { filterResults } from './filter.js';
+import { auth } from './api/auth.js';
 
 const ANILIST_URL = 'https://graphql.anilist.co';
 
@@ -54,6 +55,7 @@ export const QUERIES = {
           coverImage { extraLarge large }
           averageScore meanScore popularity trending favourites episodes duration chapters volumes
           isLocked synonyms hashtag
+          mediaListEntry { id status private }
           tags { name category rank isGeneralSpoiler isMediaSpoiler }
           studios { edges { node { id name siteUrl } isMain } }
           characters(perPage: 12) { 
@@ -97,6 +99,7 @@ export const QUERIES = {
                 coverImage { extraLarge large }
                 averageScore meanScore popularity trending favourites episodes duration chapters volumes
                 isLocked synonyms hashtag
+                mediaListEntry { id status private }
                 tags { name category rank isGeneralSpoiler isMediaSpoiler }
                 studios { edges { node { id name siteUrl } isMain } }
                 characters(perPage: 12) { 
@@ -183,6 +186,15 @@ export const QUERIES = {
         }
       }
     }
+  `,
+  SAVE_LIST_ENTRY: `
+    mutation ($mediaId: Int, $status: MediaListStatus, $private: Boolean) {
+      SaveMediaListEntry(mediaId: $mediaId, status: $status, private: $private) {
+        id
+        status
+        private
+      }
+    }
   `
 };
 
@@ -209,18 +221,25 @@ export async function executeSearch(onProgress, onComplete) {
         variables: getApiVariables()
       };
 
+      const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+      
+      const token = auth.getToken();
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const res = await fetch(ANILIST_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
+        headers: headers,
         body: JSON.stringify(body)
       });
 
-      const headers = res.headers;
-      state.rateLimitRemaining = parseInt(headers.get('X-RateLimit-Remaining') || '90');
-      state.rateLimitReset = parseInt(headers.get('X-RateLimit-Reset') || '0');
+      const responseHeaders = res.headers;
+      state.rateLimitRemaining = parseInt(responseHeaders.get('X-RateLimit-Remaining') || '90');
+      state.rateLimitReset = parseInt(responseHeaders.get('X-RateLimit-Reset') || '0');
 
       if (res.status === 429) {
         await new Promise(r => setTimeout(r, 60000));
@@ -450,6 +469,37 @@ function getApiVariables() {
 }
 
 /**
+ * Saves a media item to the user's list.
+ */
+export async function saveMediaListEntry(mediaId, status = 'PLANNING', isPrivate = false) {
+    const token = auth.getToken();
+    if (!token) throw new Error('Not authenticated');
+
+    const body = {
+        query: QUERIES.SAVE_LIST_ENTRY,
+        variables: {
+            mediaId: parseInt(mediaId),
+            status,
+            private: isPrivate
+        }
+    };
+
+    const res = await fetch(ANILIST_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(body)
+    });
+
+    const { data, errors } = await res.json();
+    if (errors) throw new Error(errors[0].message);
+    return data.SaveMediaListEntry;
+}
+
+/**
  * Fetches full details for a bulk list of media IDs.
  */
 export async function fetchBulkMedia(ids) {
@@ -460,13 +510,20 @@ export async function fetchBulkMedia(ids) {
     variables: { id_in: ids }
   };
 
+  const headers = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  };
+  
+  const token = auth.getToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   try {
     const res = await fetch(ANILIST_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
+      headers: headers,
       body: JSON.stringify(body)
     });
 

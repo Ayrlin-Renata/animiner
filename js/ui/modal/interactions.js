@@ -1,7 +1,42 @@
-/**
- * js/ui/modal/interactions.js
- * UI Interactions for the Details Modal.
- */
+import { saveMediaListEntry } from '../../api.js';
+
+window.addToPlanning = async (mediaId, isPrivate, btn) => {
+    const icon = btn.querySelector('i, svg');
+    const originalIcon = icon?.getAttribute('data-lucide');
+    
+    try {
+        btn.classList.add('loading');
+        // Provide immediate visual feedback for better UX
+        if (icon) icon.setAttribute('data-lucide', 'loader-2');
+        if (window.lucide) window.lucide.createIcons({ root: btn });
+        btn.querySelector('svg')?.classList.add('animate-spin');
+
+        await saveMediaListEntry(mediaId, 'PLANNING', isPrivate);
+        
+        btn.classList.remove('loading');
+        btn.classList.add('success', 'active');
+        if (icon) {
+            const successIcon = isPrivate ? 'lock-check' : 'calendar-check';
+            icon.setAttribute('data-lucide', successIcon);
+            if (window.lucide) window.lucide.createIcons({ root: btn });
+        }
+    } catch (e) {
+        console.error('Plan failed:', e);
+        btn.classList.remove('loading');
+        btn.classList.add('error');
+        if (icon && originalIcon) {
+            icon.setAttribute('data-lucide', 'alert-circle');
+            if (window.lucide) window.lucide.createIcons({ root: btn });
+        }
+        setTimeout(() => {
+            btn.classList.remove('error');
+            if (icon && originalIcon) {
+                icon.setAttribute('data-lucide', originalIcon);
+                if (window.lucide) window.lucide.createIcons({ root: btn });
+            }
+        }, 3000);
+    }
+};
 
 window.toggleSection = function(btn) {
   const container = btn.closest('.expandable-section').querySelector('.expandable-grid');
