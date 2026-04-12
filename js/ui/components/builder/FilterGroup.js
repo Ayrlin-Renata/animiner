@@ -130,7 +130,21 @@ export function createFilterGroup(initialData = null, parentContainer = null) {
         addSubRule();
     };
     quantSelect.onchange = updateGroupContext;
-    box.querySelector('.remove-btn').onclick = () => box.remove();
+    box.querySelector('.remove-btn').onclick = () => {
+        if (window.showConfirmDialog) {
+            window.showConfirmDialog({
+                title: 'Remove Filter Group?',
+                message: 'Are you sure you want to delete this group and all its nested rules? This cannot be undone.',
+                confirmText: 'Yes, Remove',
+                onConfirm: () => {
+                    box.remove();
+                    import('../../base.js').then(m => m.updateToggleFilterAccent());
+                }
+            });
+        } else {
+            box.remove();
+        }
+    };
 
     box.querySelector('.collapse-btn').onclick = () => {
         box.classList.toggle('collapsed');

@@ -108,7 +108,21 @@ export function createRelationGroup(initialData = null, parentContainer = null) 
 
     box.querySelector('.add-relation-rule-btn').onclick = () => addSubRule();
     box.querySelector('.add-sub-group-btn').onclick = () => addSubGroup();
-    box.querySelector('.remove-btn').onclick = () => box.remove();
+    box.querySelector('.remove-btn').onclick = () => {
+        if (window.showConfirmDialog) {
+            window.showConfirmDialog({
+                title: 'Remove Relation Group?',
+                message: 'Are you sure you want to delete this relation group and all its nested rules? This cannot be undone.',
+                confirmText: 'Yes, Remove',
+                onConfirm: () => {
+                    box.remove();
+                    import('../../base.js').then(m => m.updateToggleFilterAccent());
+                }
+            });
+        } else {
+            box.remove();
+        }
+    };
     reqSelect.onchange = updateRelationContext;
     quantSelect.onchange = updateRelationContext;
 
