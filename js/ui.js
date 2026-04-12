@@ -8,4 +8,4 @@ export { UI, updateDatalist, syncUI, updateToggleFilterAccent } from './ui/base.
 export { updateProgress, renderResultsList } from './ui/render.js';
 export { formatDescription, openModal, openBlacklistManager } from './ui/modal/index.js';
 export { addRuleUI, addGroupUI, addRelationGroupUI, resetUI, toggleFilters } from './ui/builder.js';
-export { createCombobox } from './ui/combobox.js';
+export { createCombobox } from './ui/components/shared/index.js';

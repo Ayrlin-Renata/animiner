@@ -3,7 +3,7 @@
  * Custom Combobox / Autocomplete UI component.
  */
 
-import { state } from '../state.js';
+import { state } from '../../../state.js';
 
 export function createCombobox(options, placeholder, field) {
     const container = document.createElement('div');
