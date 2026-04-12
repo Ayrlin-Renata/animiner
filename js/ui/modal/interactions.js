@@ -42,11 +42,6 @@ window.toggleVAs = (btn) => {
         const anyOpen = grid.querySelectorAll('.va-list-open').length > 0;
         grid.classList.toggle('has-open-va', anyOpen);
     }
-    const icon = btn.querySelector('i');
-    if (icon) {
-        icon.setAttribute('data-lucide', isHidden ? 'chevron-down' : 'chevron-up');
-        if (window.lucide) window.lucide.createIcons();
-    }
 };
 
 window.showConfirmDialog = (config) => {

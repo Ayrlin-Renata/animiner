@@ -158,6 +158,16 @@
   border-color: var(--accent-light);
 }
 
+.va-toggle-btn i,
+.va-toggle-btn svg {
+  transition: transform 0.3s ease;
+}
+
+.va-expander.va-list-open .va-toggle-btn i,
+.va-expander.va-list-open .va-toggle-btn svg {
+  transform: rotate(180deg);
+}
+
 .va-summary {
   font-family: var(--font-mono);
   white-space: nowrap;

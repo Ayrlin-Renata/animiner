@@ -73,11 +73,13 @@
   transform: scale(1.05);
 }
 
-.expand-btn i {
+.expand-btn i,
+.expand-btn svg {
   transition: transform 0.3s ease;
 }
 
-.expand-btn.is-expanded i {
+.expand-btn.is-expanded i,
+.expand-btn.is-expanded svg {
   transform: rotate(180deg);
 }
 
