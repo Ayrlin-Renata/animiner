@@ -324,6 +324,9 @@ async function init() {
     console.log("Current Filter State (for debugging):");
     console.log(JSON.stringify(state.rules, null, 2));
   };
+
+  // Ensure icons are initialized
+  if (window.lucide) window.lucide.createIcons();
 }
 
 function updateStateFromUI() {

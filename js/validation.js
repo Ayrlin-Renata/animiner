@@ -16,9 +16,9 @@ export function validateFilters(rules) {
     const callStack = new Set();
     
     // We start from a root "ALL" scope.
-    // A scope is a collection of constraints that MUST all be true.
     const rootScope = {
         name: 'Global',
+        path: ['Global'],
         constraints: {}, // path -> Array of rules
         isMandatory: true
     };
@@ -55,8 +55,11 @@ function analyzeRecursive(rules, currentScope, warnings, callStack) {
         if (rule.type === 'GROUP' || rule.type === 'RELATION') {
             const isAll = rule.quantifier === 'ALL' || rule.quantifier === 'EVERY';
             const subRules = rule.rules || [];
-            const groupName = rule.alias || rule.label || (rule.type === 'RELATION' ? 'Relation' : 'Group');
-            
+            const typeLabel = rule.type === 'RELATION' ? 'Relation' : 'Group';
+            const quantifierLabel = `[${rule.quantifier}]`;
+            const nameLabel = rule.alias || rule.label ? ` "${rule.alias || rule.label}"` : '';
+            const fullLabel = `${typeLabel}${quantifierLabel}${nameLabel}`;
+
             // ROOT groups with ANY/SOME quantifiers are alternatives, so they don't share constraints
             const isAlternative = (rule.path === 'ROOT' || rule.path === 'LOGIC' || !rule.path) && 
                                  (rule.quantifier === 'ANY' || rule.quantifier === 'SOME' || rule.quantifier === 'SOME_ANY');
@@ -66,9 +69,10 @@ function analyzeRecursive(rules, currentScope, warnings, callStack) {
                 analyzeRecursive(subRules, currentScope, warnings, callStack);
             } else if (isAlternative) {
                 // Each branch in an alternative group is its own independent world
-                subRules.forEach(sr => {
+                subRules.forEach((sr, idx) => {
                     const branchScope = {
-                        name: `${groupName} Branch`,
+                        name: `${fullLabel} Branch ${idx + 1}`,
+                        path: [...currentScope.path, `${fullLabel} (Alt ${idx + 1})`],
                         constraints: {},
                         isMandatory: false
                     };
@@ -76,9 +80,9 @@ function analyzeRecursive(rules, currentScope, warnings, callStack) {
                 });
             } else {
                 // Standard Collection Groups or non-alternative groups
-                // We check for internal consistency within the group
                 const newScope = {
-                    name: groupName,
+                    name: fullLabel,
+                    path: [...currentScope.path, fullLabel],
                     constraints: {},
                     isMandatory: false
                 };
@@ -114,9 +118,10 @@ function analyzeRecursive(rules, currentScope, warnings, callStack) {
             existing.forEach(other => {
                 const conflict = detectContradiction(rule, other);
                 if (conflict) {
+                    const location = currentScope.path.join(' > ');
                     warnings.push({
                         type: 'CONTRADICTION',
-                        message: `Conflicting constraints on <strong>${rule.label || path}</strong> in <em>${currentScope.name}</em>: "${formatRule(rule)}" vs "${formatRule(other)}".`,
+                        message: `Conflicting constraints on <strong>${rule.label || path}</strong> in <em>${location}</em>: "${formatRule(rule)}" vs "${formatRule(other)}".`,
                         rules: [rule, other]
                     });
                 }
@@ -128,7 +133,19 @@ function analyzeRecursive(rules, currentScope, warnings, callStack) {
 }
 
 function formatRule(rule) {
-    return `${rule.operator.replace('_', ' ')} '${rule.value}'`;
+    const opNames = {
+        'equals': 'is',
+        'not_equals': 'is not',
+        'contains': 'contains',
+        'not_contains': 'does not contain',
+        'greater_than': 'is greater than',
+        'less_than': 'is less than',
+        'regex_match': 'matches pattern',
+        'regex_not_match': 'does not match pattern',
+        'is': 'is'
+    };
+    const opName = opNames[rule.operator] || rule.operator.replace(/_/g, ' ');
+    return `${opName} '${rule.value}'`;
 }
 
 /**

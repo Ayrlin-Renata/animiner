@@ -38,7 +38,7 @@ export function renderMediaContent(item) {
             <div class="section-title">Relations</div>
             <div class="expandable-grid mini-grid ${item.relations.edges.length > 5 ? 'is-collapsed' : ''}">
                 ${item.relations.edges.map(e => {
-                    return `
+    return `
                     <a href="https://anilist.co/${e.node.type.toLowerCase()}/${e.node.id}" 
                        target="_blank" 
                        class="mini-card glass-dark vertical no-style" 
@@ -67,7 +67,8 @@ export function renderMediaContent(item) {
                             </div>
                         ` : ''}
                     </a>
-                `;}).join('')}
+                `;
+  }).join('')}
             </div>
             ${item.relations.edges.length > 5 ? `
               <button class="expand-btn glass-light" onclick="window.toggleSection(this)">
@@ -177,19 +178,19 @@ export function renderMediaContent(item) {
     }
   }, 10);
 
-    const romajiTerms = details['title.romaji'] || [];
-    const englishTerms = details['title.english'] || [];
-    const nativeTerms = details['title.native'] || [];
-    const allTitleTerms = [...romajiTerms, ...englishTerms, ...nativeTerms];
-    
-    // AniList List Status Data
-    const entry = item.mediaListEntry;
-    const isPlanning = entry?.status === 'PLANNING';
-    const isPrivatePlanning = isPlanning && entry?.private;
-    const listStatus = entry?.status;
-    const statusLabel = listStatus ? listStatus.charAt(0) + listStatus.slice(1).toLowerCase() : null;
+  const romajiTerms = details['title.romaji'] || [];
+  const englishTerms = details['title.english'] || [];
+  const nativeTerms = details['title.native'] || [];
+  const allTitleTerms = [...romajiTerms, ...englishTerms, ...nativeTerms];
 
-    return `
+  // AniList List Status Data
+  const entry = item.mediaListEntry;
+  const isPlanning = entry?.status === 'PLANNING';
+  const isPrivatePlanning = isPlanning && entry?.private;
+  const listStatus = entry?.status;
+  const statusLabel = listStatus ? listStatus.charAt(0) + listStatus.slice(1).toLowerCase() : null;
+
+  return `
       <div class="media-details-container">
       <div class="modal-banner" style="background-image: url('${item.bannerImage || item.coverImage.extraLarge}')"></div>
       <div class="modal-header-content">
@@ -256,6 +257,7 @@ export function renderMediaContent(item) {
       <div class="modal-grid">
         <div class="modal-sidebar">
           <div class="sidebar-section">
+            ${item.synonyms?.length ? `<div class="sidebar-item"><h4>Synonyms</h4><div class="synonym-list">${item.synonyms.map(s => `<p class="synonym-item">${s}</p>`).join('')}</div></div>` : ''}
             <div class="sidebar-item"><h4>Format</h4><p>${item.format || '?'}</p></div>
             <div class="sidebar-item"><h4>Episodes</h4><p>${item.episodes || item.chapters || '?'}</p></div>
             <div class="sidebar-item"><h4>Status</h4><p>${item.status || '?'}</p></div>
@@ -266,7 +268,6 @@ export function renderMediaContent(item) {
             <div class="sidebar-item"><h4>Studios</h4><p>${studios}</p></div>
             <div class="sidebar-item"><h4>Source</h4><p>${sourceFormatted}</p></div>
             ${item.hashtag ? `<div class="sidebar-item"><h4>Hashtag</h4><p>${item.hashtag}</p></div>` : ''}
-            ${item.synonyms?.length ? `<div class="sidebar-item"><h4>Synonyms</h4><div class="synonym-list">${item.synonyms.map(s => `<p class="synonym-item">${s}</p>`).join('')}</div></div>` : ''}
             <div class="sidebar-item"><h4>Romaji</h4><p>${item.title.romaji}</p></div>
             ${item.title.english ? `<div class="sidebar-item"><h4>English</h4><p>${item.title.english}</p></div>` : ''}
             <div class="sidebar-item"><h4>Native</h4><p>${item.title.native}</p></div>
