@@ -1,6 +1,6 @@
 import { state, loadCache, saveSettings, loadSettings } from './state.js';
 import { auth } from './api/auth.js';
-import { UI, addRuleUI, addGroupUI, addRelationGroupUI, resetUI, updateProgress, renderResultsList, syncUI, toggleFilters, updateToggleFilterAccent } from './ui.js';
+import { UI, addRuleUI, addGroupUI, addRelationGroupUI, resetUI, updateProgress, renderResultsList, syncUI, toggleFilters, updateToggleFilterAccent, refreshBuilderLabels } from './ui.js';
 import { getDragAfterElement, resetDragState } from './ui/builder.js';
 import { executeSearch } from './api.js';
 import { openBlacklistManager, openWatchedManager, openSeenManager, openImportModal } from './ui/modal/index.js';
@@ -13,9 +13,10 @@ import * as i18n from './i18n.js';
 async function init() {
   window.authLogin = () => auth.login();
   await loadCache();
-  await i18n.init();
-  i18n.localizeDOM();
   loadSettings();
+  await i18n.init(state.locale);
+  i18n.localizeDOM();
+  refreshBuilderLabels();
   
   // Storage Consent Logic
   if (state.storageConsent === null) {
@@ -150,6 +151,19 @@ async function init() {
     resetUI();
     saveSettings();
   };
+
+  if (UI.langSelect) {
+    UI.langSelect.onchange = async (e) => {
+      const newLocale = e.target.value;
+      state.locale = newLocale;
+      await i18n.init(newLocale);
+      i18n.localizeDOM();
+      refreshBuilderLabels();
+      saveSettings();
+      // Logic often needs re-rendering if icons or labels with complex logic are present
+      if (window.lucide) window.lucide.createIcons();
+    };
+  }
 
   UI.targetResults.onchange = () => {
     updateStateFromUI();

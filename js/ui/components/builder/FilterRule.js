@@ -138,6 +138,23 @@ export function createFilterRule(initialData = null, isSubField = false, subFiel
         updateFields();
     }
 
+    row.addEventListener('relocalize', () => {
+        if (catSelect) {
+            const currentCat = catSelect.value;
+            catSelect.innerHTML = availableCategories.map(cat => {
+                if (cat === RECURSIVE_CATEGORIES.REFERENCES) {
+                    return `<option disabled>──────────</option><option value="${cat}">${i18n.t('builder.group_refs')}</option>`;
+                }
+                return `<option value="${cat}">${i18n.t('filter.categories.' + cat)}</option>`;
+            }).join('');
+            catSelect.value = currentCat;
+        }
+        updateFields();
+        
+        const removeBtn = row.querySelector('.remove-btn');
+        if (removeBtn) removeBtn.title = i18n.t('tooltips.manage_blacklist');
+    });
+
     row.dataset.context = isSubField ? (subFields === RELATION_FIELDS ? 'RELATION' : (parentContainer?.dataset.accepts || 'UNKNOWN')) : 'MEDIA';
 
     const handle = row.querySelector('.rule-drag-handle');

@@ -11,6 +11,7 @@ export const state = {
   isScanning: false,
   isCancelled: false,
   page: 1,
+  locale: 'en',
   hasNextPage: false,
   sort: 'POPULARITY_DESC',
   mediaType: 'ANIME',
@@ -116,7 +117,8 @@ export function saveSettings() {
     showSeen: state.showSeen,
     showBlacklisted: state.showBlacklisted,
     showRelationFiltered: state.showRelationFiltered,
-    storageConsent: state.storageConsent
+    storageConsent: state.storageConsent,
+    locale: state.locale
   };
   if (state.storageConsent) {
     localStorage.setItem('al_search_settings_v4', JSON.stringify(settings));
@@ -142,6 +144,7 @@ export function loadSettings() {
       state.showBlacklisted = parsed.showBlacklisted ?? state.showBlacklisted;
       state.showRelationFiltered = parsed.showRelationFiltered ?? state.showRelationFiltered;
       state.storageConsent = parsed.storageConsent ?? state.storageConsent;
+      state.locale = parsed.locale || state.locale;
       return true;
     } catch (e) { console.error('Failed to parse settings'); }
   }

@@ -159,6 +159,35 @@ export function createRelationGroup(initialData = null, parentContainer = null) 
 
     updateRelationContext();
 
+    box.addEventListener('relocalize', () => {
+        const currentReq = reqSelect.value;
+        const currentQuant = quantSelect.value;
+
+        reqSelect.innerHTML = `
+            <option value="REQUIRED">${i18n.t('filter.relations.required')}</option>
+            <option value="OPTIONAL">${i18n.t('filter.relations.optional')}</option>
+        `;
+        reqSelect.value = currentReq;
+
+        quantSelect.innerHTML = `
+            <option value="NONE">${i18n.t('filter.relations.quantifiers.none')}</option>
+            <option value="ANY">${i18n.t('filter.relations.quantifiers.any')}</option>
+            <option value="ALL">${i18n.t('filter.relations.quantifiers.all')}</option>
+            <option value="NOT_ALL">${i18n.t('filter.relations.quantifiers.not_all')}</option>
+            <option value="SOME_ANY">${i18n.t('filter.relations.quantifiers.some_any')}</option>
+            <option value="NONE_ANY">${i18n.t('filter.relations.quantifiers.none_any')}</option>
+        `;
+        quantSelect.value = currentQuant;
+
+        box.querySelector('.group-name').textContent = i18n.t('filter.relations.title');
+        box.querySelector('.group-label-input').placeholder = i18n.t('filter.placeholders.alias');
+        box.querySelector('.add-relation-rule-btn').innerHTML = `<i data-lucide="plus"></i> ${i18n.t('builder.add_sub_rule')}`;
+        box.querySelector('.add-sub-group-btn').innerHTML = `<i data-lucide="layers"></i> ${i18n.t('builder.add_sub_group')}`;
+        
+        updateRelationContext();
+        if (window.lucide) window.lucide.createIcons({ root: box });
+    });
+
     const groupHandle = box.querySelector('.group-drag-handle');
     groupHandle.ondragstart = (e) => {
         e.dataTransfer.setData('text/plain', 'relation');

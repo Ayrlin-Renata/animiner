@@ -44,6 +44,7 @@ export const UI = {
   declineStorage: document.getElementById('declineStorage'),
   importBtn: document.getElementById('importBtn'),
   startPage: document.getElementById('startPage'),
+  langSelect: document.getElementById('langSelect'),
 };
 
 /**
@@ -90,6 +91,7 @@ export function syncUI() {
     if (UI.startPage) UI.startPage.value = state.startPage;
     if (UI.mediaType) UI.mediaType.value = state.mediaType;
     if (UI.mediaSort) UI.mediaSort.value = state.sort;
+    if (UI.langSelect) UI.langSelect.value = state.locale;
     
     const isMedia = state.searchMode === 'MEDIA';
     const sortCtrl = document.getElementById('mediaSortControl');

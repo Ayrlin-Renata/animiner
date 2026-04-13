@@ -170,6 +170,35 @@ export function createFilterGroup(initialData = null, parentContainer = null) {
 
     updateGroupContext();
 
+    box.addEventListener('relocalize', () => {
+        // Update header labels
+        const currentPath = pathSelect.value;
+        const currentQuant = quantSelect.value;
+
+        pathSelect.innerHTML = `
+            <option value="ROOT">MEDIA</option>
+            ${Object.entries(COLLECTION_PATHS).filter(([k]) => k !== 'LOGIC').map(([key, val]) => `<option value="${val}">${i18n.t('filter.categories.' + key.toLowerCase())}</option>`).join('')}
+        `;
+        pathSelect.value = currentPath;
+
+        quantSelect.innerHTML = `
+            <option value="ALL">${i18n.t('filter.quantifiers.all')}</option>
+            <option value="ANY">${i18n.t('filter.quantifiers.any')}</option>
+            <option value="NONE">${i18n.t('filter.quantifiers.none')}</option>
+            <option value="NOT_ALL">${i18n.t('filter.quantifiers.not_all')}</option>
+            <option value="SOME_ANY">${i18n.t('filter.quantifiers.some_any')}</option>
+            <option value="NONE_ANY">${i18n.t('filter.quantifiers.none_any')}</option>
+        `;
+        quantSelect.value = currentQuant;
+
+        box.querySelector('.add-sub-rule-btn').innerHTML = `<i data-lucide="plus"></i> ${i18n.t('builder.add_sub_rule')}`;
+        box.querySelector('.add-sub-group-btn').innerHTML = `<i data-lucide="layers"></i> ${i18n.t('builder.add_sub_group')}`;
+        box.querySelector('.group-label-input').placeholder = i18n.t('filter.placeholders.alias');
+
+        updateGroupContext();
+        if (window.lucide) window.lucide.createIcons({ root: box });
+    });
+
     const groupHandle = box.querySelector('.group-drag-handle');
     groupHandle.ondragstart = (e) => {
         e.dataTransfer.setData('text/plain', 'group');

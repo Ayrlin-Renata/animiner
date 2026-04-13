@@ -280,7 +280,12 @@
     "remove_group_msg": "Are you sure you want to delete this group and all its nested rules? This cannot be undone.",
     "remove_group_confirm": "Yes, Remove",
     "remove_relation_title": "Remove Relation Group?",
-    "remove_relation_msg": "Are you sure you want to delete this relation group and all its nested rules? This cannot be undone."
+    "remove_relation_msg": "Are you sure you want to delete this relation group and all its nested rules? This cannot be undone.",
+    "logic": {
+      "and": "AND",
+      "or": "OR",
+      "not": "NOT"
+    }
   },
   "consent": {
     "header": "Search Memory & Privacy",
@@ -324,6 +329,12 @@
       "manga": "Manga",
       "novel": "Light Novel",
       "one_shot": "One Shot"
+    },
+    "media_season": {
+      "winter": "Winter",
+      "spring": "Spring",
+      "summer": "Summer",
+      "fall": "Fall"
     },
     "media_source": {
       "original": "Original",

@@ -31,14 +31,23 @@
     <link rel="stylesheet" href="css/blacklist.css">
     <link rel="stylesheet" href="css/components/multiselect.css">
     <link rel="stylesheet" href="css/components/tooltip.css">
+    <link rel="stylesheet" href="css/components/language-selector.css">
 </head>
 
 <body>
     <div id="app">
         <header>
-            <div class="logo">
-                <i data-lucide="search-code"></i>
-                <h1>Ani<span>Miner</span></h1>
+            <div class="header-main">
+                <div class="logo">
+                    <i data-lucide="search-code"></i>
+                    <h1>Ani<span>Miner</span></h1>
+                </div>
+                <div class="language-selector">
+                    <select id="langSelect" class="lang-dropdown">
+                        <option value="en">English</option>
+                        <option value="jp">日本語</option>
+                    </select>
+                </div>
             </div>
             <p class="subtitle" data-i18n="logo.subtitle">go find them gems - deep search for AniList</p>
         </header>

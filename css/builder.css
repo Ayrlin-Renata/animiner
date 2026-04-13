@@ -121,7 +121,7 @@
 /* Logic indicators (AND/OR) */
 #rootGroup > :is(.rule-row, .rule-group-box):has(+ :is(.rule-row, .rule-group-box))::after,
 .group-rules-container > :is(.rule-row, .rule-group-box):has(+ :is(.rule-row, .rule-group-box))::after {
-  content: 'AND';
+  content: var(--logic-and, 'AND');
   position: absolute;
   bottom: -15px;
   left: 50%;
@@ -142,7 +142,7 @@
 
 /* OR Logic for ANY Logic Groups and ANY Relation Groups */
 .any-logic > .group-rules-container > :is(.rule-row, .rule-group-box):has(+ :is(.rule-row, .rule-group-box))::after {
-  content: 'OR';
+  content: var(--logic-or, 'OR');
   color: #fbbf24;
   border-color: rgba(245, 166, 35, 0.4);
 }
@@ -361,7 +361,7 @@
 }
 
 .negated-group>.group-help-text::after {
-  content: 'NOT';
+  content: var(--logic-not, 'NOT');
   position: absolute;
   bottom: -11px;
   left: 50%;

@@ -4,6 +4,7 @@
  */
 
 import { UI, syncUI, updateDatalist } from './base.js';
+import * as i18n from '../i18n.js';
 import { createFilterRule, createFilterGroup, createRelationGroup, resetDragState, getDragAfterElement } from './components/builder/index.js';
 
 // Global Drop Indicator Element (Must remain accessible for components)
@@ -62,6 +63,34 @@ export function resetUI(skipDefaultRule = false) {
         addRuleUI();
     }
     syncUI();
+}
+
+/**
+ * Refreshes all labels in the existing builder UI without resetting state.
+ */
+export function refreshBuilderLabels() {
+    // 1. Update CSS variables for logical joiners
+    document.documentElement.style.setProperty('--logic-and', `"${i18n.t('builder.logic.and')}"`);
+    document.documentElement.style.setProperty('--logic-or', `"${i18n.t('builder.logic.or')}"`);
+    document.documentElement.style.setProperty('--logic-not', `"${i18n.t('builder.logic.not')}"`);
+
+    // 2. Iterate through all groups and rules
+    const groups = UI.rootGroup.querySelectorAll('.rule-group-box');
+    const rules = UI.rootGroup.querySelectorAll('.rule-row');
+
+    // Groups first (they handle their own headers)
+    groups.forEach(group => {
+        // Trigger the internal update logic if possible, or manually update
+        // We trigger a custom event that components can listen to, or just find the elements.
+        group.dispatchEvent(new CustomEvent('relocalize'));
+    });
+
+    // Rules
+    rules.forEach(rule => {
+        rule.dispatchEvent(new CustomEvent('relocalize'));
+    });
+    
+    if (window.lucide) window.lucide.createIcons();
 }
 
 export function toggleFilters(forceCollapse = null) {
