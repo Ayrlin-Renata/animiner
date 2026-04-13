@@ -6,6 +6,7 @@
 import { state, updateSeenValues } from './state.js';
 import { filterResults } from './filter.js';
 import { auth } from './api/auth.js';
+import * as i18n from './i18n.js';
 
 const ANILIST_URL = 'https://graphql.anilist.co';
 
@@ -29,7 +30,7 @@ export const QUERIES = {
            $onList: Boolean, $licensedBy: String, $licensedBy_in: [String], $licensedById: Int, $licensedById_in: [Int],
            $averageScore: Int, $averageScore_not: Int, $averageScore_greater: Int, $averageScore_lesser: Int,
            $popularity: Int, $popularity_not: Int, $popularity_greater: Int, $popularity_lesser: Int,
-           $source: MediaSource, $source_in: [MediaSource], $countryOfOrigin: CountryCode, $isLicensed: Boolean) {
+            $source: MediaSource, $source_in: [MediaSource], $countryOfOrigin: CountryCode, $isLicensed: Boolean) {
       Page(page: $page, perPage: 50) {
         pageInfo { total hasNextPage currentPage }
         media(search: $search, type: $type, sort: $sort, 
@@ -50,7 +51,7 @@ export const QUERIES = {
               averageScore: $averageScore, averageScore_not: $averageScore_not, averageScore_greater: $averageScore_greater, averageScore_lesser: $averageScore_lesser,
               popularity: $popularity, popularity_not: $popularity_not, popularity_greater: $popularity_greater, popularity_lesser: $popularity_lesser,
               source: $source, source_in: $source_in, countryOfOrigin: $countryOfOrigin, isLicensed: $isLicensed) {
-          id title { romaji english native } format type status description bannerImage genres source isAdult
+          id title { romaji english native userPreferred } format type status description bannerImage genres source isAdult
           startDate { year month day } endDate { year month day }
           coverImage { extraLarge large }
           averageScore meanScore popularity trending favourites episodes duration chapters volumes
@@ -94,7 +95,7 @@ export const QUERIES = {
             edges { 
               relationType 
               node { 
-                id title { romaji english native } format type status description bannerImage genres source isAdult
+                id title { romaji english native userPreferred } format type status description bannerImage genres source isAdult
                 startDate { year month day } endDate { year month day }
                 coverImage { extraLarge large }
                 averageScore meanScore popularity trending favourites episodes duration chapters volumes
@@ -209,11 +210,11 @@ export async function executeSearch(onProgress, onComplete) {
   try {
     let foundMatchesCount = 0;
     while (foundMatchesCount < state.targetMatches && !state.isCancelled) {
-      const currentStatus = `Scanning Page ${state.page}...`;
+      const currentStatus = i18n.t('status.scanning', { page: state.page });
       onProgress({ status: currentStatus, scanned: state.results.length, found: foundMatchesCount });
       
       if (state.rateLimitRemaining < 5) {
-        onProgress({ status: 'Waiting for rate limit...', rateLimit: true });
+        onProgress({ status: i18n.t('status.waiting'), rateLimit: true });
         await new Promise(r => setTimeout(r, (state.rateLimitReset * 1000) + 1000));
       }
 
@@ -262,7 +263,7 @@ export async function executeSearch(onProgress, onComplete) {
           // Pass the error message to the UI explicitly
           const errMsg = errors.map(e => e.message).join(', ');
           onProgress({ 
-            status: 'Query Failed', 
+            status: i18n.t('status.query_failed'), 
             scanned: state.results.length, 
             found: foundMatchesCount,
             error: errMsg
@@ -306,20 +307,20 @@ export async function executeSearch(onProgress, onComplete) {
     }
   } catch (e) {
     console.error('Search failed:', e);
-    onProgress({ status: 'Error occurred during search' });
+    onProgress({ status: i18n.t('status.error') });
   } finally {
     state.isScanning = false;
     const startPage = state.startPage || 1;
     const endPage = state.page;
     const actualPages = state.results.length > 0 ? (endPage - startPage + 1) : 0;
     
-    let stats = `(${actualPages} pages searched)`;
+    let stats = '';
     if (actualPages > 0) {
-        let resultInfo = firstResultPage ? `, First match: p.${firstResultPage}` : '';
-        stats = `(Page ${startPage} to ${endPage}, ${actualPages} pages searched${resultInfo})`;
+        let resultInfo = firstResultPage ? `, ${i18n.t('status.first_match', { page: firstResultPage })}` : '';
+        stats = i18n.t('status.summary', { start: startPage, end: endPage, count: actualPages, info: resultInfo });
     }
 
-    const finalStatus = (state.isCancelled ? 'Search Cancelled' : 'Search Complete') + ` ${stats}`;
+    const finalStatus = (state.isCancelled ? i18n.t('status.cancelled') : i18n.t('status.complete')) + (stats ? ` (${stats})` : '');
     const filtered = filterResults(state.results, state.rules);
     onProgress({ status: finalStatus, scanned: state.results.length, found: filtered.length, filteredItems: filtered });
     onComplete(filtered);

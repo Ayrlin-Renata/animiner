@@ -8,6 +8,16 @@ import { auth } from '../../api/auth.js';
 import { highlightText, formatDescription, getAnilistUrl, renderStatusBadge } from './logic.js';
 import * as i18n from '../../i18n.js';
 
+const translateEnum = (category, value) => {
+  if (!value) return '?';
+  const key = `enums.${category}.${value.toLowerCase()}`;
+  const translated = i18n.t(key);
+  if (translated === key) {
+    return value.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+  }
+  return translated;
+};
+
 export function renderMediaContent(item) {
   const details = item._matchDetails || {};
   const genresList = item.genres?.map(g => {
@@ -22,7 +32,7 @@ export function renderMediaContent(item) {
   const genres = genresList.join(' ');
 
   const studios = item.studios?.edges?.filter(e => e.isMain).map(e => e.node.name).join(', ') || i18n.t('labels.unknown');
-  const sourceFormatted = item.source?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) || '?';
+  const sourceFormatted = translateEnum('media_source', item.source);
 
   const allTags = (item.tags || []).sort((a, b) => b.rank - a.rank);
   const visibleTags = allTags.filter(t => !t.isGeneralSpoiler && !t.isMediaSpoiler);
@@ -50,9 +60,9 @@ export function renderMediaContent(item) {
                             <div class="mini-card-overlay"></div>
                         </div>
                         <div class="mini-info">
-                            <div class="mini-rel">${e.relationType.replace(/_/g, ' ')}</div>
-                            <div class="mini-title">${e.node.title.english || e.node.title.romaji}</div>
-                            <div class="mini-meta">${e.node.format?.replace(/_/g, ' ') || ''} · ${e.node.status?.replace(/_/g, ' ') || ''}</div>
+                            <div class="mini-rel">${translateEnum('relation_type', e.relationType)}</div>
+                            <div class="mini-title">${e.node.title.userPreferred || e.node.title.english || e.node.title.romaji}</div>
+                            <div class="mini-meta">${translateEnum('media_format', e.node.format)} · ${translateEnum('media_status', e.node.status)}</div>
                         </div>
                         ${(e.node.type === 'ANIME' || e.node.type === 'MANGA') ? `
                             <div class="mini-card-actions">
@@ -98,7 +108,7 @@ export function renderMediaContent(item) {
                                 <div class="mini-card-overlay"></div>
                             </div>
                             <div class="mini-info">
-                                <div class="mini-title">${rec.title.english || rec.title.romaji}</div>
+                                <div class="mini-title">${rec.title.userPreferred || rec.title.english || rec.title.romaji}</div>
                                 <div class="mini-meta">${rec.type}</div>
                             </div>
                         ${(rec.type === 'ANIME' || rec.type === 'MANGA') ? `
@@ -200,7 +210,7 @@ export function renderMediaContent(item) {
           <div class="modal-title-header">
             <div class="modal-title-main">
               <div class="modal-title-row">
-                <h2>${highlightText(item.title.english || item.title.romaji, allTitleTerms)}</h2>
+                <h2>${highlightText(item.title.userPreferred || item.title.english || item.title.romaji, allTitleTerms)}</h2>
                 ${item.title.native ? `
                   <button class="translate-btn" onclick="window.translateText(this, '${item.title.native.replace(/'/g, "\\'").replace(/"/g, "&quot;")}')" title="${i18n.t('details.translation.button')}">
                     <i data-lucide="languages"></i>
@@ -259,11 +269,11 @@ export function renderMediaContent(item) {
         <div class="modal-sidebar">
           <div class="sidebar-section">
             ${item.synonyms?.length ? `<div class="sidebar-item"><h4>${i18n.t('details.info.synonyms')}</h4><div class="synonym-list">${item.synonyms.map(s => `<p class="synonym-item">${s}</p>`).join('')}</div></div>` : ''}
-            <div class="sidebar-item"><h4>${i18n.t('details.info.format')}</h4><p>${item.format || '?'}</p></div>
+            <div class="sidebar-item"><h4>${i18n.t('details.info.format')}</h4><p>${translateEnum('media_format', item.format)}</p></div>
             <div class="sidebar-item"><h4>${i18n.t('details.info.episodes')}</h4><p>${item.episodes || item.chapters || '?'}</p></div>
-            <div class="sidebar-item"><h4>${i18n.t('details.info.status')}</h4><p>${item.status || '?'}</p></div>
+            <div class="sidebar-item"><h4>${i18n.t('details.info.status')}</h4><p>${translateEnum('media_status', item.status)}</p></div>
             <div class="sidebar-item"><h4>${i18n.t('details.info.start_date')}</h4><p>${item.startDate?.year || '?'}</p></div>
-            <div class="sidebar-item"><h4>${i18n.t('details.info.season')}</h4><p>${item.season || '?'}</p></div>
+            <div class="sidebar-item"><h4>${i18n.t('details.info.season')}</h4><p>${translateEnum('media_season', item.season)}</p></div>
             <div class="sidebar-item"><h4>${i18n.t('details.info.score')}</h4><p>${item.averageScore ? item.averageScore + '%' : '?'}</p></div>
             <div class="sidebar-item"><h4>${i18n.t('details.info.popularity')}</h4><p>${item.popularity?.toLocaleString() || '?'}</p></div>
             <div class="sidebar-item"><h4>${i18n.t('details.info.studios')}</h4><p>${studios}</p></div>
@@ -318,9 +328,9 @@ export function renderMediaContent(item) {
                     <a href="https://anilist.co/character/${e.node.id}" target="_blank" class="char-link no-style">
                       <div class="char-info">
                         <p class="char-name">${e.node.name?.full}</p>
-                        <p class="char-role">${e.role}</p>
+                        <p class="char-role">${translateEnum('character_role', e.role)}</p>
                         <div class="char-traits">
-                          ${e.node.gender ? `<span class="trait-badge">${e.node.gender}</span>` : ''}
+                          ${e.node.gender ? `<span class="trait-badge">${translateEnum('gender', e.node.gender)}</span>` : ''}
                           ${e.node.age ? `<span class="trait-badge">${e.node.age}</span>` : ''}
                         </div>
                       </div>
@@ -337,9 +347,9 @@ export function renderMediaContent(item) {
                               <img src="${va.image?.large}" class="va-img">
                               <div class="va-info">
                                 <p class="va-name">${va.name.full}</p>
-                                <p class="va-lang">${va.languageV2}</p>
+                                <p class="va-lang">${translateEnum('language', va.languageV2)}</p>
                                 <div class="char-traits">
-                                  ${va.gender ? `<span class="trait-badge">${va.gender}</span>` : ''}
+                                  ${va.gender ? `<span class="trait-badge">${translateEnum('gender', va.gender)}</span>` : ''}
                                   ${va.age ? `<span class="trait-badge">${va.age}</span>` : ''}
                                 </div>
                               </div>
@@ -377,9 +387,9 @@ export function renderMediaContent(item) {
                     <a href="https://anilist.co/staff/${e.node.id}" target="_blank" class="char-link no-style">
                       <div class="char-info">
                         <p class="char-name">${e.node.name?.full}</p>
-                        <p class="char-role">${e.role}</p>
+                        <p class="char-role">${translateEnum('character_role', e.role)}</p>
                         <div class="char-traits">
-                          ${e.node.gender ? `<span class="trait-badge">${e.node.gender}</span>` : ''}
+                          ${e.node.gender ? `<span class="trait-badge">${translateEnum('gender', e.node.gender)}</span>` : ''}
                           ${e.node.age ? `<span class="trait-badge">${e.node.age}</span>` : ''}
                         </div>
                       </div>

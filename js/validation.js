@@ -5,6 +5,7 @@
 
 import { state } from './state.js';
 import { FIELD_TYPES, OPERATORS, getValueByPath } from './filter.js';
+import * as i18n from './i18n.js';
 
 /**
  * Validates current ruleset for logical contradictions.
@@ -17,8 +18,8 @@ export function validateFilters(rules) {
     
     // We start from a root "ALL" scope.
     const rootScope = {
-        name: 'Global',
-        path: ['Global'],
+        name: i18n.t('validation.breadcrumbs.global'),
+        path: [i18n.t('validation.breadcrumbs.global')],
         constraints: {}, // path -> Array of rules
         isMandatory: true
     };
@@ -55,7 +56,7 @@ function analyzeRecursive(rules, currentScope, warnings, callStack) {
         if (rule.type === 'GROUP' || rule.type === 'RELATION') {
             const isAll = rule.quantifier === 'ALL' || rule.quantifier === 'EVERY';
             const subRules = rule.rules || [];
-            const typeLabel = rule.type === 'RELATION' ? 'Relation' : 'Group';
+            const typeLabel = rule.type === 'RELATION' ? i18n.t('validation.breadcrumbs.relation') : i18n.t('validation.breadcrumbs.group');
             const quantifierLabel = `[${rule.quantifier}]`;
             const nameLabel = rule.alias || rule.label ? ` "${rule.alias || rule.label}"` : '';
             const fullLabel = `${typeLabel}${quantifierLabel}${nameLabel}`;
@@ -70,9 +71,11 @@ function analyzeRecursive(rules, currentScope, warnings, callStack) {
             } else if (isAlternative) {
                 // Each branch in an alternative group is its own independent world
                 subRules.forEach((sr, idx) => {
+                    const branchLabel = `${i18n.t('validation.breadcrumbs.branch')} ${idx + 1}`;
+                    const altTag = `${i18n.t('validation.breadcrumbs.alt')} ${idx + 1}`;
                     const branchScope = {
-                        name: `${fullLabel} Branch ${idx + 1}`,
-                        path: [...currentScope.path, `${fullLabel} (Alt ${idx + 1})`],
+                        name: `${fullLabel} ${branchLabel}`,
+                        path: [...currentScope.path, `${fullLabel} (${altTag})`],
                         constraints: {},
                         isMandatory: false
                     };
@@ -108,7 +111,7 @@ function analyzeRecursive(rules, currentScope, warnings, callStack) {
                 (!rule.value || rule.value.trim() === '')) {
                 warnings.push({
                     type: 'EMPTY_FIELD',
-                    message: `Required field <strong>${rule.label || path}</strong> is empty. This may result in no matches.`,
+                    message: i18n.t('validation.messages.empty_field', { field: rule.label || path }),
                     rule
                 });
             }
@@ -121,7 +124,12 @@ function analyzeRecursive(rules, currentScope, warnings, callStack) {
                     const location = currentScope.path.join(' > ');
                     warnings.push({
                         type: 'CONTRADICTION',
-                        message: `Conflicting constraints on <strong>${rule.label || path}</strong> in <em>${location}</em>: "${formatRule(rule)}" vs "${formatRule(other)}".`,
+                        message: i18n.t('validation.messages.contradiction', { 
+                            field: rule.label || path, 
+                            location: location,
+                            rule1: formatRule(rule),
+                            rule2: formatRule(other)
+                        }),
                         rules: [rule, other]
                     });
                 }
@@ -133,18 +141,7 @@ function analyzeRecursive(rules, currentScope, warnings, callStack) {
 }
 
 function formatRule(rule) {
-    const opNames = {
-        'equals': 'is',
-        'not_equals': 'is not',
-        'contains': 'contains',
-        'not_contains': 'does not contain',
-        'greater_than': 'is greater than',
-        'less_than': 'is less than',
-        'regex_match': 'matches pattern',
-        'regex_not_match': 'does not match pattern',
-        'is': 'is'
-    };
-    const opName = opNames[rule.operator] || rule.operator.replace(/_/g, ' ');
+    const opName = i18n.t(`filter.operators.${rule.operator}`) || rule.operator.replace(/_/g, ' ');
     return `${opName} '${rule.value}'`;
 }
 

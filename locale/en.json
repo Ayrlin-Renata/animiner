@@ -301,6 +301,90 @@
     "complete": "Search Complete",
     "cancelled": "Search Cancelled",
     "error": "Error occurred during search",
-    "first_match": "First match: p.{{page}}"
+    "query_failed": "Query Failed",
+    "first_match": "First match: p.{{page}}",
+    "summary": "Page {{start}} to {{end}}, {{count}} pages searched{{info}}"
+  },
+  "enums": {
+    "media_status": {
+      "finished": "Finished",
+      "releasing": "Releasing",
+      "not_yet_released": "Not Yet Released",
+      "cancelled": "Cancelled",
+      "hiatus": "Hiatus"
+    },
+    "media_format": {
+      "tv": "TV",
+      "tv_short": "TV Short",
+      "movie": "Movie",
+      "special": "Special",
+      "ova": "OVA",
+      "ona": "ONA",
+      "music": "Music",
+      "manga": "Manga",
+      "novel": "Light Novel",
+      "one_shot": "One Shot"
+    },
+    "media_source": {
+      "original": "Original",
+      "manga": "Manga",
+      "light_novel": "Light Novel",
+      "visual_novel": "Visual Novel",
+      "video_game": "Video Game",
+      "other": "Other",
+      "novel": "Novel",
+      "doujinshi": "Doujinshi",
+      "anime": "Anime"
+    },
+    "relation_type": {
+      "adaptation": "Adaptation",
+      "prequel": "Prequel",
+      "sequel": "Sequel",
+      "parent": "Parent",
+      "side_story": "Side Story",
+      "character": "Character",
+      "summary": "Summary",
+      "alternative": "Alternative",
+      "spin_off": "Spin Off",
+      "other": "Other",
+      "source": "Source",
+      "compilation": "Compilation",
+      "contains": "Contains"
+    },
+    "gender": {
+      "male": "Male",
+      "female": "Female",
+      "non_binary": "Non-binary"
+    },
+    "language": {
+      "japanese": "Japanese",
+      "english": "English",
+      "korean": "Korean",
+      "italian": "Italian",
+      "spanish": "Spanish",
+      "portuguese": "Portuguese",
+      "german": "German",
+      "french": "French",
+      "hungarian": "Hungarian",
+      "hebrew": "Hebrew"
+    },
+    "character_role": {
+      "main": "Main",
+      "supporting": "Supporting",
+      "background": "Background"
+    }
+  },
+  "validation": {
+    "breadcrumbs": {
+      "global": "Global",
+      "relation": "Relation",
+      "group": "Group",
+      "branch": "Branch",
+      "alt": "Alt"
+    },
+    "messages": {
+      "empty_field": "Required field <strong>{{field}}</strong> is empty. This may result in no matches.",
+      "contradiction": "Conflicting constraints on <strong>{{field}}</strong> in <em>{{location}}</em>: \"{{rule1}}\" vs \"{{rule2}}\"."
+    }
   }
 }
