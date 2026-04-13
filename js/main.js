@@ -8,10 +8,12 @@ import { FIELDS, SUB_FIELDS, RELATION_FIELDS } from './filter.js';
 import { compressFilterData, decompressFilterData } from './compression.js';
 import { validateFilters } from './validation.js';
 import { showSearchWarning } from './ui/modal/warning.js';
+import * as i18n from './i18n.js';
 
 async function init() {
   window.authLogin = () => auth.login();
   await loadCache();
+  await i18n.init();
   loadSettings();
   
   // Storage Consent Logic

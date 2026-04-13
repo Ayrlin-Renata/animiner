@@ -1,0 +1,31 @@
+{
+  "ui": {
+    "buttons": {
+        "watched": "Watched",
+        "seen": "Seen",
+        "blacklist": "Blacklist",
+        "import": "Import",
+        "share_filters": "Share Filters",
+        "search": "Search",
+        "stop_scan": "Stop Scan",
+        "add_constraint": "Add Constraint",
+        "add_group": "Add Filter Group",
+        "add_relation": "Add Relation Filter",
+        "hide_filters": "Hide Filters",
+        "show_filters": "Show Filters"
+    },
+    "tooltips": {
+        "watched_list": "Manage Watched List",
+        "seen_list": "Manage Seen List",
+        "blacklist_list": "Manage Blacklist",
+        "import_anilist": "Import from AniList"
+    }
+  },
+  "status": {
+    "scanning": "Scanning Page {{page}}...",
+    "waiting": "Waiting for rate limit...",
+    "complete": "Search Complete",
+    "cancelled": "Search Cancelled",
+    "error": "Error occurred during search"
+  }
+}
