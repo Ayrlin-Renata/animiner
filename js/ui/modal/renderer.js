@@ -6,6 +6,7 @@
 import { state } from '../../state.js';
 import { auth } from '../../api/auth.js';
 import { highlightText, formatDescription, getAnilistUrl, renderStatusBadge } from './logic.js';
+import * as i18n from '../../i18n.js';
 
 export function renderMediaContent(item) {
   const details = item._matchDetails || {};
@@ -16,11 +17,11 @@ export function renderMediaContent(item) {
   }) || [];
 
   if (item.isAdult) {
-    genresList.unshift('<span class="tag adult-tag">Adult</span>');
+    genresList.unshift(`<span class="tag adult-tag">${i18n.t('labels.adult')}</span>`);
   }
   const genres = genresList.join(' ');
 
-  const studios = item.studios?.edges?.filter(e => e.isMain).map(e => e.node.name).join(', ') || 'Unknown';
+  const studios = item.studios?.edges?.filter(e => e.isMain).map(e => e.node.name).join(', ') || i18n.t('labels.unknown');
   const sourceFormatted = item.source?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) || '?';
 
   const allTags = (item.tags || []).sort((a, b) => b.rank - a.rank);
@@ -28,14 +29,14 @@ export function renderMediaContent(item) {
   const spoilerTags = allTags.filter(t => t.isGeneralSpoiler || t.isMediaSpoiler);
 
   const trailerHtml = item.trailer && item.trailer.site === 'youtube'
-    ? `<div class="section-title">Trailer</div>
+    ? `<div class="section-title">${i18n.t('details.trailer')}</div>
            <div class="video-container">
              <iframe src="https://www.youtube.com/embed/${item.trailer.id}" frameborder="0" allowfullscreen></iframe>
            </div>` : '';
 
   const relationsHtml = item.relations?.edges?.length ? `
         <div class="expandable-section ${item.relations.edges.length > 5 ? 'has-more' : ''}">
-            <div class="section-title">Relations</div>
+            <div class="section-title">${i18n.t('details.relations')}</div>
             <div class="expandable-grid mini-grid ${item.relations.edges.length > 5 ? 'is-collapsed' : ''}">
                 ${item.relations.edges.map(e => {
     return `
@@ -55,13 +56,13 @@ export function renderMediaContent(item) {
                         </div>
                         ${(e.node.type === 'ANIME' || e.node.type === 'MANGA') ? `
                             <div class="mini-card-actions">
-                                <button class="mini-action-btn seen" onclick="event.preventDefault(); window.toggleSeen(${e.node.id}, '${(e.node.title.english || e.node.title.romaji).replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${e.node.coverImage.large}', undefined, '${e.node.type}')" title="Toggle Seen">
+                                <button class="mini-action-btn seen" onclick="event.preventDefault(); window.toggleSeen(${e.node.id}, '${(e.node.title.english || e.node.title.romaji).replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${e.node.coverImage.large}', undefined, '${e.node.type}')" title="${i18n.t('tooltips.toggle_seen')}">
                                     <i data-lucide="eye"></i>
                                 </button>
-                                <button class="mini-action-btn watched" onclick="event.preventDefault(); window.toggleWatched(${e.node.id}, '${(e.node.title.english || e.node.title.romaji).replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${e.node.coverImage.large}', undefined, '${e.node.type}')" title="Toggle Watched">
+                                <button class="mini-action-btn watched" onclick="event.preventDefault(); window.toggleWatched(${e.node.id}, '${(e.node.title.english || e.node.title.romaji).replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${e.node.coverImage.large}', undefined, '${e.node.type}')" title="${i18n.t('tooltips.toggle_watched')}">
                                     <i data-lucide="check"></i>
                                 </button>
-                                <button class="mini-action-btn blacklist" onclick="event.preventDefault(); window.toggleBlacklist(${e.node.id}, '${(e.node.title.english || e.node.title.romaji).replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${e.node.coverImage.large}', undefined, '${e.node.type}')" title="Toggle Blacklist">
+                                <button class="mini-action-btn blacklist" onclick="event.preventDefault(); window.toggleBlacklist(${e.node.id}, '${(e.node.title.english || e.node.title.romaji).replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${e.node.coverImage.large}', undefined, '${e.node.type}')" title="${i18n.t('tooltips.toggle_blacklist')}">
                                     <i data-lucide="shield-off"></i>
                                 </button>
                             </div>
@@ -72,7 +73,7 @@ export function renderMediaContent(item) {
             </div>
             ${item.relations.edges.length > 5 ? `
               <button class="expand-btn glass-light" onclick="window.toggleSection(this)">
-                <span>Show More</span>
+                <span>${i18n.t('details.show_more')}</span>
                 <i data-lucide="chevron-down"></i>
               </button>
             ` : ''}
@@ -81,7 +82,7 @@ export function renderMediaContent(item) {
 
   const recommendationsHtml = item.recommendations?.nodes?.length ? `
         <div class="expandable-section has-more">
-            <div class="section-title">Recommendations</div>
+            <div class="section-title">${i18n.t('details.recommendations')}</div>
             <div class="expandable-grid mini-grid is-collapsed">
                 ${item.recommendations.nodes.map(n => {
     const rec = n.mediaRecommendation;
@@ -102,13 +103,13 @@ export function renderMediaContent(item) {
                             </div>
                         ${(rec.type === 'ANIME' || rec.type === 'MANGA') ? `
                             <div class="mini-card-actions">
-                                <button class="mini-action-btn seen" onclick="event.preventDefault(); window.toggleSeen(${rec.id}, '${(rec.title.english || rec.title.romaji).replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${rec.coverImage.large}', undefined, '${rec.type}')" title="Toggle Seen">
+                                <button class="mini-action-btn seen" onclick="event.preventDefault(); window.toggleSeen(${rec.id}, '${(rec.title.english || rec.title.romaji).replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${rec.coverImage.large}', undefined, '${rec.type}')" title="${i18n.t('tooltips.toggle_seen')}">
                                     <i data-lucide="eye"></i>
                                 </button>
-                                <button class="mini-action-btn watched" onclick="event.preventDefault(); window.toggleWatched(${rec.id}, '${(rec.title.english || rec.title.romaji).replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${rec.coverImage.large}', undefined, '${rec.type}')" title="Toggle Watched">
+                                <button class="mini-action-btn watched" onclick="event.preventDefault(); window.toggleWatched(${rec.id}, '${(rec.title.english || rec.title.romaji).replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${rec.coverImage.large}', undefined, '${rec.type}')" title="${i18n.t('tooltips.toggle_watched')}">
                                     <i data-lucide="check"></i>
                                 </button>
-                                <button class="mini-action-btn blacklist" onclick="event.preventDefault(); window.toggleBlacklist(${rec.id}, '${(rec.title.english || rec.title.romaji).replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${rec.coverImage.large}', undefined, '${rec.type}')" title="Toggle Blacklist">
+                                <button class="mini-action-btn blacklist" onclick="event.preventDefault(); window.toggleBlacklist(${rec.id}, '${(rec.title.english || rec.title.romaji).replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${rec.coverImage.large}', undefined, '${rec.type}')" title="${i18n.t('tooltips.toggle_blacklist')}">
                                     <i data-lucide="shield-off"></i>
                                 </button>
                             </div>
@@ -118,17 +119,17 @@ export function renderMediaContent(item) {
   }).join('')}
             </div>
             <button class="expand-btn glass-light hidden" onclick="window.toggleSection(this)">
-                <span>Show More</span>
+                <span>${i18n.t('details.show_more')}</span>
                 <i data-lucide="chevron-down"></i>
             </button>
         </div>
     ` : '';
 
   const statsHtml = item.stats ? `
-        <div class="section-title">Statistics</div>
+        <div class="section-title">${i18n.t('details.statistics')}</div>
         <div class="stats-distributions">
             <div class="dist-group">
-                <h4>Status Distribution</h4>
+                <h4>${i18n.t('details.status_dist')}</h4>
                 <div class="dist-bar">
                     ${item.stats.statusDistribution.map(d => `
                         <div class="bar-seg" style="width: ${(d.amount / item.popularity * 100).toFixed(1)}%; background: var(--color-${d.status.toLowerCase()})" title="${d.status}: ${d.amount.toLocaleString()}"></div>
@@ -139,7 +140,7 @@ export function renderMediaContent(item) {
                 </div>
             </div>
             <div class="dist-group">
-                <h4>Score Distribution</h4>
+                <h4>${i18n.t('details.score_dist')}</h4>
                 <div class="dist-bar scores">
                     ${item.stats.scoreDistribution.map(d => {
     const maxAmount = Math.max(...item.stats.scoreDistribution.map(sd => sd.amount));
@@ -149,7 +150,7 @@ export function renderMediaContent(item) {
   }).join('')}
                 </div>
                 <div class="dist-legend">
-                  <span class="legend-item">Score (10-100)</span>
+                  <span class="legend-item">${i18n.t('details.score_range')}</span>
                 </div>
             </div>
         </div>
@@ -201,7 +202,7 @@ export function renderMediaContent(item) {
               <div class="modal-title-row">
                 <h2>${highlightText(item.title.english || item.title.romaji, allTitleTerms)}</h2>
                 ${item.title.native ? `
-                  <button class="translate-btn" onclick="window.translateText(this, '${item.title.native.replace(/'/g, "\\'").replace(/"/g, "&quot;")}')" title="Translate Native Title">
+                  <button class="translate-btn" onclick="window.translateText(this, '${item.title.native.replace(/'/g, "\\'").replace(/"/g, "&quot;")}')" title="${i18n.t('details.translation.button')}">
                     <i data-lucide="languages"></i>
                   </button>
                 ` : ''}
@@ -216,37 +217,37 @@ export function renderMediaContent(item) {
             </div>
             <div class="header-actions-column">
               <div class="modal-actions">
-                <button class="action-btn watched-btn ${isWatched ? 'active' : ''}" title="${isWatched ? 'Watched! (Click to Unmark)' : 'Mark as Watched'}" onclick="window.toggleWatched(${item.id}, '${(item.title.english || item.title.romaji || '').replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${item.coverImage.large}', undefined, '${item.type || 'ANIME'}')">
+                <button class="action-btn watched-btn ${isWatched ? 'active' : ''}" title="${isWatched ? i18n.t('tooltips.watched_unmark') : i18n.t('tooltips.watched_mark')}" onclick="window.toggleWatched(${item.id}, '${(item.title.english || item.title.romaji || '').replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${item.coverImage.large}', undefined, '${item.type || 'ANIME'}')">
                   <i data-lucide="${isWatched ? 'check-circle' : 'check'}"></i>
                 </button>
-                <button class="action-btn block-btn" title="Block Reference" onclick="window.blockItem(${item.id}, '${(item.title.english || item.title.romaji || '').replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${item.coverImage.large}', true, '${item.type || 'ANIME'}')">
+                <button class="action-btn block-btn" title="${i18n.t('tooltips.block')}" onclick="window.blockItem(${item.id}, '${(item.title.english || item.title.romaji || '').replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${item.coverImage.large}', true, '${item.type || 'ANIME'}')">
                   <i data-lucide="shield-off"></i>
                 </button>
-                <button class="action-btn" title="Copy AniList Link" onclick="window.copyToClipboard('${anilistUrl}', this)">
+                <button class="action-btn" title="${i18n.t('tooltips.copy_link')}" onclick="window.copyToClipboard('${anilistUrl}', this)">
                   <i data-lucide="copy"></i>
                 </button>
-                <a href="${anilistUrl}" target="_blank" class="action-btn" title="Open on AniList">
+                <a href="${anilistUrl}" target="_blank" class="action-btn" title="${i18n.t('tooltips.open_anilist')}">
                   <i data-lucide="external-link"></i>
                 </a>
               </div>
               <div class="modal-sync-row">
                 ${auth.isLoggedIn() ? `
                   <button class="action-btn planning-btn ${isPlanning && !entry.private ? 'active' : ''}" 
-                          title="${isPlanning && !entry.private ? 'On Planning List' : 'Add to Planning'}" 
+                          title="${isPlanning && !entry.private ? i18n.t('tooltips.planning_on') : i18n.t('tooltips.planning_add')}" 
                           onclick="window.addToPlanning(${item.id}, false, this)">
                     <i data-lucide="${isPlanning && !entry.private ? 'calendar-check' : 'calendar-plus'}"></i>
-                    <span>Planning</span>
+                    <span>${i18n.t('details.planning')}</span>
                   </button>
                   <button class="action-btn planning-btn private ${isPrivatePlanning ? 'active' : ''}" 
-                          title="${isPrivatePlanning ? 'On Private Planning List' : 'Add to Private Planning'}" 
+                          title="${isPrivatePlanning ? i18n.t('tooltips.planning_private_on') : i18n.t('tooltips.planning_private_add')}" 
                           onclick="window.addToPlanning(${item.id}, true, this)">
                     <i data-lucide="${isPrivatePlanning ? 'lock-check' : 'lock'}"></i>
-                    <span>Private Plan</span>
+                    <span>${i18n.t('details.private_plan')}</span>
                   </button>
                 ` : `
-                  <button class="action-btn connect-btn" title="Connect AniList Account" onclick="window.authLogin()">
+                  <button class="action-btn connect-btn" title="${i18n.t('tooltips.connect_anilist')}" onclick="window.authLogin()">
                     <i data-lucide="log-in"></i>
-                    <span>Connect AniList</span>
+                    <span>${i18n.t('details.connect_anilist')}</span>
                   </button>
                 `}
               </div>
@@ -257,23 +258,23 @@ export function renderMediaContent(item) {
       <div class="modal-grid">
         <div class="modal-sidebar">
           <div class="sidebar-section">
-            ${item.synonyms?.length ? `<div class="sidebar-item"><h4>Synonyms</h4><div class="synonym-list">${item.synonyms.map(s => `<p class="synonym-item">${s}</p>`).join('')}</div></div>` : ''}
-            <div class="sidebar-item"><h4>Format</h4><p>${item.format || '?'}</p></div>
-            <div class="sidebar-item"><h4>Episodes</h4><p>${item.episodes || item.chapters || '?'}</p></div>
-            <div class="sidebar-item"><h4>Status</h4><p>${item.status || '?'}</p></div>
-            <div class="sidebar-item"><h4>Start Date</h4><p>${item.startDate?.year || '?'}</p></div>
-            <div class="sidebar-item"><h4>Season</h4><p>${item.season || '?'}</p></div>
-            <div class="sidebar-item"><h4>Average Score</h4><p>${item.averageScore ? item.averageScore + '%' : '?'}</p></div>
-            <div class="sidebar-item"><h4>Popularity</h4><p>${item.popularity?.toLocaleString() || '?'}</p></div>
-            <div class="sidebar-item"><h4>Studios</h4><p>${studios}</p></div>
-            <div class="sidebar-item"><h4>Source</h4><p>${sourceFormatted}</p></div>
-            ${item.hashtag ? `<div class="sidebar-item"><h4>Hashtag</h4><p>${item.hashtag}</p></div>` : ''}
-            <div class="sidebar-item"><h4>Romaji</h4><p>${item.title.romaji}</p></div>
-            ${item.title.english ? `<div class="sidebar-item"><h4>English</h4><p>${item.title.english}</p></div>` : ''}
-            <div class="sidebar-item"><h4>Native</h4><p>${item.title.native}</p></div>
+            ${item.synonyms?.length ? `<div class="sidebar-item"><h4>${i18n.t('details.info.synonyms')}</h4><div class="synonym-list">${item.synonyms.map(s => `<p class="synonym-item">${s}</p>`).join('')}</div></div>` : ''}
+            <div class="sidebar-item"><h4>${i18n.t('details.info.format')}</h4><p>${item.format || '?'}</p></div>
+            <div class="sidebar-item"><h4>${i18n.t('details.info.episodes')}</h4><p>${item.episodes || item.chapters || '?'}</p></div>
+            <div class="sidebar-item"><h4>${i18n.t('details.info.status')}</h4><p>${item.status || '?'}</p></div>
+            <div class="sidebar-item"><h4>${i18n.t('details.info.start_date')}</h4><p>${item.startDate?.year || '?'}</p></div>
+            <div class="sidebar-item"><h4>${i18n.t('details.info.season')}</h4><p>${item.season || '?'}</p></div>
+            <div class="sidebar-item"><h4>${i18n.t('details.info.score')}</h4><p>${item.averageScore ? item.averageScore + '%' : '?'}</p></div>
+            <div class="sidebar-item"><h4>${i18n.t('details.info.popularity')}</h4><p>${item.popularity?.toLocaleString() || '?'}</p></div>
+            <div class="sidebar-item"><h4>${i18n.t('details.info.studios')}</h4><p>${studios}</p></div>
+            <div class="sidebar-item"><h4>${i18n.t('details.info.source')}</h4><p>${sourceFormatted}</p></div>
+            ${item.hashtag ? `<div class="sidebar-item"><h4>${i18n.t('details.info.hashtag')}</h4><p>${item.hashtag}</p></div>` : ''}
+            <div class="sidebar-item"><h4>${i18n.t('details.info.romaji')}</h4><p>${item.title.romaji}</p></div>
+            ${item.title.english ? `<div class="sidebar-item"><h4>${i18n.t('details.info.english')}</h4><p>${item.title.english}</p></div>` : ''}
+            <div class="sidebar-item"><h4>${i18n.t('details.info.native')}</h4><p>${item.title.native}</p></div>
           </div>
           <div class="sidebar-section">
-            <div class="section-title small">Tags</div>
+            <div class="section-title small">${i18n.t('details.tags')}</div>
             <div class="tag-list">
               ${visibleTags.map(t => {
     const terms = details['tags.name'] || [];
@@ -284,7 +285,7 @@ export function renderMediaContent(item) {
                     <span class="tag-rank">${t.rank}%</span>
                   </div>`;
   }).join('')}
-              ${spoilerTags.length ? `<button class="text-btn spoiler-toggle" onclick="this.nextElementSibling.classList.toggle('hidden')">Show Spoiler Tags (+${spoilerTags.length})</button>
+              ${spoilerTags.length ? `<button class="text-btn spoiler-toggle" onclick="this.nextElementSibling.classList.toggle('hidden')">${i18n.t('details.tags_spoiler', { count: spoilerTags.length })}</button>
               <div class="tag-list hidden">
                 ${spoilerTags.map(t => {
     const terms = details['tags.name'] || [];
@@ -300,17 +301,17 @@ export function renderMediaContent(item) {
           </div>
         </div>
         <div class="modal-main">
-          <div class="section-title">Description</div>
+          <div class="section-title">${i18n.t('details.description')}</div>
           <div class="modal-description">${formatDescription(item.description, item)}</div>
           ${trailerHtml}
           ${relationsHtml}
           ${item.characters?.edges?.length ? `
             <div class="expandable-section has-more">
-              <div class="section-title">Characters</div>
+              <div class="section-title">${i18n.t('details.characters')}</div>
               <div class="expandable-grid char-grid is-collapsed">
                 ${item.characters.edges.map(e => {
     const nativeVA = e.voiceActors?.find(va => va.languageV2 === 'Japanese');
-    const vaLabel = nativeVA ? `${nativeVA.name.full} (Japanese)` : 'No VA info';
+    const vaLabel = nativeVA ? `${nativeVA.name.full} (${i18n.t('details.va_lang_japanese')})` : i18n.t('details.no_va');
     return `
                   <div class="char-card glass-dark" style="background-image: url('${e.node.image?.large}')">
                     <div class="char-card-overlay"></div>
@@ -349,24 +350,24 @@ export function renderMediaContent(item) {
   }).join('')}
               </div>
               <button class="expand-btn glass-light hidden" onclick="window.toggleSection(this)">
-                <span>Show More</span>
+                <span>${i18n.t('details.show_more')}</span>
                 <i data-lucide="chevron-down"></i>
               </button>
             </div>` : ''}
           ${item.studios?.edges?.length ? `
-            <div class="section-title">Studios</div>
+            <div class="section-title">${i18n.t('details.studios')}</div>
             <div class="mini-grid">
               ${item.studios.edges.map(e => `
                 <a href="https://anilist.co/studio/${e.node.id}" target="_blank" class="mini-card glass-dark no-bg no-style">
                   <div class="mini-info">
-                    <div class="mini-rel">${e.isMain ? 'Main Studio' : 'Producer'}</div>
+                    <div class="mini-rel">${e.isMain ? i18n.t('details.studio_main') : i18n.t('details.studio_producer')}</div>
                     <div class="mini-title">${e.node.name}</div>
                   </div>
                 </a>`).join('')}
             </div>` : ''}
           ${item.staff?.edges?.length ? `
             <div class="expandable-section has-more">
-              <div class="section-title">Staff</div>
+              <div class="section-title">${i18n.t('details.staff')}</div>
               <div class="expandable-grid char-grid is-collapsed">
                 ${[...item.staff.edges]
         .sort((a, b) => window.getStaffPriority(b.role) - window.getStaffPriority(a.role))
@@ -387,7 +388,7 @@ export function renderMediaContent(item) {
 `).join('')}
               </div>
               <button class="expand-btn glass-light hidden" onclick="window.toggleSection(this)">
-                <span>Show More</span>
+                <span>${i18n.t('details.show_more')}</span>
                 <i data-lucide="chevron-down"></i>
               </button>
             </div>` : ''}
@@ -424,7 +425,7 @@ export function renderStaffContent(item) {
       </div>
       <div class="modal-grid simple">
         <div class="modal-main">
-          <div class="section-title">About</div>
+          <div class="section-title">${i18n.t('details.about')}</div>
           <div class="modal-description">${formatDescription(item.description || item.about, item)}</div>
         </div>
       </div>`;

@@ -61,5 +61,31 @@ export function getLocale() {
     return currentLocale;
 }
 
+/**
+ * Scans the DOM for elements with data-i18n attributes and updates their content.
+ * Also handles title attributes if data-i18n-title is present.
+ */
+export function localizeDOM() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        el.textContent = t(key);
+    });
+
+    document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        const key = el.getAttribute('data-i18n-html');
+        el.innerHTML = t(key);
+    });
+
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.getAttribute('data-i18n-title');
+        el.title = t(key);
+    });
+
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        el.placeholder = t(key);
+    });
+}
+
 // Global exposure for legacy scripts if needed (though module import is preferred)
-window.i18n = { t, init, getLocale };
+window.i18n = { t, init, getLocale, localizeDOM };

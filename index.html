@@ -40,7 +40,7 @@
                 <i data-lucide="search-code"></i>
                 <h1>Ani<span>Miner</span></h1>
             </div>
-            <p class="subtitle">go find them gems - deep search for AniList</p>
+            <p class="subtitle" data-i18n="logo.subtitle">go find them gems - deep search for AniList</p>
         </header>
 
         <main>
@@ -48,26 +48,26 @@
             <section class="search-panel glass">
                 <div class="search-header-actions">
                     <button id="watchedBtn" class="share-btn-pill secondary watched-list-btn"
-                        title="Manage Watched List">
-                        <i data-lucide="check-circle"></i> Watched
+                        data-i18n-title="tooltips.manage_watched">
+                        <i data-lucide="check-circle"></i> <span data-i18n="buttons.watched">Watched</span>
                     </button>
-                    <button id="seenBtn" class="share-btn-pill secondary" title="Manage Seen List">
-                        <i data-lucide="eye"></i> Seen
+                    <button id="seenBtn" class="share-btn-pill secondary" data-i18n-title="tooltips.manage_seen">
+                        <i data-lucide="eye"></i> <span data-i18n="buttons.seen">Seen</span>
                     </button>
-                    <button id="blacklistBtn" class="share-btn-pill secondary" title="Manage Blacklist">
-                        <i data-lucide="shield-off"></i> Blacklist
+                    <button id="blacklistBtn" class="share-btn-pill secondary" data-i18n-title="tooltips.manage_blacklist">
+                        <i data-lucide="shield-off"></i> <span data-i18n="buttons.blacklist">Blacklist</span>
                     </button>
 
-                    <button id="importBtn" class="share-btn-pill secondary" title="Import from AniList">
-                        <i data-lucide="download"></i> Import
+                    <button id="importBtn" class="share-btn-pill secondary" data-i18n-title="tooltips.import_anilist">
+                        <i data-lucide="download"></i> <span data-i18n="buttons.import">Import</span>
                     </button>
                     <button id="shareBtn" class="share-btn-pill">
-                        <i data-lucide="share-2"></i> Share Filters
+                        <i data-lucide="share-2"></i> <span data-i18n="buttons.share_filters">Share Filters</span>
                     </button>
                 </div>
                 <div class="main-bar">
                     <div class="control-group">
-                        <label for="searchMode">Mode</label>
+                        <label for="searchMode" data-i18n="labels.mode">Mode</label>
                         <select id="searchMode">
                             <option value="MEDIA">Media</option>
                             <option value="CHARACTER">Character</option>
@@ -83,19 +83,19 @@
                     </div>
 
                     <div class="control-group">
-                        <label for="targetResults">Target</label>
+                        <label for="targetResults" data-i18n="labels.target">Target</label>
                         <input type="number" id="targetResults" value="50" min="1" max="500"
-                            title="Number of matches to find before stopping">
+                            data-i18n-title="tooltips.target_desc">
                     </div>
 
                     <div class="control-group">
-                        <label for="startPage">Start Page</label>
+                        <label for="startPage" data-i18n="labels.start_page">Start Page</label>
                         <input type="number" id="startPage" value="1" min="1" max="1000"
-                            title="The AniList page to begin scanning from">
+                            data-i18n-title="tooltips.start_page_desc">
                     </div>
 
                     <div class="control-group" id="mediaSortControl">
-                        <label for="mediaSort">Sort</label>
+                        <label for="mediaSort" data-i18n="labels.sort">Sort</label>
                         <select id="mediaSort">
                             <option value="POPULARITY_DESC">Popularity</option>
                             <option value="SCORE_DESC">Score</option>
@@ -106,7 +106,7 @@
                     </div>
 
                     <div class="control-group" id="mediaTypeControl">
-                        <label for="mediaType">Type</label>
+                        <label for="mediaType" data-i18n="labels.type">Type</label>
                         <select id="mediaType">
                             <option value="ANIME">Anime</option>
                             <option value="MANGA">Manga</option>
@@ -114,7 +114,7 @@
                     </div>
 
                     <button id="searchBtn" class="primary-btn">
-                        <span>Search</span>
+                        <span data-i18n="buttons.search">Search</span>
                         <i data-lucide="send"></i>
                     </button>
                     <button id="cancelBtn" class="danger-btn hidden">
@@ -126,25 +126,25 @@
                 <!-- Global Toggle Row -->
                 <div class="global-filters-row">
                     <div class="filter-toggles-container">
-                        <label class="switch-container" title="Show watched items in results">
+                        <label class="switch-container" data-i18n-title="tooltips.show_watched_desc">
                             <input type="checkbox" id="showWatchedToggle">
                             <span class="switch-slider"></span>
-                            <span class="switch-text">Show Watched</span>
+                            <span class="switch-text" data-i18n="labels.show_watched">Show Watched</span>
                         </label>
-                        <label class="switch-container" title="Show previously seen items in results">
+                        <label class="switch-container" data-i18n-title="tooltips.show_seen_desc">
                             <input type="checkbox" id="showSeenToggle">
                             <span class="switch-slider"></span>
-                            <span class="switch-text">Show Seen</span>
+                            <span class="switch-text" data-i18n="labels.show_seen">Show Seen</span>
                         </label>
-                        <label class="switch-container" title="Show blacklisted items in results">
+                        <label class="switch-container" data-i18n-title="tooltips.show_blacklisted_desc">
                             <input type="checkbox" id="showBlacklistedToggle">
                             <span class="switch-slider"></span>
-                            <span class="switch-text">Show Blacklisted</span>
+                            <span class="switch-text" data-i18n="labels.show_blacklisted">Show Blacklisted</span>
                         </label>
-                        <label class="switch-container" title="Show results that match core filters but fail specific relation rules">
+                        <label class="switch-container" data-i18n-title="tooltips.show_relation_filtered_desc">
                             <input type="checkbox" id="showRelationFilteredToggle">
                             <span class="switch-slider"></span>
-                            <span class="switch-text">Show Relation-Filtered</span>
+                            <span class="switch-text" data-i18n="labels.show_relation_filtered">Show Relation-Filtered</span>
                         </label>
                     </div>
                 </div>
@@ -153,16 +153,16 @@
                 <div id="progressBanner" class="progress-banner hidden">
                     <div class="progress-info">
                         <div class="stat">
-                            <span class="stat-label">Scanned</span>
+                            <span class="stat-label" data-i18n="labels.scanned">Scanned</span>
                             <span id="scannedCount" class="stat-value">0</span>
                         </div>
                         <div class="stat">
-                            <span class="stat-label">Found</span>
+                            <span class="stat-label" data-i18n="labels.found">Found</span>
                             <span id="foundCount" class="stat-value highlight">0</span>
                         </div>
                         <div class="stat">
-                            <span class="stat-label">Status</span>
-                            <span id="scanStatus" class="stat-value">Idle</span>
+                            <span class="stat-label" data-i18n="labels.status">Status</span>
+                            <span id="scanStatus" class="stat-value" data-i18n="labels.idle">Idle</span>
                         </div>
                     </div>
                     <div id="rateLimitNotice" class="rate-limit-warning hidden">
@@ -178,9 +178,9 @@
                 <div class="constraint-builder">
                     <h3>
                         <i data-lucide="filter"></i>
-                        Constraints
+                        <span data-i18n="labels.constraints">Constraints</span>
                         <button id="toggleFiltersBtn" class="text-btn toggle-btn">
-                            <i data-lucide="chevron-up"></i> Hide Filters
+                            <i data-lucide="chevron-up"></i> <span data-i18n="buttons.hide_filters">Hide Filters</span>
                         </button>
                     </h3>
                     <div id="filterContent">
@@ -189,19 +189,19 @@
                         </div>
                         <div class="builder-actions">
                             <button id="addRuleBtn" class="text-btn">
-                                <i data-lucide="plus"></i> Add Constraint
+                                <i data-lucide="plus"></i> <span data-i18n="buttons.add_rule">Add Constraint</span>
                             </button>
                             <button id="addGroupBtn" class="text-btn secondary">
-                                <i data-lucide="layers"></i> Add Filter Group
+                                <i data-lucide="layers"></i> <span data-i18n="buttons.add_group">Add Filter Group</span>
                             </button>
                             <button id="addRelationBtn" class="text-btn relation-btn">
-                                <i data-lucide="git-branch-plus"></i> Add Relation Filter
+                                <i data-lucide="git-branch-plus"></i> <span data-i18n="buttons.add_relation">Add Relation Filter</span>
                             </button>
                         </div>
                         <div class="filter-search-bar">
                             <button id="filterSearchBtn" class="primary-btn filter-search-btn">
                                 <i data-lucide="search"></i>
-                                <span>Search</span>
+                                <span data-i18n="buttons.search">Search</span>
                             </button>
                         </div>
                     </div>
@@ -212,12 +212,12 @@
             <section id="loading" class="hidden">
                 <div class="loader">
                     <i data-lucide="loader-2" class="spin"></i>
-                    <span>Searching AniList database...</span>
+                    <span data-i18n="labels.searching">Searching AniList database...</span>
                 </div>
             </section>
 
             <div id="noResults" class="hidden">
-                <p>No results found matching your criteria.</p>
+                <p data-i18n="labels.no_results">No results found matching your criteria.</p>
             </div>
 
             <section id="resultsGrid" class="results-grid">
@@ -225,17 +225,18 @@
             </section>
         </main>
 
-        <footer class="app-footer">
+        <footer class="app-footer glass">
             <div class="footer-content">
                 <div class="footer-left">
-                    <p>&copy; Ayrlin Renata 2026</p>
-                    <p class="anilist-notice">AniMiner depends on the services of <a href="https://anilist.co"
-                            target="_blank">AniList</a>. Thank you AniList! AniMiner is not affiliated or endorsed by
-                        AniList.</p>
+                    <div id="footerCopyright" data-i18n-html="footer.copy">&copy; Ayrlin Renata 2026</div>
+                    <div id="anilistNotice" class="anilist-notice" data-i18n-html="footer.anilist_notice">
+                        AniMiner depends on the services of <a href="https://anilist.co" target="_blank">AniList</a>. Thank you AniList!
+                        AniMiner is not affiliated or endorsed by AniList.
+                    </div>
                 </div>
                 <div class="footer-right">
-                    <a href="https://ko-fi.com/ayrlin" target="_blank" class="kofi-link" title="Support my work">
-                        <i data-lucide="coffee"></i> Support AniMiner
+                    <a href="https://ko-fi.com/ayrlin" target="_blank" class="kofi-link" title="Support AniMiner">
+                        <i data-lucide="coffee"></i> <span data-i18n="footer.support">Support AniMiner</span>
                     </a>
                 </div>
             </div>
@@ -254,20 +255,18 @@
 
     <!-- Storage Consent Banner -->
     <div id="storageConsent" class="storage-consent-banner glass">
-        <div class="consent-header">
+        <h3 class="consent-header">
             <i data-lucide="database"></i>
-            Search Memory & Privacy
-        </div>
-        <div class="consent-body">
-            AniMiner uses local storage to remember your filters, blacklist, and "Seen" history.
-            <p style="margin-top: 0.5rem; color: var(--accent-light);"><strong>Accept:</strong> Persist your discovery
-                data across sessions.</p>
-            <p style="color: var(--text-secondary);"><strong>Decline:</strong> All history and lists will be cleared
-                when you close the tab.</p>
-        </div>
+            <span data-i18n="consent.header">Search Memory & Privacy</span>
+        </h3>
+        <p class="consent-body" data-i18n="consent.body">AniMiner uses local storage to remember your filters, blacklist, and "Seen" history.</p>
+        <ul class="consent-bullets">
+            <li class="accept-logic" data-i18n-html="consent.accept_logic"><strong>Accept:</strong> Persist your discovery data across sessions.</li>
+            <li class="decline-logic" data-i18n-html="consent.decline_logic"><strong>Decline:</strong> All history and lists will be cleared when you close the tab.</li>
+        </ul>
         <div class="consent-actions">
-            <button class="accept-storage" id="acceptStorage">Accept</button>
-            <button class="decline-storage" id="declineStorage">Decline</button>
+            <button id="acceptStorage" class="accept-storage" data-i18n="consent.accept">Accept</button>
+            <button id="declineStorage" class="decline-storage" data-i18n="consent.decline">Decline</button>
         </div>
     </div>
 

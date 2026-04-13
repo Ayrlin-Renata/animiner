@@ -21,34 +21,34 @@ export function createFilterGroup(initialData = null, parentContainer = null) {
                 </div>
                 <i data-lucide="layers" class="collection-icon"></i>
                 <i data-lucide="square-slash" class="logic-icon hidden"></i>
-                <span class="group-name">Collection Group</span>
-                <input type="text" class="group-label-input" placeholder="Alias / Name" spellcheck="false" />
+                <span class="group-name">${i18n.t('builder.collection_group')}</span>
+                <input type="text" class="group-label-input" placeholder="${i18n.t('filter.placeholders.alias')}" spellcheck="false" />
             </div>
             <div class="group-controls">
                 <select class="group-path">
                     <option value="ROOT">MEDIA</option>
-                    ${Object.entries(COLLECTION_PATHS).filter(([k]) => k !== 'LOGIC').map(([key, val]) => `<option value="${val}">${key}</option>`).join('')}
+                    ${Object.entries(COLLECTION_PATHS).filter(([k]) => k !== 'LOGIC').map(([key, val]) => `<option value="${val}">${i18n.t('filter.categories.' + key.toLowerCase())}</option>`).join('')}
                 </select>
                 <select class="group-quantifier">
-                    <option value="ALL">EVERY item matches</option>
-                    <option value="ANY">SOME item matches</option>
-                    <option value="NONE">NO item matches</option>
-                    <option value="NOT_ALL">NOT EVERY item matches</option>
-                    <option value="SOME_ANY">SOME matches ANY rule</option>
-                    <option value="NONE_ANY">NO item matches ANY rule</option>
+                    <option value="ALL">${i18n.t('filter.quantifiers.all')}</option>
+                    <option value="ANY">${i18n.t('filter.quantifiers.any')}</option>
+                    <option value="NONE">${i18n.t('filter.quantifiers.none')}</option>
+                    <option value="NOT_ALL">${i18n.t('filter.quantifiers.not_all')}</option>
+                    <option value="SOME_ANY">${i18n.t('filter.quantifiers.some_any')}</option>
+                    <option value="NONE_ANY">${i18n.t('filter.quantifiers.none_any')}</option>
                 </select>
                 <button class="collapse-btn" title="Collapse/Expand"><i data-lucide="chevron-up"></i></button>
                 <button class="remove-btn" title="Remove Group"><i data-lucide="trash-2"></i></button>
             </div>
         </div>
-        <div class="group-help-text">Filters everything in this block.</div>
+        <div class="group-help-text">...</div>
         <div class="group-rules-container"></div>
         <div class="group-actions">
             <button class="text-btn add-sub-rule-btn">
-                <i data-lucide="plus"></i> Add Sub-Constraint
+                <i data-lucide="plus"></i> ${i18n.t('builder.add_sub_rule')}
             </button>
             <button class="text-btn add-sub-group-btn">
-                <i data-lucide="layers"></i> Add Sub-Group
+                <i data-lucide="layers"></i> ${i18n.t('builder.add_sub_group')}
             </button>
         </div>
     `;
@@ -85,7 +85,7 @@ export function createFilterGroup(initialData = null, parentContainer = null) {
         box.classList.toggle('any-logic', isOr);
         box.classList.toggle('negated-group', isNegated);
 
-        box.querySelector('.group-name').textContent = isLogic ? 'Logic' : 'Collection';
+        box.querySelector('.group-name').textContent = isLogic ? i18n.t('builder.logic_group') : i18n.t('builder.collection_group');
         box.querySelector('.collection-icon').classList.toggle('hidden', isLogic);
         box.querySelector('.logic-icon').classList.toggle('hidden', !isLogic);
 
@@ -93,12 +93,12 @@ export function createFilterGroup(initialData = null, parentContainer = null) {
         box.dataset.context = isLogic ? 'MEDIA' : 'GROUP';
 
         const quantifierText = {
-            ALL: isLogic ? 'Matches only if ALL of these rules are true.' : 'Requirement: EVERY item in this list must match this ENTIRE profile.',
-            ANY: isLogic ? 'Matches if AT LEAST ONE of these rules is true.' : 'Requirement: AT LEAST ONE item in this list must match this ENTIRE profile.',
-            NONE: isLogic ? 'Matches only if NONE of these rules are true.' : 'Exclusion: NO item in this list can match this ENTIRE profile.',
-            NOT_ALL: isLogic ? 'Matches if AT LEAST ONE of these rules is false.' : 'Requirement: AT LEAST ONE item in this list must fail this profile.',
-            SOME_ANY: 'Fuzzy: AT LEAST ONE item in this list must match at least ONE of these rules.',
-            NONE_ANY: 'Strict Exclusion: NO item in this list can match even ONE of these rules.'
+            ALL: isLogic ? i18n.t('filter.help.logic.all') : i18n.t('filter.help.collection.all'),
+            ANY: isLogic ? i18n.t('filter.help.logic.any') : i18n.t('filter.help.collection.any'),
+            NONE: isLogic ? i18n.t('filter.help.logic.none') : i18n.t('filter.help.collection.none'),
+            NOT_ALL: isLogic ? i18n.t('filter.help.logic.not_all') : i18n.t('filter.help.collection.not_all'),
+            SOME_ANY: i18n.t('filter.help.collection.some_any'),
+            NONE_ANY: i18n.t('filter.help.collection.none_any')
         };
         box.querySelector('.group-help-text').textContent = quantifierText[quantifier];
     };
@@ -133,9 +133,9 @@ export function createFilterGroup(initialData = null, parentContainer = null) {
     box.querySelector('.remove-btn').onclick = () => {
         if (window.showConfirmDialog) {
             window.showConfirmDialog({
-                title: 'Remove Filter Group?',
-                message: 'Are you sure you want to delete this group and all its nested rules? This cannot be undone.',
-                confirmText: 'Yes, Remove',
+                title: i18n.t('builder.remove_group_title'),
+                message: i18n.t('builder.remove_group_msg'),
+                confirmText: i18n.t('builder.remove_group_confirm'),
                 onConfirm: () => {
                     box.remove();
                     import('../../base.js').then(m => m.updateToggleFilterAccent());

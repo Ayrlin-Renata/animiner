@@ -21,35 +21,35 @@ export function createRelationGroup(initialData = null, parentContainer = null) 
                     <i data-lucide="grip-vertical"></i>
                 </div>
                 <i data-lucide="git-branch-plus"></i>
-                <span class="group-name">Relation Group</span>
-                <input type="text" class="group-label-input" placeholder="Alias / Name" spellcheck="false" />
+                <span class="group-name">${i18n.t('filter.relations.title')}</span>
+                <input type="text" class="group-label-input" placeholder="${i18n.t('filter.placeholders.alias')}" spellcheck="false" />
             </div>
             <div class="group-controls">
-                <select class="group-requirement" title="Requirement Level">
-                    <option value="REQUIRED">Required</option>
-                    <option value="OPTIONAL">Optional</option>
+                <select class="group-requirement" title="${i18n.t('filter.relations.requirement_title')}">
+                    <option value="REQUIRED">${i18n.t('filter.relations.required')}</option>
+                    <option value="OPTIONAL">${i18n.t('filter.relations.optional')}</option>
                 </select>
                 <div class="multi-select-placeholder"></div>
                 <select class="group-quantifier">
-                    <option value="NONE">has NONE that match</option>
-                    <option value="ANY">has SOME that match</option>
-                    <option value="ALL">has ALL that match</option>
-                    <option value="NOT_ALL">does NOT have ALL matching</option>
-                    <option value="SOME_ANY">at least one matches ANY rule</option>
-                    <option value="NONE_ANY">zero match ANY rule</option>
+                    <option value="NONE">${i18n.t('filter.relations.quantifiers.none')}</option>
+                    <option value="ANY">${i18n.t('filter.relations.quantifiers.any')}</option>
+                    <option value="ALL">${i18n.t('filter.relations.quantifiers.all')}</option>
+                    <option value="NOT_ALL">${i18n.t('filter.relations.quantifiers.not_all')}</option>
+                    <option value="SOME_ANY">${i18n.t('filter.relations.quantifiers.some_any')}</option>
+                    <option value="NONE_ANY">${i18n.t('filter.relations.quantifiers.none_any')}</option>
                 </select>
                 <button class="collapse-btn" title="Collapse/Expand"><i data-lucide="chevron-up"></i></button>
                 <button class="remove-btn" title="Remove Relation Group"><i data-lucide="trash-2"></i></button>
             </div>
         </div>
-        <div class="group-help-text">Filters related media (e.g. prequels, sequels).</div>
+        <div class="group-help-text">${i18n.t('filter.relations.help.generic')}</div>
         <div class="group-rules-container"></div>
         <div class="group-actions">
             <button class="text-btn add-relation-rule-btn">
-                <i data-lucide="plus"></i> Add Sub-Constraint
+                <i data-lucide="plus"></i> ${i18n.t('builder.add_sub_rule')}
             </button>
             <button class="text-btn secondary add-sub-group-btn">
-                <i data-lucide="layers"></i> Add Sub-Group
+                <i data-lucide="layers"></i> ${i18n.t('builder.add_sub_group')}
             </button>
         </div>
     `;
@@ -63,7 +63,7 @@ export function createRelationGroup(initialData = null, parentContainer = null) 
 
     const multiSelectOptions = RELATION_TYPES.map(t => ({ 
         value: t, 
-        label: t === 'ANY' ? 'Any Relation' : t.replace(/_/g, ' ') 
+        label: i18n.t('filter.relations.' + t.toLowerCase())
     }));
 
     const initialTypes = initialData ? (initialData.relationTypes || (initialData.relationType ? [initialData.relationType] : ['ANY'])) : ['ANY'];
@@ -76,23 +76,26 @@ export function createRelationGroup(initialData = null, parentContainer = null) 
 
     const updateRelationContext = () => {
         const checked = Array.from(multiSelect.querySelectorAll('input:checked')).map(cb => cb.value);
-        const rt = checked.length === 0 || checked.includes('ANY') ? 'any relation' : checked.map(c => c.replace(/_/g, ' ').toLowerCase()).join(' or ');
+        const translatedRelations = checked.map(c => i18n.t('filter.relations.' + c.toLowerCase()));
+        
+        let rt;
+        if (checked.length === 0 || checked.includes('ANY')) {
+            rt = i18n.t('filter.relations.any');
+        } else if (translatedRelations.length > 1) {
+            const last = translatedRelations.pop();
+            rt = translatedRelations.join(', ') + ' ' + i18n.t('filter.operators.or') + ' ' + last; // Need "or" in dictionary
+        } else {
+            rt = translatedRelations[0];
+        }
+
         const qt = quantSelect.value;
         const isOpt = reqSelect.value === 'OPTIONAL';
+        const prefix = isOpt ? i18n.t('filter.relations.help.prefix_optional') : i18n.t('filter.relations.help.prefix_required');
 
         const isOr = ['SOME_ANY', 'NONE_ANY'].includes(qt);
         const isNegated = ['NONE', 'NOT_ALL', 'NONE_ANY'].includes(qt);
 
-        const prefix = isOpt ? '[Optional] ' : '[Required] ';
-        const texts = {
-            ALL: `${prefix} EVERY matching ${rt} must match this ENTIRE profile.`,
-            ANY: `${prefix} AT LEAST ONE matching ${rt} must match this ENTIRE profile.`,
-            NONE: `${prefix} NO matching ${rt} can match this ENTIRE profile.`,
-            NOT_ALL: `${prefix} AT LEAST ONE matching ${rt} must fail this profile.`,
-            SOME_ANY: `${prefix} (Fuzzy) AT LEAST ONE matching ${rt} must match at least ONE of these rules.`,
-            NONE_ANY: `${prefix} (Strict Exclude) NO matching ${rt} can match even ONE of these rules.`
-        };
-        box.querySelector('.group-help-text').textContent = texts[qt];
+        box.querySelector('.group-help-text').textContent = i18n.t('filter.relations.help.' + qt.toLowerCase(), { prefix, rt });
         box.classList.toggle('any-logic', isOr);
         box.classList.toggle('negated-group', isNegated);
     };
@@ -111,9 +114,9 @@ export function createRelationGroup(initialData = null, parentContainer = null) 
     box.querySelector('.remove-btn').onclick = () => {
         if (window.showConfirmDialog) {
             window.showConfirmDialog({
-                title: 'Remove Relation Group?',
-                message: 'Are you sure you want to delete this relation group and all its nested rules? This cannot be undone.',
-                confirmText: 'Yes, Remove',
+                title: i18n.t('builder.remove_relation_title'),
+                message: i18n.t('builder.remove_relation_msg'),
+                confirmText: i18n.t('builder.remove_group_confirm'),
                 onConfirm: () => {
                     box.remove();
                     import('../../base.js').then(m => m.updateToggleFilterAccent());

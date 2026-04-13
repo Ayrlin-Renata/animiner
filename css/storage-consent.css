@@ -55,6 +55,43 @@
   line-height: 1.5;
 }
 
+.consent-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0.2rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.consent-bullets li {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.consent-bullets li::before {
+  content: "•";
+  color: var(--accent-color);
+  font-weight: bold;
+}
+
+.consent-bullets li strong {
+  color: var(--text-primary);
+  min-width: 60px;
+}
+
+.consent-bullets li.accept-logic {
+  color: var(--accent-hover);
+}
+
+.consent-bullets li.decline-logic {
+  color: var(--text-secondary);
+}
+
 .consent-actions {
   display: flex;
   gap: 1rem;
@@ -76,6 +113,8 @@
   color: white !important;
   box-shadow: 0 4px 15px rgba(var(--accent-rgb, 146, 86, 243), 0.3);
   text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .accept-storage:hover {
@@ -86,12 +125,16 @@
 
 .decline-storage {
   background: rgba(255, 255, 255, 0.05);
-  color: var(--text-primary);
+  color: var(--text-secondary);
   border: 1px solid var(--glass-border) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.85rem;
 }
 
 .decline-storage:hover {
   background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
 }
 
 @media (max-width: 600px) {

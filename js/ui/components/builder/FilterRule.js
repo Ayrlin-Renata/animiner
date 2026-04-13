@@ -24,16 +24,16 @@ export function createFilterRule(initialData = null, isSubField = false, subFiel
         </div>
         <div class="rule-content">
             <div class="rule-top">
-                ${isSubField ? '' : `<select class="cat-select" title="Category">
+                ${isSubField ? '' : `<select class="cat-select" title="${i18n.t('labels.type')}">
                     ${availableCategories.map(cat => {
                         if (cat === RECURSIVE_CATEGORIES.REFERENCES) {
-                            return `<option disabled>──────────</option><option value="${cat}">Group References</option>`;
+                            return `<option disabled>──────────</option><option value="${cat}">${i18n.t('builder.group_refs')}</option>`;
                         }
-                        return `<option value="${cat}">${cat}</option>`;
+                        return `<option value="${cat}">${i18n.t('filter.categories.' + cat)}</option>`;
                     }).join('')}
                 </select>`}
                 <select class="field-select"></select>
-                <button class="remove-btn" title="Remove constraint"><i data-lucide="trash-2"></i></button>
+                <button class="remove-btn" title="${i18n.t('tooltips.manage_blacklist')}"><i data-lucide="trash-2"></i></button>
             </div>
             <div class="rule-bottom">
                 <select class="op-select"></select>
@@ -53,7 +53,7 @@ export function createFilterRule(initialData = null, isSubField = false, subFiel
         }
 
         const fields = isSubField ? subFields : (FIELDS[catSelect?.value] || []);
-        fieldSelect.innerHTML = fields.map((f, i) => `<option value="${i}">${f.label}</option>`).join('');
+        fieldSelect.innerHTML = fields.map((f, i) => `<option value="${i}">${i18n.t(f.label)}</option>`).join('');
 
         if (initialData && initialData.path) {
             const idx = fields.findIndex(f => f.path === initialData.path && (initialData.label ? f.label === initialData.label : true));
@@ -73,7 +73,7 @@ export function createFilterRule(initialData = null, isSubField = false, subFiel
         row.dataset.label = field.label;
 
         const ops = OPERATORS_BY_TYPE[field.type] || [];
-        opSelect.innerHTML = ops.map(o => `<option value="${o}">${o.replace('_', ' ')}</option>`).join('');
+        opSelect.innerHTML = ops.map(o => `<option value="${o}">${i18n.t('filter.operators.' + o)}</option>`).join('');
 
         if (initialData && initialData.operator) {
             opSelect.value = initialData.operator;
@@ -93,26 +93,26 @@ export function createFilterRule(initialData = null, isSubField = false, subFiel
             valContainer.appendChild(input);
         } else if (field.type === 'reference') {
             field.seenKey = '__REFERENCES__';
-            input = createCombobox([], 'Search aliases...', field);
+            input = createCombobox([], i18n.t('filter.placeholders.search_aliases'), field);
             valContainer.appendChild(input);
         } else if (field.type === 'enum' && field.options) {
-            input = createCombobox(field.options, 'Select option...', field);
+            input = createCombobox(field.options, i18n.t('filter.placeholders.select_option'), field);
             valContainer.appendChild(input);
         } else if (field.seenKey) {
             const values = state.seenValues[field.seenKey] || [];
-            input = createCombobox(values, 'Search values...', field);
+            input = createCombobox(values, i18n.t('filter.placeholders.search_values'), field);
             valContainer.appendChild(input);
         } else if (field.type === 'list') {
             input = document.createElement('input');
             input.type = 'text';
             input.className = 'val-input';
-            input.placeholder = 'Comma separated, e.g. Action, Comedy';
+            input.placeholder = i18n.t('filter.placeholders.list_hint');
             valContainer.appendChild(input);
         } else {
             input = document.createElement('input');
             input.type = field.type === 'number' ? 'number' : 'text';
             input.className = 'val-input';
-            input.placeholder = 'Value...';
+            input.placeholder = i18n.t('filter.placeholders.generic_value');
             valContainer.appendChild(input);
         }
 

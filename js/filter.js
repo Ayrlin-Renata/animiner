@@ -43,19 +43,19 @@ export const RELATION_TYPES = [
 
 // Fields available on relation nodes (subset of full media fields)
 export const RELATION_FIELDS = [
-    { label: 'ID', path: 'id', type: 'number' },
-    { label: 'Title (Romaji)', path: 'title.romaji', type: 'string' },
-    { label: 'Title (English)', path: 'title.english', type: 'string' },
-    { label: 'Title (Native)', path: 'title.native', type: 'string' },
-    { label: 'Format', path: 'format', type: 'enum', options: ['TV', 'TV_SHORT', 'MOVIE', 'SPECIAL', 'OVA', 'ONA', 'MUSIC', 'MANGA', 'NOVEL', 'ONE_SHOT'] },
-    { label: 'Type', path: 'type', type: 'enum', options: ['ANIME', 'MANGA'] },
-    { label: 'Status', path: 'status', type: 'enum', options: ['FINISHED', 'RELEASING', 'NOT_YET_RELEASED', 'CANCELLED', 'HIATUS'] },
-    { label: 'Genre', path: 'genres', type: 'collection', seenKey: 'genres' },
-    { label: 'Tag Name', path: 'tags.name', type: 'collection', seenKey: 'tags' },
-    { label: 'Tag Category', path: 'tags.category', type: 'collection' },
-    { label: 'Average Score', path: 'averageScore', type: 'number' },
-    { label: 'Popularity', path: 'popularity', type: 'number' },
-    { label: 'Start Year', path: 'startDate.year', type: 'number' },
+    { label: 'filter.fields.id', path: 'id', type: 'number' },
+    { label: 'filter.fields.title_romaji', path: 'title.romaji', type: 'string' },
+    { label: 'filter.fields.title_english', path: 'title.english', type: 'string' },
+    { label: 'filter.fields.title_native', path: 'title.native', type: 'string' },
+    { label: 'filter.fields.format', path: 'format', type: 'enum', options: ['TV', 'TV_SHORT', 'MOVIE', 'SPECIAL', 'OVA', 'ONA', 'MUSIC', 'MANGA', 'NOVEL', 'ONE_SHOT'] },
+    { label: 'filter.fields.type', path: 'type', type: 'enum', options: ['ANIME', 'MANGA'] },
+    { label: 'filter.fields.status', path: 'status', type: 'enum', options: ['FINISHED', 'RELEASING', 'NOT_YET_RELEASED', 'CANCELLED', 'HIATUS'] },
+    { label: 'filter.fields.genres', path: 'genres', type: 'collection', seenKey: 'genres' },
+    { label: 'filter.fields.tag_name', path: 'tags.name', type: 'collection', seenKey: 'tags' },
+    { label: 'filter.fields.tag_category', path: 'tags.category', type: 'collection' },
+    { label: 'filter.fields.average_score', path: 'averageScore', type: 'number' },
+    { label: 'filter.fields.popularity', path: 'popularity', type: 'number' },
+    { label: 'filter.fields.start_year', path: 'startDate.year', type: 'number' },
 ];
 
 export const COLLECTION_PATHS = {
@@ -211,16 +211,16 @@ export function findDeepFailure(item, rule, result, depth = 0) {
 }
 
 export const RECURSIVE_CATEGORIES = {
-    IDENTIFIERS: 'Identifiers',
-    TIMELINE: 'Timeline',
-    FORMATS: 'Formats & Status',
-    CONTENT: 'Content',
-    METRICS: 'Metrics & Users',
-    STUDIO: 'Studio',
-    CHARACTER: 'Character',
-    STAFF: 'Staff',
-    USER: 'User',
-    REFERENCES: 'References'
+    IDENTIFIERS: 'identifiers',
+    TIMELINE: 'timeline',
+    FORMATS: 'formats',
+    CONTENT: 'content',
+    METRICS: 'metrics',
+    STUDIOS: 'studios',
+    CHARACTERS: 'characters',
+    STAFF: 'staff',
+    USER: 'user',
+    REFERENCES: 'references'
 };
 
 // Map used to decide which category to show in the UI builder.
@@ -233,116 +233,116 @@ export const SEARCH_MODE_CATEGORIES = {
         RECURSIVE_CATEGORIES.METRICS,
         RECURSIVE_CATEGORIES.REFERENCES
     ],
-    CHARACTER: [RECURSIVE_CATEGORIES.IDENTIFIERS, RECURSIVE_CATEGORIES.CHARACTER, RECURSIVE_CATEGORIES.REFERENCES],
+    CHARACTER: [RECURSIVE_CATEGORIES.IDENTIFIERS, RECURSIVE_CATEGORIES.CHARACTERS, RECURSIVE_CATEGORIES.REFERENCES],
     STAFF: [RECURSIVE_CATEGORIES.IDENTIFIERS, RECURSIVE_CATEGORIES.STAFF, RECURSIVE_CATEGORIES.REFERENCES],
-    STUDIO: [RECURSIVE_CATEGORIES.IDENTIFIERS, RECURSIVE_CATEGORIES.STUDIO, RECURSIVE_CATEGORIES.REFERENCES],
+    STUDIO: [RECURSIVE_CATEGORIES.IDENTIFIERS, RECURSIVE_CATEGORIES.STUDIOS, RECURSIVE_CATEGORIES.REFERENCES],
     USER: [RECURSIVE_CATEGORIES.IDENTIFIERS, RECURSIVE_CATEGORIES.USER, RECURSIVE_CATEGORIES.REFERENCES],
 };
 
 export const FIELDS = {
     [RECURSIVE_CATEGORIES.IDENTIFIERS]: [
-        { label: 'AL ID', path: 'id', type: FIELD_TYPES.NUMBER },
-        { label: 'MAL ID', path: 'idMal', type: FIELD_TYPES.NUMBER }
+        { label: 'filter.fields.id', path: 'id', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.idMal', path: 'idMal', type: FIELD_TYPES.NUMBER }
     ],
     [RECURSIVE_CATEGORIES.TIMELINE]: [
-        { label: 'Start Year', path: 'startDate.year', type: FIELD_TYPES.NUMBER },
-        { label: 'Start Date', path: 'startDate', type: FIELD_TYPES.NUMBER },
-        { label: 'End Year', path: 'endDate.year', type: FIELD_TYPES.NUMBER },
-        { label: 'End Date', path: 'endDate', type: FIELD_TYPES.NUMBER },
-        { label: 'Season', path: 'season', type: FIELD_TYPES.ENUM, options: ['WINTER', 'SPRING', 'SUMMER', 'FALL'] },
-        { label: 'Season Year', path: 'seasonYear', type: FIELD_TYPES.NUMBER },
-        { label: 'Airing At', path: 'airingAt', type: FIELD_TYPES.NUMBER }
+        { label: 'filter.fields.start_year', path: 'startDate.year', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.start_date', path: 'startDate', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.end_year', path: 'endDate.year', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.end_date', path: 'endDate', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.season', path: 'season', type: FIELD_TYPES.ENUM, options: ['WINTER', 'SPRING', 'SUMMER', 'FALL'] },
+        { label: 'filter.fields.season_year', path: 'seasonYear', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.airing_at', path: 'airingAt', type: FIELD_TYPES.NUMBER }
     ],
     [RECURSIVE_CATEGORIES.FORMATS]: [
-        { label: 'Type', path: 'type', type: FIELD_TYPES.ENUM, options: ['ANIME', 'MANGA'] },
-        { label: 'Format', path: 'format', type: FIELD_TYPES.ENUM, options: ['TV', 'TV_SHORT', 'MOVIE', 'SPECIAL', 'OVA', 'ONA', 'MUSIC', 'MANGA', 'NOVEL', 'ONE_SHOT'] },
-        { label: 'Status', path: 'status', type: FIELD_TYPES.ENUM, options: ['FINISHED', 'RELEASING', 'NOT_YET_RELEASED', 'CANCELLED', 'HIATUS'] },
-        { label: 'Source', path: 'source', type: FIELD_TYPES.ENUM, options: ['ORIGINAL', 'MANGA', 'LIGHT_NOVEL', 'VISUAL_NOVEL', 'VIDEO_GAME', 'OTHER', 'NOVEL', 'DOUJINSHI', 'ANIME', 'WEB_NOVEL', 'LIVE_ACTION', 'GAME', 'COMIC', 'MULTIMEDIA_PROJECT', 'PICTURE_BOOK'] },
-        { label: 'Country', path: 'countryOfOrigin', type: FIELD_TYPES.STRING },
-        { label: 'Is Adult', path: 'isAdult', type: FIELD_TYPES.BOOLEAN },
-        { label: 'Is Licensed', path: 'isLicensed', type: FIELD_TYPES.BOOLEAN },
-        { label: 'Is Locked', path: 'isLocked', type: FIELD_TYPES.BOOLEAN },
-        { label: 'Is Favourite', path: 'isFavourite', type: FIELD_TYPES.BOOLEAN }
+        { label: 'filter.fields.type', path: 'type', type: FIELD_TYPES.ENUM, options: ['ANIME', 'MANGA'] },
+        { label: 'filter.fields.format', path: 'format', type: FIELD_TYPES.ENUM, options: ['TV', 'TV_SHORT', 'MOVIE', 'SPECIAL', 'OVA', 'ONA', 'MUSIC', 'MANGA', 'NOVEL', 'ONE_SHOT'] },
+        { label: 'filter.fields.status', path: 'status', type: FIELD_TYPES.ENUM, options: ['FINISHED', 'RELEASING', 'NOT_YET_RELEASED', 'CANCELLED', 'HIATUS'] },
+        { label: 'filter.fields.source', path: 'source', type: FIELD_TYPES.ENUM, options: ['ORIGINAL', 'MANGA', 'LIGHT_NOVEL', 'VISUAL_NOVEL', 'VIDEO_GAME', 'OTHER', 'NOVEL', 'DOUJINSHI', 'ANIME', 'WEB_NOVEL', 'LIVE_ACTION', 'GAME', 'COMIC', 'MULTIMEDIA_PROJECT', 'PICTURE_BOOK'] },
+        { label: 'filter.fields.country', path: 'countryOfOrigin', type: FIELD_TYPES.STRING },
+        { label: 'filter.fields.is_adult', path: 'isAdult', type: FIELD_TYPES.BOOLEAN },
+        { label: 'filter.fields.is_licensed', path: 'isLicensed', type: FIELD_TYPES.BOOLEAN },
+        { label: 'filter.fields.is_locked', path: 'isLocked', type: FIELD_TYPES.BOOLEAN },
+        { label: 'filter.fields.is_favourite', path: 'isFavourite', type: FIELD_TYPES.BOOLEAN }
     ],
     [RECURSIVE_CATEGORIES.CONTENT]: [
-        { label: 'Episodes', path: 'episodes', type: FIELD_TYPES.NUMBER },
-        { label: 'Duration', path: 'duration', type: FIELD_TYPES.NUMBER },
-        { label: 'Chapters', path: 'chapters', type: FIELD_TYPES.NUMBER },
-        { label: 'Volumes', path: 'volumes', type: FIELD_TYPES.NUMBER },
-        { label: 'Genres', path: 'genres', type: FIELD_TYPES.COLLECTION, seenKey: 'genres' },
-        { label: 'Tag Name', path: 'tags.name', type: FIELD_TYPES.COLLECTION, seenKey: 'tags' },
-        { label: 'Tag Category', path: 'tags.category', type: FIELD_TYPES.COLLECTION },
-        { label: 'Min Tag Rank', path: 'tags.rank', type: FIELD_TYPES.NUMBER },
-        { label: 'Synonyms', path: 'synonyms', type: FIELD_TYPES.COLLECTION },
-        { label: 'Hashtag', path: 'hashtag', type: FIELD_TYPES.STRING },
-        { label: 'Title (Romaji)', path: 'title.romaji', type: FIELD_TYPES.STRING },
-        { label: 'Title (English)', path: 'title.english', type: FIELD_TYPES.STRING },
-        { label: 'Title (Native)', path: 'title.native', type: FIELD_TYPES.STRING },
-        { label: 'Description', path: 'description', type: FIELD_TYPES.STRING }
+        { label: 'filter.fields.episodes', path: 'episodes', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.duration', path: 'duration', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.chapters', path: 'chapters', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.volumes', path: 'volumes', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.genres', path: 'genres', type: FIELD_TYPES.COLLECTION, seenKey: 'genres' },
+        { label: 'filter.fields.tag_name', path: 'tags.name', type: FIELD_TYPES.COLLECTION, seenKey: 'tags' },
+        { label: 'filter.fields.tag_category', path: 'tags.category', type: FIELD_TYPES.COLLECTION },
+        { label: 'filter.fields.min_tag_rank', path: 'tags.rank', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.synonyms', path: 'synonyms', type: FIELD_TYPES.COLLECTION },
+        { label: 'filter.fields.hashtag', path: 'hashtag', type: FIELD_TYPES.STRING },
+        { label: 'filter.fields.title_romaji', path: 'title.romaji', type: FIELD_TYPES.STRING },
+        { label: 'filter.fields.title_english', path: 'title.english', type: FIELD_TYPES.STRING },
+        { label: 'filter.fields.title_native', path: 'title.native', type: FIELD_TYPES.STRING },
+        { label: 'filter.fields.description', path: 'description', type: FIELD_TYPES.STRING }
     ],
     [RECURSIVE_CATEGORIES.METRICS]: [
-        { label: 'Average Score', path: 'averageScore', type: FIELD_TYPES.NUMBER },
-        { label: 'Mean Score', path: 'meanScore', type: FIELD_TYPES.NUMBER },
-        { label: 'Popularity', path: 'popularity', type: FIELD_TYPES.NUMBER },
-        { label: 'Trending', path: 'trending', type: FIELD_TYPES.NUMBER },
-        { label: 'Favourites', path: 'favourites', type: FIELD_TYPES.NUMBER },
-        { label: 'On List', path: 'onList', type: FIELD_TYPES.BOOLEAN },
-        { label: 'Licensed By', path: 'licensedBy', type: FIELD_TYPES.COLLECTION }
+        { label: 'filter.fields.average_score', path: 'averageScore', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.mean_score', path: 'meanScore', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.popularity', path: 'popularity', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.trending', path: 'trending', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.favourites', path: 'favourites', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.on_list', path: 'onList', type: FIELD_TYPES.BOOLEAN },
+        { label: 'filter.fields.licensed_by', path: 'licensedBy', type: FIELD_TYPES.COLLECTION }
     ],
-    [RECURSIVE_CATEGORIES.STUDIO]: [
-        { label: 'Studio Name', path: 'studios.edges.node.name', type: FIELD_TYPES.COLLECTION, seenKey: 'studios' },
-        { label: 'Studio ID', path: 'studios.edges.node.id', type: FIELD_TYPES.NUMBER },
-        { label: 'Is Animation Studio', path: 'isAnimationStudio', type: FIELD_TYPES.BOOLEAN },
-        { label: 'Favourites', path: 'favourites', type: FIELD_TYPES.NUMBER },
-        { label: 'Is Favourite', path: 'isFavourite', type: FIELD_TYPES.BOOLEAN }
+    [RECURSIVE_CATEGORIES.STUDIOS]: [
+        { label: 'filter.fields.studio_name', path: 'studios.edges.node.name', type: FIELD_TYPES.COLLECTION, seenKey: 'studios' },
+        { label: 'filter.fields.studio_id', path: 'studios.edges.node.id', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.is_animation_studio', path: 'isAnimationStudio', type: FIELD_TYPES.BOOLEAN },
+        { label: 'filter.fields.favourites', path: 'favourites', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.is_favourite', path: 'isFavourite', type: FIELD_TYPES.BOOLEAN }
     ],
-    [RECURSIVE_CATEGORIES.CHARACTER]: [
-        { label: 'Char Full Name', path: 'characters.edges.node.name.full', type: FIELD_TYPES.COLLECTION, seenKey: 'characterNames' },
-        { label: 'Char Gender', path: 'gender', type: FIELD_TYPES.STRING, seenKey: 'genders' },
-        { label: 'Char Age', path: 'age', type: FIELD_TYPES.NUMBER },
-        { label: 'Blood Type', path: 'bloodType', type: FIELD_TYPES.STRING },
-        { label: 'Favourites', path: 'favourites', type: FIELD_TYPES.NUMBER },
-        { label: 'Is Favourite', path: 'isFavourite', type: FIELD_TYPES.BOOLEAN },
-        { label: 'Birthday', path: 'dateOfBirth', type: FIELD_TYPES.NUMBER }
+    [RECURSIVE_CATEGORIES.CHARACTERS]: [
+        { label: 'filter.fields.char_name', path: 'characters.edges.node.name.full', type: FIELD_TYPES.COLLECTION, seenKey: 'characterNames' },
+        { label: 'filter.fields.char_gender', path: 'gender', type: FIELD_TYPES.STRING, seenKey: 'genders' },
+        { label: 'filter.fields.char_age', path: 'age', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.blood_type', path: 'bloodType', type: FIELD_TYPES.STRING },
+        { label: 'filter.fields.favourites', path: 'favourites', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.is_favourite', path: 'isFavourite', type: FIELD_TYPES.BOOLEAN },
+        { label: 'filter.fields.birthday', path: 'dateOfBirth', type: FIELD_TYPES.NUMBER }
     ],
     [RECURSIVE_CATEGORIES.STAFF]: [
-        { label: 'Staff Full Name', path: 'staff.edges.node.name.full', type: FIELD_TYPES.COLLECTION, seenKey: 'staffNames' },
-        { label: 'Staff Gender', path: 'gender', type: FIELD_TYPES.STRING, seenKey: 'genders' },
-        { label: 'Staff Age', path: 'age', type: FIELD_TYPES.NUMBER },
-        { label: 'Language', path: 'languageV2', type: FIELD_TYPES.STRING },
-        { label: 'Occupations', path: 'primaryOccupations', type: FIELD_TYPES.COLLECTION },
-        { label: 'Home Town', path: 'homeTown', type: FIELD_TYPES.STRING },
-        { label: 'Blood Type', path: 'bloodType', type: FIELD_TYPES.STRING },
-        { label: 'Favourites', path: 'favourites', type: FIELD_TYPES.NUMBER },
-        { label: 'Is Favourite', path: 'isFavourite', type: FIELD_TYPES.BOOLEAN },
-        { label: 'Birthday', path: 'dateOfBirth', type: FIELD_TYPES.NUMBER },
-        { label: 'Date of Death', path: 'dateOfDeath', type: FIELD_TYPES.NUMBER }
+        { label: 'filter.fields.staff_name', path: 'staff.edges.node.name.full', type: FIELD_TYPES.COLLECTION, seenKey: 'staffNames' },
+        { label: 'filter.fields.staff_gender', path: 'gender', type: FIELD_TYPES.STRING, seenKey: 'genders' },
+        { label: 'filter.fields.staff_age', path: 'age', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.language', path: 'languageV2', type: FIELD_TYPES.STRING },
+        { label: 'filter.fields.occupations', path: 'primaryOccupations', type: FIELD_TYPES.COLLECTION },
+        { label: 'filter.fields.home_town', path: 'homeTown', type: FIELD_TYPES.STRING },
+        { label: 'filter.fields.blood_type', path: 'bloodType', type: FIELD_TYPES.STRING },
+        { label: 'filter.fields.favourites', path: 'favourites', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.is_favourite', path: 'isFavourite', type: FIELD_TYPES.BOOLEAN },
+        { label: 'filter.fields.birthday', path: 'dateOfBirth', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.death_date', path: 'dateOfDeath', type: FIELD_TYPES.NUMBER }
     ],
     [RECURSIVE_CATEGORIES.USER]: [
-        { label: 'Username', path: 'name', type: FIELD_TYPES.STRING },
-        { label: 'User ID', path: 'id', type: FIELD_TYPES.NUMBER }
+        { label: 'filter.fields.username', path: 'name', type: FIELD_TYPES.STRING },
+        { label: 'filter.fields.user_id', path: 'id', type: FIELD_TYPES.NUMBER }
     ],
     [RECURSIVE_CATEGORIES.REFERENCES]: [
-        { label: 'Labeled Group', path: '__REFERENCE__', type: FIELD_TYPES.REFERENCE }
+        { label: 'filter.fields.labeled_group', path: '__REFERENCE__', type: FIELD_TYPES.REFERENCE }
     ]
 };
 
 export const SUB_FIELDS = {
     [COLLECTION_PATHS.CHARACTERS]: [
-        { label: 'Role', path: 'role', type: FIELD_TYPES.ENUM, options: ['MAIN', 'SUPPORTING', 'BACKGROUND'] },
-        { label: 'Name', path: 'node.name.full', type: FIELD_TYPES.STRING, seenKey: 'characterNames' },
-        { label: 'Gender', path: 'node.gender', type: FIELD_TYPES.STRING, seenKey: 'genders' },
-        { label: 'Age', path: 'node.age', type: FIELD_TYPES.NUMBER },
-        { label: 'Voice Actor', path: 'voiceActor.name.full', type: FIELD_TYPES.STRING, seenKey: 'staffNames' }
+        { label: 'filter.fields.role', path: 'role', type: FIELD_TYPES.ENUM, options: ['MAIN', 'SUPPORTING', 'BACKGROUND'] },
+        { label: 'filter.fields.char_name', path: 'node.name.full', type: FIELD_TYPES.STRING, seenKey: 'characterNames' },
+        { label: 'filter.fields.char_gender', path: 'node.gender', type: FIELD_TYPES.STRING, seenKey: 'genders' },
+        { label: 'filter.fields.char_age', path: 'node.age', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.voice_actor', path: 'voiceActor.name.full', type: FIELD_TYPES.STRING, seenKey: 'staffNames' }
     ],
     [COLLECTION_PATHS.STAFF]: [
-        { label: 'Role', path: 'role', type: FIELD_TYPES.STRING },
-        { label: 'Name', path: 'node.name.full', type: FIELD_TYPES.STRING, seenKey: 'staffNames' },
-        { label: 'Gender', path: 'node.gender', type: FIELD_TYPES.STRING, seenKey: 'genders' }
+        { label: 'filter.fields.role', path: 'role', type: FIELD_TYPES.STRING },
+        { label: 'filter.fields.staff_name', path: 'node.name.full', type: FIELD_TYPES.STRING, seenKey: 'staffNames' },
+        { label: 'filter.fields.staff_gender', path: 'node.gender', type: FIELD_TYPES.STRING, seenKey: 'genders' }
     ],
     [COLLECTION_PATHS.STUDIOS]: [
-        { label: 'Name', path: 'node.name', type: FIELD_TYPES.STRING, seenKey: 'studios' },
-        { label: 'Main Studio', path: 'isMain', type: FIELD_TYPES.BOOLEAN }
+        { label: 'filter.fields.studio_name', path: 'node.name', type: FIELD_TYPES.STRING, seenKey: 'studios' },
+        { label: 'filter.fields.main_studio', path: 'isMain', type: FIELD_TYPES.BOOLEAN }
     ]
 };
 

@@ -73,10 +73,10 @@ export function toggleFilters(forceCollapse = null) {
 
     if (isCollapsed) {
         content.classList.add('hidden-height');
-        btn.innerHTML = '<i data-lucide="chevron-down"></i> Show Filters';
+        btn.innerHTML = `<i data-lucide="chevron-down"></i> ${i18n.t('buttons.show_filters')}`;
     } else {
         content.classList.remove('hidden-height');
-        btn.innerHTML = '<i data-lucide="chevron-up"></i> Hide Filters';
+        btn.innerHTML = `<i data-lucide="chevron-up"></i> ${i18n.t('buttons.hide_filters')}`;
     }
     if (window.lucide) window.lucide.createIcons();
 

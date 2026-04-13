@@ -130,16 +130,16 @@ export function updateToggleFilterAccent() {
         banner.innerHTML = `
             <div class="filter-summary-stats">
                 <div class="stat">
-                    <span class="stat-label">Constraints</span>
+                    <span class="stat-label">${i18n.t('labels.constraints')}</span>
                     <span class="stat-value highlight">${ruleCount}</span>
                 </div>
                 <div class="stat">
-                    <span class="stat-label">Groups</span>
+                    <span class="stat-label">${i18n.t('labels.groups')}</span>
                     <span class="stat-value">${groupCount}</span>
                 </div>
                 <div class="stat">
-                    <span class="stat-label">Status</span>
-                    <span class="stat-value" style="color: var(--accent-hover); font-size: 1rem;">Active</span>
+                    <span class="stat-label">${i18n.t('labels.status')}</span>
+                    <span class="stat-value" style="color: var(--accent-hover); font-size: 1rem;">${i18n.t('labels.active')}</span>
                 </div>
             </div>
         `;

@@ -14,6 +14,7 @@ async function init() {
   window.authLogin = () => auth.login();
   await loadCache();
   await i18n.init();
+  i18n.localizeDOM();
   loadSettings();
   
   // Storage Consent Logic
