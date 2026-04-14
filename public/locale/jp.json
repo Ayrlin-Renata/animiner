@@ -283,6 +283,7 @@
     "logic_group": "ロジックグループ",
     "add_sub_rule": "子制約を追加",
     "add_sub_group": "子グループを追加",
+    "add_sub_relation": "関連作品を追加",
     "group_refs": "グループリファレンス",
     "remove_group_title": "フィルターグループを削除しますか？",
     "remove_group_msg": "このグループとすべてのネストされたルールを削除してもよろしいですか？この操作は取り消せません。",

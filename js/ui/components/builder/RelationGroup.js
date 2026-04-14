@@ -13,6 +13,7 @@ export function createRelationGroup(initialData = null, parentContainer = null) 
     const box = document.createElement('div');
     box.className = 'rule-group-box relation-group';
     box.dataset.type = 'RELATION';
+    box.dataset.context = 'MEDIA';
 
     box.innerHTML = `
         <div class="rule-group-header">

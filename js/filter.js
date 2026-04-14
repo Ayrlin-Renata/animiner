@@ -455,7 +455,7 @@ export function evaluateRule(item, rule, callStack = new Set()) {
     if (value === '' || value === null || value === undefined) {
         if (rule.type !== 'GROUP' && rule.type !== 'RELATION' && 
             type !== 'boolean' && type !== 'reference' && operator !== 'is' && operator !== 'equals' && operator !== 'not_equals') {
-            return { success: true, matches: {} };
+            return { success: true, isHardSuccess: false, matches: {} };
         }
     }
 
@@ -482,6 +482,7 @@ export function evaluateRule(item, rule, callStack = new Set()) {
         
         return { 
             success: refResult.success, 
+            isHardSuccess: refResult.isHardSuccess !== false,
             matches, 
             reason: refResult.success ? null : `Reference '${refLabel}' failed: ${refResult.reason || 'Unknown reason'}`
         };
@@ -500,16 +501,26 @@ export function evaluateRule(item, rule, callStack = new Set()) {
             const subResults = subRules.map(sr => evaluateRule(item, sr, callStack));
 
             let success = false;
+            let hasHardMatch = false;
             switch (quantifier) {
                 case 'ALL':
                 case 'EVERY':      success = subResults.every(r => r.success); break;
                 case 'ANY':
                 case 'SOME':       
-                case 'SOME_ANY':   success = subResults.some(r => r.success); break;
+                case 'SOME_ANY':   success = subResults.some(r => r.success && r.isHardSuccess !== false); break;
                 case 'NONE':        
-                case 'NONE_ANY':   success = !subResults.some(r => r.success); break;
+                case 'NONE_ANY':   success = !subResults.some(r => r.success && r.isHardSuccess !== false); break;
                 case 'NOT_ALL':     success = !subResults.every(r => r.success); break;
                 default:            success = true; break;
+            }
+
+            // A group is considered a "hard match" if any of its successful contributing rules were hard matches
+            if (success) {
+                if (quantifier === 'ALL' || quantifier === 'EVERY' || quantifier === 'NOT_ALL') {
+                    hasHardMatch = subResults.some(r => r.success && r.isHardSuccess !== false);
+                } else {
+                    hasHardMatch = true; // For ANY/SOME, if it passed, it MUST have had a hard match (per logic above)
+                }
             }
 
             if (success) {
@@ -524,7 +535,7 @@ export function evaluateRule(item, rule, callStack = new Set()) {
                 reason = `Group (${quantifier}) failed. Sub-fails: [${fails.join('; ')}]`;
             }
 
-            return { success, matches, reason };
+            return { success, isHardSuccess: hasHardMatch, matches, reason };
         }
 
         // Standard Collection Groups (Characters, Staff, etc.)
@@ -592,10 +603,11 @@ export function evaluateRule(item, rule, callStack = new Set()) {
         
         const filteredRels = relationTypes.includes('ANY') ? relations : relations.filter(e => relationTypes.includes(e.relationType));
         if (filteredRels.length === 0) {
-            if (isOptional) return { success: true, matches: {}, reason: null };
+            if (isOptional) return { success: true, isHardSuccess: false, matches: {}, reason: null };
             const success = (quantifier === 'NONE' || quantifier === 'NONE_ANY');
             return { 
                 success, 
+                isHardSuccess: success,
                 matches: {}, 
                 reason: success ? null : `No relations found for mandatory types: ${relationTypes.join(', ')}` 
             };
@@ -647,7 +659,7 @@ export function evaluateRule(item, rule, callStack = new Set()) {
             reason = `Relation rule (${relationTypes.join(', ')}) failed logic.`;
         }
 
-        return { success: allPass, matches: matches, reason };
+        return { success: allPass, isHardSuccess: allPass, matches: matches, reason };
     }
 
     // Leaf Rule Logic

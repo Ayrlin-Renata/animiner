@@ -6,6 +6,7 @@
 import { UI } from '../../base.js';
 import { COLLECTION_PATHS, SUB_FIELDS } from '../../../filter.js';
 import { createFilterRule } from './FilterRule.js';
+import { createRelationGroup } from './RelationGroup.js';
 import { resetDragState, getDragAfterElement } from './dnd.js';
 
 export function createFilterGroup(initialData = null, parentContainer = null) {
@@ -49,6 +50,9 @@ export function createFilterGroup(initialData = null, parentContainer = null) {
             </button>
             <button class="text-btn add-sub-group-btn">
                 <i data-lucide="layers"></i> ${i18n.t('builder.add_sub_group')}
+            </button>
+            <button class="text-btn add-sub-relation-btn hidden">
+                <i data-lucide="git-branch-plus"></i> ${i18n.t('builder.add_sub_relation')}
             </button>
         </div>
     `;
@@ -101,6 +105,9 @@ export function createFilterGroup(initialData = null, parentContainer = null) {
             NONE_ANY: i18n.t('filter.help.collection.none_any')
         };
         box.querySelector('.group-help-text').textContent = quantifierText[quantifier];
+
+        const addRelBtn = box.querySelector('.add-sub-relation-btn');
+        if (addRelBtn) addRelBtn.classList.toggle('hidden', !isLogic);
     };
 
     if (initialData) {
@@ -110,6 +117,8 @@ export function createFilterGroup(initialData = null, parentContainer = null) {
             box.querySelector('.group-label-input').value = initialData.alias;
         }
     }
+
+    const updatePathContext = () => updateGroupContext();
 
     const addSubRule = (data = null) => {
         const isLogic = pathSelect.value === 'ROOT';
@@ -121,8 +130,13 @@ export function createFilterGroup(initialData = null, parentContainer = null) {
         createFilterGroup(data, container);
     };
 
+    const addSubRelation = (data = null) => {
+        createRelationGroup(data, container);
+    };
+
     addBtn.onclick = () => addSubRule();
     box.querySelector('.add-sub-group-btn').onclick = () => addSubGroup();
+    box.querySelector('.add-sub-relation-btn').onclick = () => addSubRelation();
 
     pathSelect.onchange = () => {
         container.innerHTML = '';
@@ -157,6 +171,8 @@ export function createFilterGroup(initialData = null, parentContainer = null) {
             initialData.rules.forEach(r => {
                 if (r.type === 'GROUP') {
                     addSubGroup(r);
+                } else if (r.type === 'RELATION') {
+                    addSubRelation(r);
                 } else {
                     addSubRule(r);
                 }
@@ -193,6 +209,7 @@ export function createFilterGroup(initialData = null, parentContainer = null) {
 
         box.querySelector('.add-sub-rule-btn').innerHTML = `<i data-lucide="plus"></i> ${i18n.t('builder.add_sub_rule')}`;
         box.querySelector('.add-sub-group-btn').innerHTML = `<i data-lucide="layers"></i> ${i18n.t('builder.add_sub_group')}`;
+        box.querySelector('.add-sub-relation-btn').innerHTML = `<i data-lucide="git-branch-plus"></i> ${i18n.t('builder.add_sub_relation')}`;
         box.querySelector('.group-label-input').placeholder = i18n.t('filter.placeholders.alias');
 
         updateGroupContext();

@@ -283,6 +283,7 @@
     "logic_group": "Logic Group",
     "add_sub_rule": "Add Sub-Constraint",
     "add_sub_group": "Add Sub-Group",
+    "add_sub_relation": "Add Relation",
     "group_refs": "Group References",
     "remove_group_title": "Remove Filter Group?",
     "remove_group_msg": "Are you sure you want to delete this group and all its nested rules? This cannot be undone.",
