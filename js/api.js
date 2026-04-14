@@ -372,7 +372,7 @@ function getApiVariables() {
             const absoluteFirstPath = nextParentPath ? `${nextParentPath}.${firstChildPath}` : firstChildPath;
             const allSamePath = childRules.every(r => r.path === firstChildPath);
             
-            if (allSamePath && (absoluteFirstPath === 'genres' || absoluteFirstPath.startsWith('tags.'))) {
+            if (allSamePath && absoluteFirstPath && (absoluteFirstPath === 'genres' || absoluteFirstPath.startsWith('tags.'))) {
               const allValues = childRules.map(r => r.value).join(',');
               const mockRule = { 
                 path: absoluteFirstPath, 
