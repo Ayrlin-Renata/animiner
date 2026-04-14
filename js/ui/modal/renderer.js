@@ -290,8 +290,8 @@ export function renderMediaContent(item) {
             <div class="tag-list">
               ${visibleTags.map(t => {
     const terms = details['tags.name'] || [];
-    const displayTerms = terms.filter(mt => !mt.startsWith('regex:'))
-.map(mt => mt.startsWith('badge:') ? mt.substring(6) : mt);
+    const displayTerms = terms.filter(mt => mt && typeof mt === 'string' && !mt.startsWith('regex:'))
+        .map(mt => mt.startsWith('badge:') ? mt.substring(6) : mt);
     const isMatch = displayTerms.some(mt => new RegExp(`\\b${mt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(t.name));
     return `
                   <div class="tag-list-item ${isMatch ? 'match-highlight-tag' : ''}">
@@ -303,8 +303,8 @@ export function renderMediaContent(item) {
               <div class="tag-list hidden">
                 ${spoilerTags.map(t => {
     const terms = details['tags.name'] || [];
-    const displayTerms = terms.filter(mt => !mt.startsWith('regex:'))
-.map(mt => mt.startsWith('badge:') ? mt.substring(6) : mt);
+    const displayTerms = terms.filter(mt => mt && typeof mt === 'string' && !mt.startsWith('regex:'))
+        .map(mt => mt.startsWith('badge:') ? mt.substring(6) : mt);
     const isMatch = displayTerms.some(mt => new RegExp(`\\b${mt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(t.name));
     return `
                     <div class="tag-list-item spoiler ${isMatch ? 'match-highlight-tag' : ''}">

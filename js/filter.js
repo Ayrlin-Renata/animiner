@@ -804,6 +804,7 @@ export function filterResults(results, rules) {
 
         const itemMatchBuffer = {};
         const collector = (path, term) => {
+            if (term === null || term === undefined) return;
             if (!itemMatchBuffer[path]) itemMatchBuffer[path] = new Set();
             itemMatchBuffer[path].add(term);
         };

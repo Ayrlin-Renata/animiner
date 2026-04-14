@@ -12,6 +12,7 @@ export function highlightText(text, terms) {
   const literalParts = [];
   
   terms.forEach(t => {
+    if (typeof t !== 'string') return;
     if (t.startsWith('regex:')) {
       regexParts.push(t.substring(6));
     } else if (!t.startsWith('badge:')) {

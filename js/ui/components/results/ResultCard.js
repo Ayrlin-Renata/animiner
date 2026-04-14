@@ -76,14 +76,16 @@ export function createResultCard(item) {
     let reasonHtml = '';
 
     // 1. Tags (Max 5)
-    const matchedTags = [...(details['tags.name'] || []), ...(details['genres'] || [])].filter(t => !t.startsWith('regex:'))
-.map(t => t.startsWith('badge:') ? t.substring(6) : t);
+    const matchedTags = [...(details['tags.name'] || []), ...(details['genres'] || [])]
+        .filter(t => t && typeof t === 'string' && !t.startsWith('regex:'))
+        .map(t => t.startsWith('badge:') ? t.substring(6) : t);
     const visibleTags = matchedTags.slice(0, 5);
     reasonHtml += visibleTags.map(t => `<span class="match-badge">${t}</span>`).join('');
 
     // 2. Keywords (Description matches, distinct style)
-    const keywords = (details['description'] || []).filter(t => !t.startsWith('regex:'))
-.map(t => t.startsWith('badge:') ? t.substring(6) : t);
+    const keywords = (details['description'] || [])
+        .filter(t => t && typeof t === 'string' && !t.startsWith('regex:'))
+        .map(t => t.startsWith('badge:') ? t.substring(6) : t);
     if (keywords.length > 0) {
         reasonHtml += keywords.slice(0, 5).map(kw => `<span class="keyword-badge">${kw}</span>`).join('');
     }
