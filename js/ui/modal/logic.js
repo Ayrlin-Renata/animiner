@@ -9,7 +9,7 @@ export function highlightText(text, terms) {
   if (!text || !terms || terms.length === 0) return text;
   const sortedTerms = [...terms].sort((a, b) => b.length - a.length);
   const escapedTerms = sortedTerms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  const regex = new RegExp(`\\b(${escapedTerms.join('|')})\\b`, 'gi');
+  const regex = new RegExp(`(${escapedTerms.join('|')})`, 'gi');
   return text.replace(regex, '<mark class="match-highlight">$1</mark>');
 }
 
