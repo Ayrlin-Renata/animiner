@@ -227,9 +227,6 @@ export function createFilterGroup(initialData = null, parentContainer = null) {
     }
     groupHandle.ondragend = resetDragState;
 
-    box.dataset.accepts = 'RELATION';
-    box.dataset.context = 'MEDIA';
-
     box.ondragover = (e) => {
         const draggable = window.draggedElement;
         if (!draggable || draggable === box || draggable.contains(box)) return;

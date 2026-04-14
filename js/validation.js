@@ -39,7 +39,8 @@ function analyzeRecursive(rules, currentScope, warnings, callStack) {
     const pathGroups = {};
 
     rules.forEach(rule => {
-        if (rule.type === 'REFERENCE') {
+        const typeMatch = rule.type?.toUpperCase();
+        if (typeMatch === 'REFERENCE') {
             const refLabel = rule.value;
             if (callStack.has(refLabel)) return; // Prevent infinite loop
 
@@ -107,7 +108,7 @@ function analyzeRecursive(rules, currentScope, warnings, callStack) {
         
         rulesInPath.forEach(rule => {
             // 1. Check for "Empty Core Filter"
-            if ((path === 'id' || path === 'idMal' || path.startsWith('title.')) && 
+            if (path && (path === 'id' || path === 'idMal' || path.startsWith('title.')) && 
                 (rule.operator === OPERATORS.EQUALS || rule.operator === OPERATORS.IS) && 
                 (!rule.value || rule.value.trim() === '')) {
                 warnings.push({
