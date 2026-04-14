@@ -123,16 +123,25 @@ window.showConfirmDialog = (config) => {
 
 window.copyToClipboard = (text, btn) => {
     navigator.clipboard.writeText(text).then(() => {
-        const icon = btn.querySelector('i');
+        const icon = btn.querySelector('i, svg');
         if (!icon) return;
-        const original = icon.getAttribute('data-lucide');
+        
+        let original = icon.getAttribute('data-lucide');
+        if (!original && icon.tagName.toLowerCase() === 'svg') {
+            // If it's already an SVG, Lucide might have stored the original name in a class or we can infer it
+            // But usually we set data-lucide on the i tag which gets copied or preserved
+            original = [...icon.classList].find(c => c.startsWith('lucide-'))?.replace('lucide-', '');
+        }
+        
         icon.setAttribute('data-lucide', 'check');
         btn.classList.add('success');
-        if (window.lucide) window.lucide.createIcons();
+        
+        if (window.lucide) window.lucide.createIcons({ root: btn });
+        
         setTimeout(() => {
-            icon.setAttribute('data-lucide', original);
+            icon.setAttribute('data-lucide', original || 'copy');
             btn.classList.remove('success');
-            if (window.lucide) window.lucide.createIcons();
+            if (window.lucide) window.lucide.createIcons({ root: btn });
         }, 2000);
     });
 };

@@ -32,6 +32,11 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+.action-btn:active {
+  transform: scale(0.92) !important;
+  transition: transform 0.1s ease;
+}
+
 .action-btn.planning-btn.active {
   background: rgba(var(--accent-rgb), 0.15);
   border-color: var(--accent-light);
@@ -45,9 +50,16 @@
 }
 
 .action-btn.success {
-  background: rgba(16, 185, 129, 0.15);
+  background: rgba(70, 209, 96, 0.2);
   border-color: var(--success-color);
-  color: var(--success-color);
+  color: #fff;
+  animation: pulseSuccess 1s ease-out, buttonPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 0 15px rgba(70, 209, 96, 0.3);
+}
+
+.action-btn.success svg,
+.action-btn.success i {
+  animation: checkmarkDraw 0.3s ease-out forwards;
 }
 
 .action-btn.error {
@@ -240,6 +252,10 @@
   filter: brightness(1.1);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(232, 93, 117, 0.3);
+}
+
+.action-card-btn:active {
+  transform: scale(0.9) !important;
 }
 
 /* Header Actions Stack */
