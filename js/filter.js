@@ -521,7 +521,7 @@ export function evaluateRule(item, rule, callStack = new Set()) {
                 } else if (quantifier === 'ANY' || quantifier === 'SOME' || quantifier === 'SOME_ANY') {
                     hasHardMatch = true; // For ANY/SOME, if it passed, it MUST have had a hard match (per logic above)
                 } else if (quantifier === 'NONE' || quantifier === 'NONE_ANY') {
-                    hasHardMatch = false; // A NONE group passing is a soft success (absence of match)
+                    hasHardMatch = true; // An explicit NONE check is a hard success for the negative space
                 }
             }
 
@@ -678,7 +678,7 @@ export function evaluateRule(item, rule, callStack = new Set()) {
             } else if (quantifier === 'ANY' || quantifier === 'SOME_ANY' || quantifier === 'SOME') {
                 hasHardMatch = true;
             } else if (quantifier === 'NONE' || quantifier === 'NONE_ANY') {
-                hasHardMatch = false; // Soft success for none (absence)
+                hasHardMatch = true; // Explicit exclusion is a hard match for the negative space
             }
         }
 
