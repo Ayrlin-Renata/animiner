@@ -22,7 +22,9 @@ export function renderMediaContent(item) {
   const details = item._matchDetails || {};
   const genresList = item.genres?.map(g => {
     const terms = details['genres'] || [];
-    const isMatch = terms.some(t => new RegExp(`\\b${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(g));
+    const displayTerms = terms.filter(t => !t.startsWith('regex:'))
+.map(t => t.startsWith('badge:') ? t.substring(6) : t);
+    const isMatch = displayTerms.some(t => new RegExp(`\\b${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(g));
     return `<span class="tag ${isMatch ? 'match-highlight-tag' : ''}">${highlightText(g, terms)}</span>`;
   }) || [];
 
@@ -288,7 +290,9 @@ export function renderMediaContent(item) {
             <div class="tag-list">
               ${visibleTags.map(t => {
     const terms = details['tags.name'] || [];
-    const isMatch = terms.some(mt => new RegExp(`\\b${mt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(t.name));
+    const displayTerms = terms.filter(mt => !mt.startsWith('regex:'))
+.map(mt => mt.startsWith('badge:') ? mt.substring(6) : mt);
+    const isMatch = displayTerms.some(mt => new RegExp(`\\b${mt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(t.name));
     return `
                   <div class="tag-list-item ${isMatch ? 'match-highlight-tag' : ''}">
                     <span class="tag-name">${highlightText(t.name, terms)}</span>
@@ -299,7 +303,9 @@ export function renderMediaContent(item) {
               <div class="tag-list hidden">
                 ${spoilerTags.map(t => {
     const terms = details['tags.name'] || [];
-    const isMatch = terms.some(mt => new RegExp(`\\b${mt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(t.name));
+    const displayTerms = terms.filter(mt => !mt.startsWith('regex:'))
+.map(mt => mt.startsWith('badge:') ? mt.substring(6) : mt);
+    const isMatch = displayTerms.some(mt => new RegExp(`\\b${mt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(t.name));
     return `
                     <div class="tag-list-item spoiler ${isMatch ? 'match-highlight-tag' : ''}">
                       <span class="tag-name">${highlightText(t.name, terms)}</span>

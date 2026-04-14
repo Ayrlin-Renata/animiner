@@ -61,9 +61,10 @@ function analyzeRecursive(rules, currentScope, warnings, callStack) {
             const nameLabel = rule.alias || rule.label ? ` "${rule.alias || rule.label}"` : '';
             const fullLabel = `${typeLabel}${quantifierLabel}${nameLabel}`;
 
-            // ROOT groups with ANY/SOME quantifiers are alternatives, so they don't share constraints
-            const isAlternative = (rule.path === 'ROOT' || rule.path === 'LOGIC' || !rule.path) && 
-                                 (rule.quantifier === 'ANY' || rule.quantifier === 'SOME' || rule.quantifier === 'SOME_ANY');
+            // Groups with alternative quantifiers (OR logic) don't share constraints between rules
+            const isAlternative = (rule.quantifier === 'SOME_ANY' || rule.quantifier === 'NONE_ANY') || 
+                                 ((rule.path === 'ROOT' || rule.path === 'LOGIC' || !rule.path) && 
+                                  (rule.quantifier === 'ANY' || rule.quantifier === 'SOME'));
 
             if (isAll && currentScope.isMandatory) {
                 // Nested ALL groups in a mandatory scope share the same constraints

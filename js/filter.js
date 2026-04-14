@@ -730,7 +730,8 @@ export function evaluateRule(item, rule, callStack = new Set()) {
                     const matchesFound = text.match(re);
                     success = !!matchesFound;
                     if (success && matchesFound) {
-                        matchesFound.forEach(m => addMatch(path, m.trim()));
+                        addMatch(path, 'regex:' + value);
+                        matchesFound.forEach(m => addMatch(path, 'badge:' + m.trim()));
                     }
                 }
             } catch (e) { success = false; }

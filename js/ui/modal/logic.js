@@ -7,9 +7,22 @@ import { state } from '../../state.js';
 
 export function highlightText(text, terms) {
   if (!text || !terms || terms.length === 0) return text;
-  const sortedTerms = [...terms].sort((a, b) => b.length - a.length);
-  const escapedTerms = sortedTerms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  const regex = new RegExp(`(${escapedTerms.join('|')})`, 'gi');
+  
+  const regexParts = [];
+  const literalParts = [];
+  
+  terms.forEach(t => {
+    if (t.startsWith('regex:')) {
+      regexParts.push(t.substring(6));
+    } else if (!t.startsWith('badge:')) {
+      literalParts.push(t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    }
+  });
+
+  const combined = [...regexParts, ...literalParts].filter(p => p.trim() !== '').join('|');
+  if (!combined) return text;
+
+  const regex = new RegExp(`(${combined})`, 'gi');
   return text.replace(regex, '<mark class="match-highlight">$1</mark>');
 }
 
