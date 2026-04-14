@@ -73,17 +73,17 @@ export function formatReasonForUser(rule, technicalReason) {
     if (!technicalReason && rule.type === 'RELATION') {
         return `Relation rule (${rule.relationTypes?.join(', ') || 'ANY'}) failed logic.`;
     }
-    
+
     // Attempt to map path to label
     let label = rule.label || rule.path;
-    
+
     if (technicalReason && technicalReason.includes(' (Actual:')) {
         const val = rule.value;
         const actualRaw = technicalReason.split("(Actual: '")[1]?.replace("')", "") || 'unknown';
-        
+
         // SPECIAL CASE: Descriptions & Regex - Don't show the "Actual" data block unless tiny
         if (rule.path === 'description' || rule.operator === 'regex_match') {
-            switch(rule.operator) {
+            switch (rule.operator) {
                 case 'contains': return `Description does not contain '${val}'`;
                 case 'not_contains': return `Description contains forbidden '${val}'`;
                 case 'regex_match': return `Pattern /${val}/ not found in description`;
@@ -103,7 +103,7 @@ export function formatReasonForUser(rule, technicalReason) {
             actual = actualRaw.substring(0, 47) + '...';
         }
 
-        switch(rule.operator) {
+        switch (rule.operator) {
             case 'contains': return `${label} missing '${val}'`;
             case 'not_contains': return `${label} contains forbidden '${val}'`;
             case 'equals': return `${label} must be '${val}' (Actual: '${actual}')`;
@@ -128,10 +128,10 @@ export function formatReasonForUser(rule, technicalReason) {
  */
 export function findDeepFailure(item, rule, result, depth = 0) {
     if (!result || result.success) return null;
-    
+
     // We only want to add a visible indent/bullet line if we have something new to "say"
     // like a Relation name, a Reference name, or a Labeled group.
-    
+
     const indent = "  ".repeat(depth);
     const bullet = (depth > 0) ? `\n${indent}• ` : "";
 
@@ -152,7 +152,7 @@ export function findDeepFailure(item, rule, result, depth = 0) {
         const relations = item.relations?.edges || [];
         const relationTypes = rule.relationTypes || (rule.relationType ? [rule.relationType] : ['ANY']);
         const filteredRels = relationTypes.includes('ANY') ? relations : relations.filter(e => relationTypes.includes(e.relationType));
-        
+
         if (filteredRels.length === 0) return bullet + formatReasonForUser(rule, result.reason);
 
         for (const edge of filteredRels) {
@@ -170,30 +170,30 @@ export function findDeepFailure(item, rule, result, depth = 0) {
     // GROUP handling
     if (rule.rules && rule.rules.length > 0) {
         const subResults = rule.rules.map(sr => ({ rule: sr, result: evaluateRule(item, sr) }));
-        
+
         if (rule.quantifier === 'ALL' || rule.quantifier === 'EVERY') {
             const firstFail = subResults.find(r => !r.result.success);
             if (firstFail) {
-                 const labelPart = firstFail.rule.label ? `[${firstFail.rule.label}] ` : '';
-                 const subReason = findDeepFailure(item, firstFail.rule, firstFail.result, depth + (firstFail.rule.label ? 1 : 0));
-                 
-                 if (firstFail.rule.label) {
-                     return `${bullet}${labelPart} ${subReason}`;
-                 }
-                 // No label? Just return the sub-reason without a new bullet level
-                 return subReason;
+                const labelPart = firstFail.rule.label ? `[${firstFail.rule.label}] ` : '';
+                const subReason = findDeepFailure(item, firstFail.rule, firstFail.result, depth + (firstFail.rule.label ? 1 : 0));
+
+                if (firstFail.rule.label) {
+                    return `${bullet}${labelPart} ${subReason}`;
+                }
+                // No label? Just return the sub-reason without a new bullet level
+                return subReason;
             }
         }
-        
+
         if (rule.quantifier === 'NONE' || rule.quantifier === 'NONE_ANY') {
             const firstPass = subResults.find(r => r.result.success);
             if (firstPass) {
                 const label = firstPass.rule.label || firstPass.rule.path;
                 let val = getValueByPath(item, firstPass.rule.path);
                 if (Array.isArray(val)) {
-                   val = val.length > 3 ? `${val.slice(0, 3).join(', ')} (+${val.length - 3} more)` : val.join(', ');
+                    val = val.length > 3 ? `${val.slice(0, 3).join(', ')} (+${val.length - 3} more)` : val.join(', ');
                 } else if (typeof val === 'string' && val.length > 50) {
-                   val = val.substring(0, 47) + '...';
+                    val = val.substring(0, 47) + '...';
                 }
                 return `${bullet}Forbidden Match: ${label} is '${val}'`;
             }
@@ -453,7 +453,7 @@ export function evaluateRule(item, rule, callStack = new Set()) {
 
     // SAFETY GUARD: If value is empty/invalid but required, we skip (success=true)
     if (value === '' || value === null || value === undefined) {
-        if (rule.type !== 'GROUP' && rule.type !== 'RELATION' && 
+        if (rule.type !== 'GROUP' && rule.type !== 'RELATION' &&
             type !== 'boolean' && type !== 'reference' && operator !== 'is' && operator !== 'equals' && operator !== 'not_equals') {
             return { success: true, isHardSuccess: false, matches: {} };
         }
@@ -462,9 +462,9 @@ export function evaluateRule(item, rule, callStack = new Set()) {
     if (type === 'reference' || type === 'REFERENCE' || path === '__REFERENCE__' || path === 'REFERENCE') {
         const refLabel = value;
         const targetGroup = state.groupRefs?.[refLabel];
-        
+
         if (!targetGroup) return { success: true, matches: {} };
-        
+
         if (callStack.has(refLabel)) {
             if (state.isScanning) {
                 console.warn(`Circular reference detected for alias: ${refLabel}. Evaluation aborted.`);
@@ -475,15 +475,15 @@ export function evaluateRule(item, rule, callStack = new Set()) {
         callStack.add(refLabel);
         const refResult = evaluateRule(item, targetGroup, callStack);
         callStack.delete(refLabel);
-        
+
         if (refResult.success) {
             mergeMatches(refResult.matches);
         }
-        
-        return { 
-            success: refResult.success, 
+
+        return {
+            success: refResult.success,
             isHardSuccess: refResult.isHardSuccess !== false,
-            matches, 
+            matches,
             reason: refResult.success ? null : `Reference '${refLabel}' failed: ${refResult.reason || 'Unknown reason'}`
         };
     }
@@ -504,22 +504,24 @@ export function evaluateRule(item, rule, callStack = new Set()) {
             let hasHardMatch = false;
             switch (quantifier) {
                 case 'ALL':
-                case 'EVERY':      success = subResults.every(r => r.success); break;
+                case 'EVERY': success = subResults.every(r => r.success); break;
                 case 'ANY':
-                case 'SOME':       
-                case 'SOME_ANY':   success = subResults.some(r => r.success && r.isHardSuccess !== false); break;
-                case 'NONE':        
-                case 'NONE_ANY':   success = !subResults.some(r => r.success && r.isHardSuccess !== false); break;
-                case 'NOT_ALL':     success = !subResults.every(r => r.success); break;
-                default:            success = true; break;
+                case 'SOME':
+                case 'SOME_ANY': success = subResults.some(r => r.success && r.isHardSuccess !== false); break;
+                case 'NONE':
+                case 'NONE_ANY': success = !subResults.some(r => r.success && r.isHardSuccess !== false); break;
+                case 'NOT_ALL': success = !subResults.every(r => r.success); break;
+                default: success = true; break;
             }
 
             // A group is considered a "hard match" if any of its successful contributing rules were hard matches
             if (success) {
                 if (quantifier === 'ALL' || quantifier === 'EVERY' || quantifier === 'NOT_ALL') {
                     hasHardMatch = subResults.some(r => r.success && r.isHardSuccess !== false);
-                } else {
+                } else if (quantifier === 'ANY' || quantifier === 'SOME' || quantifier === 'SOME_ANY') {
                     hasHardMatch = true; // For ANY/SOME, if it passed, it MUST have had a hard match (per logic above)
+                } else if (quantifier === 'NONE' || quantifier === 'NONE_ANY') {
+                    hasHardMatch = false; // A NONE group passing is a soft success (absence of match)
                 }
             }
 
@@ -543,13 +545,13 @@ export function evaluateRule(item, rule, callStack = new Set()) {
         if (!collection || !Array.isArray(collection)) {
             // Empty collections succeed on negative checks (NONE, NOT_ALL) but fail on positive ones (ALL, ANY)
             const negSuccess = (quantifier === 'NONE' || quantifier === 'NONE_ANY');
-            return { 
-                success: negSuccess, 
-                matches: {}, 
-                reason: negSuccess ? null : `Collection '${path || 'Unknown'}' is empty or not found.` 
+            return {
+                success: negSuccess,
+                matches: {},
+                reason: negSuccess ? null : `Collection '${path || 'Unknown'}' is empty or not found.`
             };
         }
-        
+
         const subResults = collection.map(entry => {
             const entryResults = subRules.map(sr => evaluateRule(entry, sr, callStack));
             const entryMatches = {};
@@ -563,25 +565,25 @@ export function evaluateRule(item, rule, callStack = new Set()) {
 
             // Inner profiles are usually ALL (AND logic), unless user chose SOME_ANY or NONE_ANY
             const isFuzzy = (quantifier === 'SOME_ANY' || quantifier === 'NONE_ANY');
-            return { 
+            return {
                 innerSuccess: isFuzzy ? entryResults.some(r => r.success) : entryResults.every(r => r.success),
                 matches: entryMatches
             };
         });
 
         let allPass = false;
-        switch(quantifier) {
+        switch (quantifier) {
             case 'ALL':
-            case 'EVERY':    allPass = subResults.every(r => r.innerSuccess); break;
+            case 'EVERY': allPass = subResults.every(r => r.innerSuccess); break;
             case 'ANY':
-            case 'SOME':     allPass = subResults.some(r => r.innerSuccess); break;
-            case 'NONE':      allPass = !subResults.some(r => r.innerSuccess); break;
-            case 'NOT_ALL':   allPass = !subResults.every(r => r.innerSuccess); break;
+            case 'SOME': allPass = subResults.some(r => r.innerSuccess); break;
+            case 'NONE': allPass = !subResults.some(r => r.innerSuccess); break;
+            case 'NOT_ALL': allPass = !subResults.every(r => r.innerSuccess); break;
             case 'SOME_ANY': allPass = subResults.some(r => r.innerSuccess); break;
             case 'NONE_ANY': allPass = !subResults.some(r => r.innerSuccess); break;
         }
         subResults.forEach(r => { if (r.innerSuccess) mergeMatches(r.matches); });
-        
+
         let reason = null;
         if (!allPass) {
             const fails = subResults.filter(r => !r.innerSuccess).map(r => r.matches); // This is not right
@@ -594,22 +596,22 @@ export function evaluateRule(item, rule, callStack = new Set()) {
 
     if (rule.type === 'RELATION') {
         let { relationTypes, relationType, quantifier, isOptional } = rule;
-        
+
         // Backwards compatibility migration
         if (!relationTypes) relationTypes = relationType ? [relationType] : ['ANY'];
 
         const subRules = rule.rules || [];
         const relations = item.relations?.edges || [];
-        
+
         const filteredRels = relationTypes.includes('ANY') ? relations : relations.filter(e => relationTypes.includes(e.relationType));
         if (filteredRels.length === 0) {
             if (isOptional) return { success: true, isHardSuccess: false, matches: {}, reason: null };
             const success = (quantifier === 'NONE' || quantifier === 'NONE_ANY');
-            return { 
-                success, 
+            return {
+                success,
                 isHardSuccess: success,
-                matches: {}, 
-                reason: success ? null : `No relations found for mandatory types: ${relationTypes.join(', ')}` 
+                matches: {},
+                reason: success ? null : `No relations found for mandatory types: ${relationTypes.join(', ')}`
             };
         }
 
@@ -630,7 +632,7 @@ export function evaluateRule(item, rule, callStack = new Set()) {
                     terms.forEach(t => entryMatches[fullPath].add(t));
                 });
             });
-            
+
             const isFuzzy = (quantifier === 'SOME_ANY' || quantifier === 'NONE_ANY');
             return {
                 innerSuccess: isFuzzy ? entryResults.some(r => r.success) : entryResults.every(r => r.success),
@@ -639,21 +641,21 @@ export function evaluateRule(item, rule, callStack = new Set()) {
         });
 
         let allPass = false;
-        switch(quantifier) {
-            case 'ALL':   allPass = subResults.every(r => r.innerSuccess); break;
-            case 'ANY':   allPass = subResults.some(r => r.innerSuccess); break;
-            case 'NONE':  allPass = !subResults.some(r => r.innerSuccess); break;
+        switch (quantifier) {
+            case 'ALL': allPass = subResults.every(r => r.innerSuccess); break;
+            case 'ANY': allPass = subResults.some(r => r.innerSuccess && r.isHardSuccess !== false); break;
+            case 'NONE': allPass = !subResults.some(r => r.innerSuccess && r.isHardSuccess !== false); break;
             case 'NOT_ALL': allPass = !subResults.every(r => r.innerSuccess); break;
-            case 'SOME_ANY': allPass = subResults.some(r => r.innerSuccess); break;
-            case 'NONE_ANY': allPass = !subResults.some(r => r.innerSuccess); break;
+            case 'SOME_ANY': allPass = subResults.some(r => r.innerSuccess && r.isHardSuccess !== false); break;
+            case 'NONE_ANY': allPass = !subResults.some(r => r.innerSuccess && r.isHardSuccess !== false); break;
         }
-        
+
         if (allPass) {
             if (quantifier !== 'NONE' && quantifier !== 'NONE_ANY') {
                 subResults.forEach(r => { if (r.innerSuccess) mergeMatches(r.matches); });
             }
         }
-        
+
         let reason = null;
         if (!allPass) {
             reason = `Relation rule (${relationTypes.join(', ')}) failed logic.`;
@@ -766,7 +768,7 @@ export function evaluateRule(item, rule, callStack = new Set()) {
         reason = `${path} ${operator} '${value}' (Actual: '${actualValue}')`;
     }
 
-    return { success, matches, reason };
+    return { success, isHardSuccess: success, matches, reason };
 }
 
 /**
@@ -780,23 +782,23 @@ export function filterResults(results, rules) {
         // GLOBAL EXCLUSION CHECK (Instant Visibility Logic)
         const id = item.id;
         const mode = state.searchMode;
-        
+
         // 1. Blacklist Check
         if (!state.showBlacklisted) {
-          const isBlacklisted = (state.blacklist[mode] || []).some(b => (typeof b === 'object' ? b.id : b) === id);
-          if (isBlacklisted) return false;
+            const isBlacklisted = (state.blacklist[mode] || []).some(b => (typeof b === 'object' ? b.id : b) === id);
+            if (isBlacklisted) return false;
         }
-        
+
         // 2. Watched Check
         if (!state.showWatched) {
-          const isWatched = (state.watched[mode] || []).some(w => (typeof w === 'object' ? w.id : w) === id);
-          if (isWatched) return false;
+            const isWatched = (state.watched[mode] || []).some(w => (typeof w === 'object' ? w.id : w) === id);
+            if (isWatched) return false;
         }
 
         // 3. Seen History Check (with session stability)
         if (!state.showSeen && !item._sessionSeen) { // Escape if seen in this specific session
-          const isSeen = (state.seen[mode] || []).some(s => (typeof s === 'object' ? s.id : s) === id);
-          if (isSeen) return false;
+            const isSeen = (state.seen[mode] || []).some(s => (typeof s === 'object' ? s.id : s) === id);
+            if (isSeen) return false;
         }
 
         // Apply rules if any are present
@@ -816,7 +818,7 @@ export function filterResults(results, rules) {
 
         const passesCore = ruleResults.filter(r => r.rule.type !== 'RELATION').every(r => r.result.success);
         const failsRelations = ruleResults.some(r => r.rule.type === 'RELATION' && !r.result.success);
-        
+
         const isFullMatch = passesCore && !failsRelations;
         const isPartialMatch = passesCore && failsRelations;
 
@@ -846,21 +848,21 @@ export function filterResults(results, rules) {
         }
 
         const shouldShow = isFullMatch || (isPartialMatch && state.showRelationFiltered);
-        
+
         if (shouldShow) {
             item._matchDetails = {};
             Object.entries(itemMatchBuffer).forEach(([p, termsSet]) => {
                 item._matchDetails[p] = [...termsSet];
             });
-            
+
             item._isPartialMatch = isPartialMatch;
 
             // CAPTURE FAILURE REASON (for tooltips)
             if (isPartialMatch) {
-              const failingRel = ruleResults.find(r => r.rule.type === 'RELATION' && !r.result.success);
-              if (failingRel) {
-                  item._filterFailReason = findDeepFailure(item, failingRel.rule, failingRel.result);
-              }
+                const failingRel = ruleResults.find(r => r.rule.type === 'RELATION' && !r.result.success);
+                if (failingRel) {
+                    item._filterFailReason = findDeepFailure(item, failingRel.rule, failingRel.result);
+                }
             }
         }
 
