@@ -129,7 +129,8 @@
       "characters": "Characters",
       "staff": "Staff",
       "user": "User",
-      "references": "References"
+      "references": "References",
+      "tags": "Tags"
     },
     "fields": {
       "id": "AL ID",
@@ -156,8 +157,8 @@
       "volumes": "Volumes",
       "genres": "Genres",
       "tag_name": "Tag Name",
+      "tag_rank": "Tag Rank",
       "tag_category": "Tag Category",
-      "min_tag_rank": "Min Tag Rank",
       "synonyms": "Synonyms",
       "hashtag": "Hashtag",
       "title_romaji": "Title (Romaji)",

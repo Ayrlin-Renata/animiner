@@ -62,6 +62,7 @@ export const COLLECTION_PATHS = {
     CHARACTERS: 'characters.edges',
     STAFF: 'staff.edges',
     STUDIOS: 'studios.edges',
+    TAGS: 'tags',
     LOGIC: 'ROOT' // Special path for manual boolean logic
 };
 
@@ -270,9 +271,6 @@ export const FIELDS = {
         { label: 'filter.fields.chapters', path: 'chapters', type: FIELD_TYPES.NUMBER },
         { label: 'filter.fields.volumes', path: 'volumes', type: FIELD_TYPES.NUMBER },
         { label: 'filter.fields.genres', path: 'genres', type: FIELD_TYPES.COLLECTION, seenKey: 'genres' },
-        { label: 'filter.fields.tag_name', path: 'tags.name', type: FIELD_TYPES.COLLECTION, seenKey: 'tags' },
-        { label: 'filter.fields.tag_category', path: 'tags.category', type: FIELD_TYPES.COLLECTION },
-        { label: 'filter.fields.min_tag_rank', path: 'tags.rank', type: FIELD_TYPES.NUMBER },
         { label: 'filter.fields.synonyms', path: 'synonyms', type: FIELD_TYPES.COLLECTION },
         { label: 'filter.fields.hashtag', path: 'hashtag', type: FIELD_TYPES.STRING },
         { label: 'filter.fields.title_romaji', path: 'title.romaji', type: FIELD_TYPES.STRING },
@@ -343,6 +341,11 @@ export const SUB_FIELDS = {
     [COLLECTION_PATHS.STUDIOS]: [
         { label: 'filter.fields.studio_name', path: 'node.name', type: FIELD_TYPES.STRING, seenKey: 'studios' },
         { label: 'filter.fields.main_studio', path: 'isMain', type: FIELD_TYPES.BOOLEAN }
+    ],
+    [COLLECTION_PATHS.TAGS]: [
+        { label: 'filter.fields.tag_name', path: 'name', type: FIELD_TYPES.STRING, seenKey: 'tags' },
+        { label: 'filter.fields.tag_rank', path: 'rank', type: FIELD_TYPES.NUMBER },
+        { label: 'filter.fields.tag_category', path: 'category', type: FIELD_TYPES.STRING }
     ]
 };
 

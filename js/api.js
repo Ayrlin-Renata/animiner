@@ -347,43 +347,52 @@ function getApiVariables() {
    * Recursively extract API-compatible filters from a rule list and its nested groups.
    * ONLY rules that are logically mandatory (ALL of ALL) can be pushed to the global API request.
    */
-  const extractApiFilters = (rules, isMandatory = true) => {
+  const extractApiFilters = (rules, isMandatory = true, parentPath = '') => {
     rules.forEach(rule => {
+      // Prepend parent path if we are in a sub-group (e.g. 'tags' + 'rank' -> 'tags.rank')
+      const fullPath = (parentPath && rule.path && rule.path !== '__REFERENCE__') 
+          ? `${parentPath}.${rule.path}` 
+          : rule.path;
+
       if (rule.type === 'GROUP') {
         // A path is only mandatory if it's an ALL group inside a mandatory parent
         const childrenAreMandatory = isMandatory && rule.quantifier === 'ALL';
         
+        // Determine the path for child recursion. 
+        // If this group has a path (like 'tags'), use it as the new parentPath.
+        const nextParentPath = (rule.path && rule.path !== 'ROOT') ? rule.path : parentPath;
+
         if (childrenAreMandatory) {
-          extractApiFilters(rule.rules || [], true);
+          extractApiFilters(rule.rules || [], true, nextParentPath);
         } else if (isMandatory && (rule.quantifier === 'ANY' || rule.quantifier === 'NONE')) {
-          // SMART CONSOLIDATION: If a mandatory ANY group has children with the same path, 
-          // we can still optimize it. (e.g. Mandatory AND (Genre A OR Genre B) -> genre_in: [A,B])
+          // SMART CONSOLIDATION for simple field lists
           const childRules = (rule.rules || []).filter(r => r.type !== 'GROUP');
           if (childRules.length > 0) {
-            const firstPath = childRules[0].path;
-            const allSamePath = childRules.every(r => r.path === firstPath);
-            if (allSamePath && (firstPath === 'genres' || firstPath.startsWith('tags.'))) {
+            const firstChildPath = childRules[0].path;
+            const absoluteFirstPath = nextParentPath ? `${nextParentPath}.${firstChildPath}` : firstChildPath;
+            const allSamePath = childRules.every(r => r.path === firstChildPath);
+            
+            if (allSamePath && (absoluteFirstPath === 'genres' || absoluteFirstPath.startsWith('tags.'))) {
               const allValues = childRules.map(r => r.value).join(',');
               const mockRule = { 
-                path: firstPath, 
+                path: absoluteFirstPath, 
                 operator: rule.quantifier === 'ANY' ? 'equals' : 'not_equals', 
                 value: allValues 
               };
               applyRuleToVars(mockRule, rule.quantifier);
             }
           }
-          // But their deeper children are definitely NOT mandatory path
-          extractApiFilters(rule.rules || [], false);
+          extractApiFilters(rule.rules || [], false, nextParentPath);
         } else {
-          // Path is optional (ANY or NONE)
-          extractApiFilters(rule.rules || [], false);
+          extractApiFilters(rule.rules || [], false, nextParentPath);
         }
         return;
       }
 
       // Leaf rules: Only apply to global variables if they are in a mandatory path
-      if (isMandatory) {
-        applyRuleToVars(rule, 'ALL');
+      if (isMandatory && fullPath) {
+        const mockRule = { ...rule, path: fullPath };
+        applyRuleToVars(mockRule, 'ALL');
       }
     });
   };

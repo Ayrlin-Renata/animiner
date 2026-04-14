@@ -129,7 +129,8 @@
       "characters": "キャラクター",
       "staff": "スタッフ",
       "user": "ユーザー",
-      "references": "リファレンス"
+      "references": "リファレンス",
+      "tags": "タグ"
     },
     "fields": {
       "id": "AL ID",
@@ -156,8 +157,8 @@
       "volumes": "巻数",
       "genres": "ジャンル",
       "tag_name": "タグ名",
+      "tag_rank": "タグランク",
       "tag_category": "タグカテゴリー",
-      "min_tag_rank": "最小タグランク",
       "synonyms": "別名",
       "hashtag": "ハッシュタグ",
       "title_romaji": "タイトル（ローマ字）",
