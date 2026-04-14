@@ -1,6 +1,18 @@
 .language-selector {
-  position: relative;
-  margin-left: auto;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.lang-icon {
+  width: 2rem;
+  height: 2rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
 }
 
 .lang-dropdown {
@@ -16,15 +28,16 @@
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
-  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.2s ease;
   outline: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.6rem center;
   background-size: 1rem;
 }
 
-.lang-dropdown:hover, .lang-dropdown:focus {
+.lang-dropdown:hover,
+.lang-dropdown:focus {
   background-color: var(--glass-hover);
   border-color: var(--accent-color);
   box-shadow: 0 0 0 2px rgba(188, 122, 255, 0.2);
@@ -38,12 +51,15 @@
 
 @media (max-width: 600px) {
   .language-selector {
-    margin-top: 0.5rem;
-    margin-left: 0;
+    position: static;
+    transform: none;
+    margin-top: 1rem;
+    justify-content: center;
     width: 100%;
   }
-  
+
   .lang-dropdown {
-    width: 100%;
+    width: auto;
+    min-width: 120px;
   }
 }
