@@ -36,7 +36,14 @@
     "status": "Status",
     "idle": "Idle",
     "adult": "Adult",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "all": "All",
+    "anime": "Anime",
+    "manga": "Manga",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "show_more": "Show More",
+    "show_less": "Show Less"
   },
   "tooltips": {
     "manage_watched": "Manage Watched List",
@@ -396,6 +403,43 @@
     "messages": {
       "empty_field": "Required field <strong>{{field}}</strong> is empty. This may result in no matches.",
       "contradiction": "Conflicting constraints on <strong>{{field}}</strong> in <em>{{location}}</em>: \"{{rule1}}\" vs \"{{rule2}}\"."
+    }
+  },
+  "modals": {
+    "history": {
+      "seen_title": "Seen History ({{count}})",
+      "watched_title": "Watched List ({{count}})",
+      "blacklist_title": "Blacklisted Items ({{count}})",
+      "clear_seen": "Clear History",
+      "clear_watched": "Clear Watched",
+      "clear_blacklist": "Clear Blacklist",
+      "empty": "No items in this list.",
+      "clear_confirm_title": "Clear {{list}}?",
+      "clear_confirm_msg": "⚠️ DANGER: Are you sure you want to clear your entire {{mode}} {{list}}? This cannot be undone.",
+      "clear_confirm_btn": "Yes, Clear All"
+    },
+    "import": {
+      "title": "Import Data",
+      "subtitle": "One-time transfer of your lists to Seen, Watched, and Blacklist.",
+      "private_header": "Private Profile",
+      "private_desc": "Import from your own AniList account.",
+      "connected": "Connected",
+      "start_private": "Start Private Import",
+      "connect_anilist": "Connect AniList",
+      "public_header": "Public Profile",
+      "public_desc": "Import from any public AniList username.",
+      "username_placeholder": "AniList Username...",
+      "start_public": "Import Public List",
+      "sharing_header": "Local Sharing",
+      "sharing_desc": "Share or backup your specific lists via JSON file.",
+      "export_json": "Export JSON",
+      "import_json": "Import JSON",
+      "processing": "Processing...",
+      "importing_status": "Importing your lists...",
+      "import_complete": "Import Complete! Added <strong>{{count}}</strong> new items.",
+      "read_file": "Reading file...",
+      "error_username": "Please enter a username.",
+      "error_select_list": "Please select at least one list."
     }
   }
 }

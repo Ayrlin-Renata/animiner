@@ -36,7 +36,14 @@
     "status": "ステータス",
     "idle": "待機中",
     "adult": "アダルト",
-    "unknown": "不明"
+    "unknown": "不明",
+    "all": "すべて",
+    "anime": "アニメ",
+    "manga": "漫画",
+    "cancel": "キャンセル",
+    "confirm": "確定",
+    "show_more": "もっと見る",
+    "show_less": "閉じる"
   },
   "tooltips": {
     "manage_watched": "視聴済みリストを管理",
@@ -395,7 +402,44 @@
     },
     "messages": {
       "empty_field": "必須フィールド <strong>{{field}}</strong> が空です。結果が見つからない可能性があります。",
-      "contradiction": "<strong>{{field}}</strong> の制約が <em>{{location}}</em> で競合しています: \"{{rule1}}\" と \"{{rule2}}\"。"
+      "contradiction": "<strong>{{location}}</strong> で <strong>{{field}}</strong> に矛盾する制約があります: \"{{rule1}}\" 対 \"{{rule2}}\"。"
+    }
+  },
+  "modals": {
+    "history": {
+      "seen_title": "確認済み履歴 ({{count}})",
+      "watched_title": "視聴済みリスト ({{count}})",
+      "blacklist_title": "ブラックリスト項目 ({{count}})",
+      "clear_seen": "履歴を消去",
+      "clear_watched": "視聴済みを消去",
+      "clear_blacklist": "ブラックリストを消去",
+      "empty": "リストにアイテムがありません。",
+      "clear_confirm_title": "{{list}}を消去しますか？",
+      "clear_confirm_msg": "⚠️ 危険: {{mode}} の全 {{list}} を消去してもよろしいですか？この操作は取り消せません。",
+      "clear_confirm_btn": "はい、すべて消去"
+    },
+    "import": {
+      "title": "データのインポート",
+      "subtitle": "あなたのリストを確認済み、視聴済み、ブラックリストへ一括移行します。",
+      "private_header": "プライベートプロフィール",
+      "private_desc": "あなた自身のAniListアカウントからインポートします。",
+      "connected": "接続済み",
+      "start_private": "プライベートインポートを開始",
+      "connect_anilist": "AniListと連携",
+      "public_header": "パブリックプロフィール",
+      "public_desc": "公開されている任意のAniListユーザーからインポートします。",
+      "username_placeholder": "AniList ユーザー名...",
+      "start_public": "公開リストをインポート",
+      "sharing_header": "ローカル共有",
+      "sharing_desc": "JSONファイルを通じて特定のリストを共有またはバックアップします。",
+      "export_json": "JSONをエクスポート",
+      "import_json": "JSONをインポート",
+      "processing": "処理中...",
+      "importing_status": "リストをインポート中...",
+      "import_complete": "インポート完了！ <strong>{{count}}</strong> 個の新しいアイテムを追加しました。",
+      "read_file": "ファイルを読み込み中...",
+      "error_username": "ユーザー名を入力してください。",
+      "error_select_list": "少なくとも1つのリストを選択してください。"
     }
   }
 }

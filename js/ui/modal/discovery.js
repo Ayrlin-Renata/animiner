@@ -208,21 +208,21 @@ export function openSeenManager(tabArg) {
 
     const tabsHtml = state.searchMode === 'MEDIA' ? `
         <div class="mgr-tabs">
-            <button class="mgr-tab-btn ${tab === 'ALL' ? 'active' : ''}" onclick="window.openSeenManager('ALL')">All</button>
-            <button class="mgr-tab-btn ${tab === 'ANIME' ? 'active' : ''}" onclick="window.openSeenManager('ANIME')">Anime</button>
-            <button class="mgr-tab-btn ${tab === 'MANGA' ? 'active' : ''}" onclick="window.openSeenManager('MANGA')">Manga</button>
+            <button class="mgr-tab-btn ${tab === 'ALL' ? 'active' : ''}" onclick="window.openSeenManager('ALL')">${i18n.t('labels.all')}</button>
+            <button class="mgr-tab-btn ${tab === 'ANIME' ? 'active' : ''}" onclick="window.openSeenManager('ANIME')">${i18n.t('labels.anime')}</button>
+            <button class="mgr-tab-btn ${tab === 'MANGA' ? 'active' : ''}" onclick="window.openSeenManager('MANGA')">${i18n.t('labels.manga')}</button>
         </div>
     ` : '';
 
     const content = `
         <div class="blacklist-manager seen-manager">
             <div class="mgr-header-row">
-                <h2>Seen History (${list.length})</h2>
-                ${list.length > 0 ? `<button class="text-btn clear-history-btn" onclick="window.clearDiscoveryList('seen')"><i data-lucide="trash-2"></i> Clear History</button>` : ''}
+                <h2>${i18n.t('modals.history.seen_title', { count: list.length })}</h2>
+                ${list.length > 0 ? `<button class="text-btn clear-history-btn" onclick="window.clearDiscoveryList('seen')"><i data-lucide="trash-2"></i> ${i18n.t('modals.history.clear_seen')}</button>` : ''}
             </div>
             ${tabsHtml}
             <div class="blacklist-items">
-                ${filteredList.length === 0 ? '<div class="empty-state">No history here.</div>' : filteredList.map(item => `
+                ${filteredList.length === 0 ? `<div class="empty-state">${i18n.t('modals.history.empty')}</div>` : filteredList.map(item => `
                     <div class="blacklist-item">
                         <div class="blacklist-item-info">
                             ${item.image ? `<img src="${item.image}" class="blacklist-thumb">` : '<div class="blacklist-thumb-placeholder">?</div>'}
@@ -248,21 +248,21 @@ export function openWatchedManager(tabArg) {
 
     const tabsHtml = state.searchMode === 'MEDIA' ? `
         <div class="mgr-tabs">
-            <button class="mgr-tab-btn ${tab === 'ALL' ? 'active' : ''}" onclick="window.openWatchedManager('ALL')">All</button>
-            <button class="mgr-tab-btn ${tab === 'ANIME' ? 'active' : ''}" onclick="window.openWatchedManager('ANIME')">Anime</button>
-            <button class="mgr-tab-btn ${tab === 'MANGA' ? 'active' : ''}" onclick="window.openWatchedManager('MANGA')">Manga</button>
+            <button class="mgr-tab-btn ${tab === 'ALL' ? 'active' : ''}" onclick="window.openWatchedManager('ALL')">${i18n.t('labels.all')}</button>
+            <button class="mgr-tab-btn ${tab === 'ANIME' ? 'active' : ''}" onclick="window.openWatchedManager('ANIME')">${i18n.t('labels.anime')}</button>
+            <button class="mgr-tab-btn ${tab === 'MANGA' ? 'active' : ''}" onclick="window.openWatchedManager('MANGA')">${i18n.t('labels.manga')}</button>
         </div>
     ` : '';
 
     const content = `
         <div class="blacklist-manager watched-manager">
             <div class="mgr-header-row">
-                <h2>Watched List (${list.length})</h2>
-                ${list.length > 0 ? `<button class="text-btn clear-history-btn" onclick="window.clearDiscoveryList('watched')"><i data-lucide="trash-2"></i> Clear Watched</button>` : ''}
+                <h2>${i18n.t('modals.history.watched_title', { count: list.length })}</h2>
+                ${list.length > 0 ? `<button class="text-btn clear-history-btn" onclick="window.clearDiscoveryList('watched')"><i data-lucide="trash-2"></i> ${i18n.t('modals.history.clear_watched')}</button>` : ''}
             </div>
             ${tabsHtml}
             <div class="blacklist-items">
-                ${filteredList.length === 0 ? '<div class="empty-state">No watched items here.</div>' : filteredList.map(item => `
+                ${filteredList.length === 0 ? `<div class="empty-state">${i18n.t('modals.history.empty')}</div>` : filteredList.map(item => `
                     <div class="blacklist-item">
                         <div class="blacklist-item-info">
                             ${item.image ? `<img src="${item.image}" class="blacklist-thumb">` : '<div class="blacklist-thumb-placeholder">?</div>'}
@@ -288,21 +288,21 @@ export function openBlacklistManager(tabArg) {
 
     const tabsHtml = state.searchMode === 'MEDIA' ? `
         <div class="mgr-tabs">
-            <button class="mgr-tab-btn ${tab === 'ALL' ? 'active' : ''}" onclick="window.openBlacklistManager('ALL')">All</button>
-            <button class="mgr-tab-btn ${tab === 'ANIME' ? 'active' : ''}" onclick="window.openBlacklistManager('ANIME')">Anime</button>
-            <button class="mgr-tab-btn ${tab === 'MANGA' ? 'active' : ''}" onclick="window.openBlacklistManager('MANGA')">Manga</button>
+            <button class="mgr-tab-btn ${tab === 'ALL' ? 'active' : ''}" onclick="window.openBlacklistManager('ALL')">${i18n.t('labels.all')}</button>
+            <button class="mgr-tab-btn ${tab === 'ANIME' ? 'active' : ''}" onclick="window.openBlacklistManager('ANIME')">${i18n.t('labels.anime')}</button>
+            <button class="mgr-tab-btn ${tab === 'MANGA' ? 'active' : ''}" onclick="window.openBlacklistManager('MANGA')">${i18n.t('labels.manga')}</button>
         </div>
     ` : '';
 
     const content = `
         <div class="blacklist-manager">
             <div class="mgr-header-row">
-                <h2 style="color: #ef4444">Blacklisted Items (${list.length})</h2>
-                ${list.length > 0 ? `<button class="text-btn clear-history-btn" onclick="window.clearDiscoveryList('blacklist')"><i data-lucide="trash-2"></i> Clear Blacklist</button>` : ''}
+                <h2 style="color: #ef4444">${i18n.t('modals.history.blacklist_title', { count: list.length })}</h2>
+                ${list.length > 0 ? `<button class="text-btn clear-history-btn" onclick="window.clearDiscoveryList('blacklist')"><i data-lucide="trash-2"></i> ${i18n.t('modals.history.clear_blacklist')}</button>` : ''}
             </div>
             ${tabsHtml}
             <div class="blacklist-items">
-                ${filteredList.length === 0 ? '<div class="empty-state">Your blacklist is empty here.</div>' : filteredList.map(item => `
+                ${filteredList.length === 0 ? `<div class="empty-state">${i18n.t('modals.history.empty')}</div>` : filteredList.map(item => `
                     <div class="blacklist-item">
                         <div class="blacklist-item-info">
                             ${item.image ? `<img src="${item.image}" class="blacklist-thumb">` : '<div class="blacklist-thumb-placeholder">?</div>'}
@@ -325,11 +325,18 @@ window.openWatchedManager = openWatchedManager;
 window.openBlacklistManager = openBlacklistManager;
 
 window.clearDiscoveryList = (listKey) => {
-    const labels = { 'seen': 'Seen History', 'watched': 'Watched List', 'blacklist': 'Blacklist' };
+    const listLabels = { 
+        'seen': i18n.t('modals.history.seen_title', { count: '' }).split('(')[0].trim(), 
+        'watched': i18n.t('modals.history.watched_title', { count: '' }).split('(')[0].trim(), 
+        'blacklist': i18n.t('modals.history.blacklist_title', { count: '' }).split('(')[0].trim() 
+    };
+    const listName = listLabels[listKey] || 'List';
+    const modeName = i18n.t('labels.' + state.searchMode.toLowerCase());
+
     window.showConfirmDialog({
-        title: `Clear ${labels[listKey] || 'List'}?`,
-        message: `⚠️ DANGER: Are you sure you want to clear your entire ${state.searchMode} ${labels[listKey] || 'list'}? This cannot be undone.`,
-        confirmText: 'Yes, Clear All',
+        title: i18n.t('modals.history.clear_confirm_title', { list: listName }),
+        message: i18n.t('modals.history.clear_confirm_msg', { mode: modeName, list: listName }),
+        confirmText: i18n.t('modals.history.clear_confirm_btn'),
         onConfirm: () => {
             state[listKey][state.searchMode] = [];
             import('../../state.js').then(m => m.saveSettings());

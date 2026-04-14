@@ -25,7 +25,7 @@ window.addToPlanning = async (mediaId, isPrivate, btn) => {
         btn.classList.add('success', 'active');
         
         // Update tooltip/title
-        btn.title = isPrivate ? 'On Private Planning List' : 'On Planning List';
+        btn.title = isPrivate ? i18n.t('tooltips.planning_private_on') : i18n.t('tooltips.planning_on');
 
         // Re-query icon as Lucide replaces the element, making the original reference stale
         const currentIcon = btn.querySelector('i, svg');
@@ -60,7 +60,7 @@ window.toggleSection = function(btn) {
   btn.classList.toggle('is-expanded', isExpanded);
   if (window.syncGridVisibility) window.syncGridVisibility(container);
   const span = btn.querySelector('span');
-  if (span) span.textContent = isExpanded ? 'Show Less' : 'Show More';
+  if (span) span.textContent = isExpanded ? i18n.t('labels.show_less') : i18n.t('labels.show_more');
 };
 
 window.syncGridVisibility = function(grid) {
@@ -105,8 +105,8 @@ window.showConfirmDialog = (config) => {
             <div class="confirm-header"><i data-lucide="alert-triangle" class="danger-icon"></i><h3>${title}</h3></div>
             <div class="confirm-body"><p>${message}</p></div>
             <div class="confirm-footer">
-                <button class="confirm-btn cancel-btn">Cancel</button>
-                <button class="confirm-btn action-btn danger-confirm">${confirmText || 'Yes, Clear'}</button>
+                <button class="confirm-btn cancel-btn">${i18n.t('labels.cancel')}</button>
+                <button class="confirm-btn action-btn danger-confirm">${confirmText || i18n.t('labels.confirm')}</button>
             </div>
         </div>`;
     document.body.appendChild(overlay);
