@@ -603,7 +603,11 @@ export function evaluateRule(item, rule, callStack = new Set()) {
         const subRules = rule.rules || [];
         const relations = item.relations?.edges || [];
 
-        const filteredRels = relationTypes.includes('ANY') ? relations : relations.filter(e => relationTypes.includes(e.relationType));
+        const filteredRels = relationTypes.includes('ANY') ? relations : relations.filter(e => {
+            const rt = e.relationType?.toUpperCase();
+            return relationTypes.some(type => type.toUpperCase() === rt);
+        });
+
         if (filteredRels.length === 0) {
             if (isOptional) return { success: true, isHardSuccess: false, matches: {}, reason: null };
             const success = (quantifier === 'NONE' || quantifier === 'NONE_ANY');
@@ -623,7 +627,12 @@ export function evaluateRule(item, rule, callStack = new Set()) {
                 ...sr,
                 _globalCollector: relCollector
             }));
-            const entryResults = subRulesWithCollector.map(sr => evaluateRule(edge.node, sr, callStack));
+
+            // Fresh callStack for the relation node because it's a different data context.
+            // This prevents false "Circular Reference" hits when a relation references a group 
+            // that is also its own parent in the logical tree.
+            const entryResults = subRulesWithCollector.map(sr => evaluateRule(edge.node, sr, new Set()));
+
             const entryMatches = {};
             entryResults.forEach(r => {
                 Object.entries(r.matches).forEach(([p, terms]) => {
@@ -636,6 +645,7 @@ export function evaluateRule(item, rule, callStack = new Set()) {
             const isFuzzy = (quantifier === 'SOME_ANY' || quantifier === 'NONE_ANY');
             return {
                 innerSuccess: isFuzzy ? entryResults.some(r => r.success) : entryResults.every(r => r.success),
+                isHardSuccess: entryResults.some(r => r.success && r.isHardSuccess !== false),
                 matches: entryMatches
             };
         });
@@ -661,7 +671,18 @@ export function evaluateRule(item, rule, callStack = new Set()) {
             reason = `Relation rule (${relationTypes.join(', ')}) failed logic.`;
         }
 
-        return { success: allPass, isHardSuccess: allPass, matches: matches, reason };
+        let hasHardMatch = false;
+        if (allPass) {
+            if (quantifier === 'ALL' || quantifier === 'NOT_ALL') {
+                hasHardMatch = subResults.some(r => r.innerSuccess && r.isHardSuccess !== false);
+            } else if (quantifier === 'ANY' || quantifier === 'SOME_ANY' || quantifier === 'SOME') {
+                hasHardMatch = true;
+            } else if (quantifier === 'NONE' || quantifier === 'NONE_ANY') {
+                hasHardMatch = false; // Soft success for none (absence)
+            }
+        }
+
+        return { success: allPass, isHardSuccess: hasHardMatch, matches: matches, reason };
     }
 
     // Leaf Rule Logic
@@ -786,19 +807,25 @@ export function filterResults(results, rules) {
         // 1. Blacklist Check
         if (!state.showBlacklisted) {
             const isBlacklisted = (state.blacklist[mode] || []).some(b => (typeof b === 'object' ? b.id : b) === id);
-            if (isBlacklisted) return false;
+            if (isBlacklisted) {
+                return false;
+            }
         }
 
         // 2. Watched Check
         if (!state.showWatched) {
             const isWatched = (state.watched[mode] || []).some(w => (typeof w === 'object' ? w.id : w) === id);
-            if (isWatched) return false;
+            if (isWatched) {
+                return false;
+            }
         }
 
         // 3. Seen History Check (with session stability)
         if (!state.showSeen && !item._sessionSeen) { // Escape if seen in this specific session
             const isSeen = (state.seen[mode] || []).some(s => (typeof s === 'object' ? s.id : s) === id);
-            if (isSeen) return false;
+            if (isSeen) {
+                return false;
+            }
         }
 
         // Apply rules if any are present
