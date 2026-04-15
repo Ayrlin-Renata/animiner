@@ -5,6 +5,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AniMiner - AniList Deep Search</title>
+    <meta name="description"
+        content="AniMiner is an advanced search and filtering tool for AniList. Find hidden gem anime or manga using complex logic filters, related media, regex, and more.">
+    <link rel="canonical" href="https://animiner.app">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://animiner.app">
+    <meta property="og:title" content="AniMiner - AniList Deep Search">
+    <meta property="og:description" content="go find them gems - deep search for AniList">
+    <meta property="og:image" content="https://animiner.app/public/animiner.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://animiner.app">
+    <meta property="twitter:title" content="AniMiner - AniList Deep Search">
+    <meta property="twitter:description" content="go find them gems - deep search for AniList">
+    <meta property="twitter:image" content="https://animiner.app/public/animiner.png">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "AniMiner",
+      "alternateName": "AniList Deep Search",
+      "description": "An advanced search engine for AniList with nested logic and relation filtering.",
+      "applicationCategory": "EntertainmentApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -64,7 +99,8 @@
                     <button id="seenBtn" class="share-btn-pill secondary" data-i18n-title="tooltips.manage_seen">
                         <i data-lucide="eye"></i> <span data-i18n="buttons.seen">Seen</span>
                     </button>
-                    <button id="blacklistBtn" class="share-btn-pill secondary" data-i18n-title="tooltips.manage_blacklist">
+                    <button id="blacklistBtn" class="share-btn-pill secondary"
+                        data-i18n-title="tooltips.manage_blacklist">
                         <i data-lucide="shield-off"></i> <span data-i18n="buttons.blacklist">Blacklist</span>
                     </button>
 
@@ -154,7 +190,8 @@
                         <label class="switch-container" data-i18n-title="tooltips.show_relation_filtered_desc">
                             <input type="checkbox" id="showRelationFilteredToggle">
                             <span class="switch-slider"></span>
-                            <span class="switch-text" data-i18n="labels.show_relation_filtered">Show Relation-Filtered</span>
+                            <span class="switch-text" data-i18n="labels.show_relation_filtered">Show
+                                Relation-Filtered</span>
                         </label>
                     </div>
                 </div>
@@ -179,7 +216,8 @@
                         <i data-lucide="clock"></i>
                         <span>Rate limit reached... waiting</span>
                     </div>
-                    <div id="errorNotice" class="rate-limit-warning hidden" style="color: var(--danger-color); background: rgba(232, 93, 117, 0.1); border-color: rgba(232, 93, 117, 0.3);">
+                    <div id="errorNotice" class="rate-limit-warning hidden"
+                        style="color: var(--danger-color); background: rgba(232, 93, 117, 0.1); border-color: rgba(232, 93, 117, 0.3);">
                         <i data-lucide="alert-triangle"></i>
                         <span>API Error</span>
                     </div>
@@ -205,7 +243,8 @@
                                 <i data-lucide="layers"></i> <span data-i18n="buttons.add_group">Add Filter Group</span>
                             </button>
                             <button id="addRelationBtn" class="text-btn relation-btn">
-                                <i data-lucide="git-branch-plus"></i> <span data-i18n="buttons.add_relation">Add Relation Filter</span>
+                                <i data-lucide="git-branch-plus"></i> <span data-i18n="buttons.add_relation">Add
+                                    Relation Filter</span>
                             </button>
                         </div>
                         <div class="filter-search-bar">
@@ -240,7 +279,8 @@
                 <div class="footer-left">
                     <div id="footerCopyright" data-i18n-html="footer.copy">&copy; Ayrlin Renata 2026</div>
                     <div id="anilistNotice" class="anilist-notice" data-i18n-html="footer.anilist_notice">
-                        AniMiner depends on the services of <a href="https://anilist.co" target="_blank">AniList</a>. Thank you AniList!
+                        AniMiner depends on the services of <a href="https://anilist.co" target="_blank">AniList</a>.
+                        Thank you AniList!
                         AniMiner is not affiliated or endorsed by AniList.
                     </div>
                 </div>
@@ -269,10 +309,13 @@
             <i data-lucide="database"></i>
             <span data-i18n="consent.header">Search Memory & Privacy</span>
         </h3>
-        <p class="consent-body" data-i18n="consent.body">AniMiner uses local storage to remember your filters, blacklist, and "Seen" history.</p>
+        <p class="consent-body" data-i18n="consent.body">AniMiner uses local storage to remember your filters,
+            blacklist, and "Seen" history.</p>
         <ul class="consent-bullets">
-            <li class="accept-logic" data-i18n-html="consent.accept_logic"><strong>Accept:</strong> Persist your discovery data across sessions.</li>
-            <li class="decline-logic" data-i18n-html="consent.decline_logic"><strong>Decline:</strong> All history and lists will be cleared when you close the tab.</li>
+            <li class="accept-logic" data-i18n-html="consent.accept_logic"><strong>Accept:</strong> Persist your
+                discovery data across sessions.</li>
+            <li class="decline-logic" data-i18n-html="consent.decline_logic"><strong>Decline:</strong> All history and
+                lists will be cleared when you close the tab.</li>
         </ul>
         <div class="consent-actions">
             <button id="acceptStorage" class="accept-storage" data-i18n="consent.accept">Accept</button>
