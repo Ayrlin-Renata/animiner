@@ -191,12 +191,14 @@ async function init() {
 
   UI.closeModal.onclick = () => {
     UI.modalOverlay.classList.add('hidden');
+    UI.modalContent.innerHTML = '';
     document.body.style.overflow = 'auto';
   };
 
   UI.modalOverlay.onclick = (e) => {
     if (e.target === UI.modalOverlay) {
         UI.modalOverlay.classList.add('hidden');
+        UI.modalContent.innerHTML = '';
         document.body.style.overflow = 'auto';
     }
   };
